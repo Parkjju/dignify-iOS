@@ -105,3 +105,6 @@ xcuserdata
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.toptal.com/developers/gitignore/api/xcode,swift,swiftpackagemanager
+
+# Project memory doc (AI session notes, not app source)
+dignify/dignify/docs/
