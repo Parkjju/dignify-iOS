@@ -9,6 +9,8 @@ struct FeedView: View {
     @State private var loadFailed = false
     @State private var nextCursor: String?
     @State private var isPaging = false
+    /// 앱 재구동 후 이어보기용으로 마지막 일반 피드 커서를 저장. 비면 처음부터(새 시드).
+    @AppStorage("feedCursor") private var savedFeedCursor = ""
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
@@ -44,15 +46,24 @@ struct FeedView: View {
     // MARK: - Feed loading
 
     /// 첫 진입 페치. 재진입 시 이미 로드돼 있으면 건너뛴다(force로 재시도).
+    /// 백엔드 커서는 시드+오프셋을 담아, 저장해둔 커서로 이어보면 앱 재구동 후에도
+    /// 같은 순서로 이어진다. cursor=nil이면 새 시드라 처음부터 다시 나온다.
     private func loadInitialFeed(force: Bool = false) async {
         guard force || feedList.isEmpty else { return }
         isLoading = true
         loadFailed = false
         do {
-            let res = try await session.api.send(.feed(), as: API.FeedResponse.self)
+            let saved = savedFeedCursor.isEmpty ? nil : savedFeedCursor
+            var res = try await session.api.send(.feed(cursor: saved), as: API.FeedResponse.self)
+            // 저장된 커서가 소진/무효(빈 결과)면 새 세션으로 폴백.
+            if res.items.isEmpty, saved != nil {
+                savedFeedCursor = ""
+                res = try await session.api.send(.feed(), as: API.FeedResponse.self)
+            }
             feedList = res.items.map(Feed.init)
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
+            savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
         } catch {
             loadFailed = true
         }
@@ -74,6 +85,8 @@ struct FeedView: View {
         else { return }
         feedList.append(contentsOf: res.items.map(Feed.init))
         nextCursor = res.hasMore ? res.nextCursor : nil
+        // 일반 피드일 때만 커서 저장(검색 커서는 세션 한정이라 저장 안 함).
+        if activeQuery.isEmpty { savedFeedCursor = nextCursor ?? "" }
     }
 
     private struct FeedSnapshot { var list: [Feed]; var index: Int; var cursor: String? }
