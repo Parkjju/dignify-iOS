@@ -88,6 +88,10 @@ struct FeedView: View {
         recentRaw = list.prefix(5).joined(separator: "\n")
     }
 
+    private func removeRecentSearch(_ query: String) {
+        recentRaw = recentSearches.filter { $0 != query }.joined(separator: "\n")
+    }
+
     private var previousFeed: Feed? {
         feedList.indices.contains(currentIndex - 1) ? feedList[currentIndex - 1] : nil
     }
@@ -122,7 +126,9 @@ struct FeedView: View {
 
     @ViewBuilder
     private var content: some View {
-        if isLoading {
+        // 전체 화면 로딩 스켈레톤은 보여줄 게 아예 없을 때(첫 진입)만. 검색 중엔
+        // 기존 피드를 그대로 두고 결과가 오면 교체해 검은 화면 깜빡임을 없앤다.
+        if isLoading && feedList.isEmpty {
             loadingView
         } else if feedList.isEmpty {
             emptyView
@@ -208,7 +214,7 @@ struct FeedView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, safeInsets.top + 8)
 
-                if audio.isPaused {
+                if audio.isPaused && !isSearching {   // 검색 패널 아래에 가리도록 검색 중엔 숨김
                     Image(systemName: "play.fill")
                         .font(.system(size: 56))
                         .foregroundStyle(.white.opacity(0.85))
@@ -330,19 +336,29 @@ struct FeedView: View {
                     .foregroundStyle(DSColor.textTertiary)
                     .padding(.bottom, 4)
                 ForEach(recentSearches, id: \.self) { term in
-                    Button { runSearch(term) } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 14))
-                                .foregroundStyle(DSColor.textTertiary)
-                            Text(term)
-                                .font(.system(size: 15))
-                                .foregroundStyle(DSColor.textPrimary)
-                            Spacer()
+                    HStack(spacing: 12) {
+                        Button { runSearch(term) } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(DSColor.textTertiary)
+                                Text(term)
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(DSColor.textPrimary)
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
                         }
-                        .padding(.vertical, 12)
+                        .buttonStyle(.plain)
+                        Button { removeRecentSearch(term) } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(DSColor.textTertiary)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.vertical, 12)
                 }
             }
             let typed = searchText.trimmingCharacters(in: .whitespaces)
@@ -365,12 +381,16 @@ struct FeedView: View {
         .padding(.top, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.white)
+        // 리스트 행(각자 버튼)을 제외한 여백 탭 → 검색 닫고 피드로 복귀.
+        .contentShape(Rectangle())
+        .onTapGesture { exitSearchMode() }
     }
 
     private func openSearch() {
         searchText = activeQuery          // 검색 재진입 시 기존 쿼리를 편집 가능하게.
         isSearching = true
         searchFocused = true
+        audio.pauseCurrent()              // 검색 중엔 재생 정지.
     }
 
     /// 확정 없이 검색 모드만 빠져나온다(바깥 탭/뒤로). 결과·activeQuery는 유지.
