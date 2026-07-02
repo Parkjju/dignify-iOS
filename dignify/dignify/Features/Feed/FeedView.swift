@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(AppSession.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var audio = FeedAudioController()
     @State private var feedList: [Feed] = []
     @State private var isLoading = true
     @State private var loadFailed = false
@@ -152,7 +154,7 @@ struct FeedView: View {
                 .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
                 .gesture(dragGesture(height: size.height))
-                .simultaneousGesture(doubleTapGesture())
+                .simultaneousGesture(tapGestures(height: size.height))
 
                 // 검색 중엔 피드 위에 투명 레이어를 깔아, 바깥(키보드 영역 밖) 탭으로
                 // 포커스를 해제한다(→ closeSearch로 축소). 검색바보다 아래 z-order라 바 탭은 그대로.
@@ -166,6 +168,16 @@ struct FeedView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, safeInsets.top + 8)
 
+                if audio.isPaused {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .shadow(color: .black.opacity(0.4), radius: 8)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
+
                 if showsHypeBurst {
                     HypeBurstView(isOn: feedList[currentIndex].isHyped, confetti: burstConfetti)
                         .position(burstLocation)
@@ -175,7 +187,18 @@ struct FeedView: View {
             .background(Color.black)
         }
         .ignoresSafeArea()
-        .onAppear(perform: resolveSafeInsets)
+        .onAppear {
+            resolveSafeInsets()
+            audio.updateWindow(feeds: feedList, current: currentIndex)
+        }
+        .onDisappear { audio.stop() }          // 탭 이탈 시 정지
+        .onChange(of: currentIndex) { _, _ in
+            audio.updateWindow(feeds: feedList, current: currentIndex)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            phase == .active ? audio.resumeCurrent() : audio.pauseCurrent()
+        }
+        .animation(.easeInOut(duration: 0.15), value: audio.isPaused)
     }
 
     /// 접힌 상태(40pt 돋보기 버튼) → 탭하면 우측 기준으로 풀폭까지 펼쳐지며 포커스.
@@ -238,11 +261,22 @@ struct FeedView: View {
             }
     }
 
-    private func doubleTapGesture() -> some Gesture {
+    /// 더블탭(하입)에 우선권을 주고, 단일 탭(재생/일시정지 토글)은 더블탭이
+    /// 성립 안 할 때만 발동. 그래서 단일 탭엔 두 번째 탭 대기 지연이 붙는다.
+    private func tapGestures(height: CGFloat) -> some Gesture {
         SpatialTapGesture(count: 2)
-            .onEnded { value in
-                triggerHype(at: value.location)
-            }
+            .onEnded { triggerHype(at: $0.location) }
+            .exclusively(before: SpatialTapGesture(count: 1).onEnded { value in
+                handleSingleTap(at: value.location, height: height)
+            })
+    }
+
+    /// 하단 정보/컨트롤 밴드(제목·하입·상세·공유) 탭은 무시 — 버튼과 겹쳐
+    /// 재생 토글이 오발동하는 걸 막는다. 그 위 영역 탭만 재생/일시정지.
+    private func handleSingleTap(at location: CGPoint, height: CGFloat) {
+        let controlBand = safeInsets.bottom + 160
+        guard location.y < height - controlBand else { return }
+        audio.toggleCurrentPlayback()
     }
 
     private func feedSlot(for feed: Feed, size: CGSize) -> some View {
