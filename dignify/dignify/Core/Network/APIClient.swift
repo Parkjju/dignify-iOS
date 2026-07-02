@@ -66,6 +66,9 @@ actor APIClient {
 
     var isAuthenticated: Bool { tokens != nil }
 
+    /// 로그아웃/회원탈퇴 시 서버에 넘길 refresh token. 토큰 없으면 nil.
+    var currentRefreshToken: String? { tokens?.refreshToken }
+
     // MARK: Send
 
     /// 응답 본문이 있는 요청.

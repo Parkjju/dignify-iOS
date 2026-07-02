@@ -257,6 +257,14 @@ struct FeedView: View {
         .onChange(of: scenePhase) { _, phase in
             phase == .active ? audio.resumeCurrent() : audio.pauseCurrent()
         }
+        // 다른 화면(마이페이지)에서 하입이 바뀌면 살아있는 피드 카드에도 반영.
+        .onChange(of: session.hypeState) { _, state in
+            for i in feedList.indices {
+                if let hyped = state[feedList[i].trackId], feedList[i].isHyped != hyped {
+                    feedList[i].isHyped = hyped
+                }
+            }
+        }
         .animation(.easeInOut(duration: 0.15), value: audio.isPaused)
         .animation(.easeInOut(duration: 0.2), value: toastMessage)
         .sheet(item: $detailTarget) { target in
@@ -517,6 +525,7 @@ struct FeedView: View {
         guard let index = feedList.firstIndex(where: { $0.trackId == trackId }),
               feedList[index].isHyped != target else { return }
         feedList[index].isHyped = target
+        session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
         Task {
             do {
                 try await session.api.send(target ? .hype(trackId: trackId) : .unhype(trackId: trackId))

@@ -32,6 +32,27 @@ final class FeedAudioController {
         observeInterruptions()
     }
 
+    /// 현재 재생(또는 일시정지) 중인 트랙 id — 마이페이지 셀의 재생 오버레이 판단용.
+    var activeTrackId: Int? { currentTrackId }
+
+    /// 단발 미리듣기(마이페이지). 같은 트랙이면 재생↔정지 토글, 다른 트랙이면 교체 후 재생.
+    /// 윈도우 관리 없이 한 번에 한 트랙만 유지한다.
+    func togglePreview(trackId: Int, url: URL) {
+        if currentTrackId == trackId {
+            toggleCurrentPlayback()
+            return
+        }
+        for id in Array(players.keys) { teardown(id) }
+        removeTimeObserver()
+        currentTrackId = nil                 // setCurrent의 동일 트랙 가드를 통과시킨다.
+        let player = AVPlayer(url: url)
+        player.actionAtItemEnd = .none
+        player.volume = 0
+        players[trackId] = player
+        addLoop(for: trackId, player: player)
+        setCurrent(trackId)
+    }
+
     // MARK: - Window
 
     /// 스와이프 settle 후(= currentIndex 변경 후) 호출. current 기준 3칸 윈도우를 재구성한다.

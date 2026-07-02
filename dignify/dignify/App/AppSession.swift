@@ -6,6 +6,10 @@ import Observation
 final class AppSession {
     var authState: AuthState = .unknown
 
+    /// 하입 상태 변경 브로드캐스트(trackId → 최신 하입 여부). 하입을 토글하는 화면이
+    /// 기록하고, 같은 트랙을 들고 있는 다른 화면(피드↔마이페이지)이 관찰해 UI를 맞춘다.
+    var hypeState: [Int: Bool] = [:]
+
     let api: APIClient
 
     // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
@@ -42,6 +46,32 @@ final class AppSession {
         let tokens = try await api.send(.appleSignIn(identityToken: identityToken), as: AuthTokens.self)
         await api.setTokens(tokens)
         try await refreshAuthState()
+    }
+
+    /// 장르 목록을 도메인 모델로 조회한다(온보딩·장르 설정 공용).
+    func fetchGenres() async throws -> [Genre] {
+        let res = try await api.send(.genres, as: API.GenresResponse.self)
+        return res.genres.map { Genre(id: $0.genreId, name: $0.genreName) }
+    }
+
+    /// 로그아웃 — 서버에 refresh token revoke 요청(best-effort) 후 로컬 토큰을 폐기한다.
+    func logout() async {
+        if let token = await api.currentRefreshToken {
+            try? await api.send(.logout(refreshToken: token))   // 실패해도 로컬은 정리.
+        }
+        await api.setTokens(nil)
+        authState = .signedOut
+    }
+
+    /// 회원 탈퇴 — 서버 계정 삭제 후 로컬 토큰 폐기. 실패 시 throw(호출부가 표시).
+    func withdraw() async throws {
+        guard let token = await api.currentRefreshToken else {
+            authState = .signedOut
+            return
+        }
+        try await api.send(.withdraw(refreshToken: token))
+        await api.setTokens(nil)
+        authState = .signedOut
     }
 
     /// 저장된 토큰 기준으로 /users/me를 조회해 signedIn / onboardingRequired를 분기한다.
