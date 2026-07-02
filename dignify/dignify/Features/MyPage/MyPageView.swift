@@ -41,7 +41,7 @@ struct MyPageView: View {
     private var profileHeader: some View {
         VStack {
             if isEditingNick {
-                TextField("닉네임", text: $nickDraft)
+                TextField("Nickname", text: $nickDraft)
                     .multilineTextAlignment(.center)
                     .font(DSTypography.headline)
                     .foregroundStyle(DSColor.textPrimary)
@@ -83,7 +83,7 @@ struct MyPageView: View {
         if new == nickname { isEditingNick = false; nickError = nil; return }
         // 백엔드 검증(NicknameUpdateRequest @Pattern)과 동일 규칙으로 미리 막는다.
         guard new.range(of: "^[a-zA-Z0-9_가-힣]{1,20}$", options: .regularExpression) != nil else {
-            nickError = "영문·한글·숫자·_ 1~20자만 가능해요"
+            nickError = String(localized: "Letters, numbers, and _ only (1–20 characters)")
             return                          // 편집 모드 유지.
         }
         nickError = nil
@@ -107,7 +107,7 @@ struct MyPageView: View {
         if isLoading && items.isEmpty {
             ProgressView().padding(.vertical, 40)
         } else if items.isEmpty {
-            Text(loadFailed ? "불러오지 못했어요" : "아직 하입한 트랙이 없어요")
+            Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
                 .padding(.vertical, 40)
@@ -124,7 +124,7 @@ struct MyPageView: View {
 
     private var moreRow: some View {
         HStack {
-            Text("하입 기록 전체 보기")
+            Text("See all hypes")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(DSColor.brand)
             Spacer()
@@ -146,22 +146,22 @@ struct MyPageView: View {
 
     private var settingsList: some View {
         VStack(spacing: 0) {
-            NavigationLink { GenreSettingsView() } label: { settingsRow("장르 설정") }
-            NavigationLink { LegalView(type: .terms) } label: { settingsRow("이용약관") }
-            NavigationLink { LegalView(type: .privacy) } label: { settingsRow("개인정보처리방침") }
-            Button { logout() } label: { settingsRow("로그아웃") }
-            Button { showWithdrawAlert = true } label: { settingsRow("계정 삭제", destructive: true) }
+            NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
+            NavigationLink { LegalView(type: .terms) } label: { settingsRow("Terms of Service") }
+            NavigationLink { LegalView(type: .privacy) } label: { settingsRow("Privacy Policy") }
+            Button { logout() } label: { settingsRow("Log Out") }
+            Button { showWithdrawAlert = true } label: { settingsRow("Delete Account", destructive: true) }
         }
         .buttonStyle(.plain)
-        .alert("계정을 삭제할까요?", isPresented: $showWithdrawAlert) {
-            Button("취소", role: .cancel) {}
-            Button("삭제", role: .destructive) { withdraw() }
+        .alert("Delete account?", isPresented: $showWithdrawAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) { withdraw() }
         } message: {
-            Text("하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요.")
+            Text("All your data, including hypes and genres, will be deleted permanently.")
         }
     }
 
-    private func settingsRow(_ label: String, destructive: Bool = false) -> some View {
+    private func settingsRow(_ label: LocalizedStringKey, destructive: Bool = false) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 15))

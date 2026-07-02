@@ -5,10 +5,10 @@ struct LegalView: View {
         case terms
         case privacy
 
-        var title: String {
+        var title: LocalizedStringKey {
             switch self {
-            case .terms: return "이용약관"
-            case .privacy: return "개인정보처리방침"
+            case .terms: return "Terms of Service"
+            case .privacy: return "Privacy Policy"
             }
         }
     }

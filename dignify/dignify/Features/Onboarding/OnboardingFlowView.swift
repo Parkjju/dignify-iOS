@@ -18,7 +18,7 @@ struct OnboardingFlowView: View {
                         .font(.system(size: 32, weight: .bold))
                         .tracking(-0.96)
                         .foregroundStyle(DSColor.brand)
-                    Text("인디 음악을 발굴하고 당신만의 취향을 쌓아가세요.")
+                    Text("Discover indie music and build your own taste.")
                         .font(.system(size: 14))
                         .foregroundStyle(DSColor.textTertiary)
                         .multilineTextAlignment(.center)
@@ -91,12 +91,12 @@ struct OnboardingFlowView: View {
         case .failure(let error):
             // 사용자가 시트를 취소한 경우는 에러로 표시하지 않는다.
             if (error as? ASAuthorizationError)?.code == .canceled { return }
-            errorMessage = "로그인에 실패했어요. 다시 시도해 주세요."
+            errorMessage = String(localized: "Sign-in failed. Please try again.")
         case .success(let auth):
             guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
                   let tokenData = credential.identityToken,
                   let identityToken = String(data: tokenData, encoding: .utf8) else {
-                errorMessage = "로그인 정보를 읽지 못했어요. 다시 시도해 주세요."
+                errorMessage = String(localized: "Couldn't read your sign-in info. Please try again.")
                 return
             }
             isSigningIn = true
@@ -105,14 +105,14 @@ struct OnboardingFlowView: View {
                 do {
                     try await appSession.signInWithApple(identityToken: identityToken)
                 } catch {
-                    errorMessage = "로그인에 실패했어요. 다시 시도해 주세요."
+                    errorMessage = String(localized: "Sign-in failed. Please try again.")
                 }
             }
         }
     }
 
     private var termsText: LocalizedStringKey {
-        "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
+        "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy)."
     }
 
     private enum OnboardingDestination: Hashable {

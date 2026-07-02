@@ -175,13 +175,13 @@ struct FeedView: View {
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                 if loadFailed {
-                    Button("다시 시도") {
+                    Button("Try again") {
                         Task { activeQuery.isEmpty ? await loadInitialFeed(force: true)
                                                     : await loadSearch(activeQuery) }
                     }
                     .foregroundStyle(DSColor.brand)
                 } else if !activeQuery.isEmpty {
-                    Button("전체 피드로 돌아가기") { clearSearch() }
+                    Button("Back to feed") { clearSearch() }
                         .foregroundStyle(DSColor.brand)
                 }
             }
@@ -191,9 +191,9 @@ struct FeedView: View {
     }
 
     private var emptyMessage: String {
-        if loadFailed { return "불러오지 못했어요" }
-        if !activeQuery.isEmpty { return "\"\(activeQuery)\"에 대한 결과가 없어요" }
-        return "표시할 트랙이 없어요"
+        if loadFailed { return String(localized: "Couldn't load") }
+        if !activeQuery.isEmpty { return String(localized: "No results for \"\(activeQuery)\"") }
+        return String(localized: "No tracks to show")
     }
 
     private var feed: some View {
@@ -290,7 +290,7 @@ struct FeedView: View {
     /// 공유: activity 시트 대신 Apple Music URL만 클립보드에 복사하고 토스트 안내.
     private func shareTrack(_ feed: Feed) {
         UIPasteboard.general.string = feed.trackViewUrl
-        toastMessage = "링크가 복사됐어요"
+        toastMessage = String(localized: "Link copied")
         Task {
             try? await Task.sleep(for: .seconds(2))
             toastMessage = nil
@@ -309,7 +309,7 @@ struct FeedView: View {
                     // 40pt로 축소된 서치바에 아이콘이 클립되던 문제를 피한다.
                     DSSearchBar(
                         text: $searchText,
-                        placeholder: "아티스트, 트랙, 장르 검색",
+                        placeholder: "Search artists, tracks, genres",
                         backgroundStyle: DSColor.surface,
                         borderStyle: DSColor.borderLight,
                         isFocused: $searchFocused,
@@ -352,7 +352,7 @@ struct FeedView: View {
     private var searchPanel: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !recentSearches.isEmpty {
-                Text("최근 검색")
+                Text("Recent searches")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(DSColor.textTertiary)
                     .padding(.bottom, 4)
@@ -388,7 +388,7 @@ struct FeedView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 14))
-                        Text("\"\(typed)\" 검색하기")
+                        Text("Search \"\(typed)\"")
                             .font(.system(size: 15, weight: .medium))
                         Spacer()
                     }

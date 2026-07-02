@@ -47,10 +47,10 @@ struct TrackDetailView: View {
 
     private var failure: some View {
         VStack(spacing: 12) {
-            Text("트랙 정보를 불러오지 못했어요")
+            Text("Couldn't load track info")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(DSColor.textPrimary)
-            Button("다시 시도") { loadFailed = false; Task { await load() } }
+            Button("Try again") { loadFailed = false; Task { await load() } }
                 .foregroundStyle(DSColor.brand)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -117,13 +117,13 @@ struct TrackDetailView: View {
 
     @ViewBuilder
     private func hypers(_ users: [API.UserSummary]) -> some View {
-        Text("하입한 유저")
+        Text("Hyped by")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(DSColor.textTertiary)
             .padding(.bottom, 14)
         Group {
             if users.isEmpty {
-                Text("아직 하입한 유저가 없어요")
+                Text("No hypes yet")
                     .font(.system(size: 14))
                     .foregroundStyle(DSColor.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -155,7 +155,7 @@ struct TrackDetailView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "music.note")
-                Text("Apple Music에서 듣기")
+                Text("Listen on Apple Music")
                     .font(.system(size: 14, weight: .semibold))
             }
             .foregroundStyle(.white)

@@ -15,7 +15,7 @@ struct GenreSettingsView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("최대 3개까지 선택할 수 있어요")
+                    Text("Pick up to 3")
                         .font(.system(size: 14))
                         .foregroundStyle(DSColor.textTertiary)
 
@@ -46,7 +46,7 @@ struct GenreSettingsView: View {
                 Button {
                     save()
                 } label: {
-                    if isSaving { ProgressView().tint(.white) } else { Text("저장") }
+                    if isSaving { ProgressView().tint(.white) } else { Text("Save") }
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
                 .disabled(isSaving || selected.isEmpty)
@@ -55,7 +55,7 @@ struct GenreSettingsView: View {
             .padding(.vertical, 16)
         }
         .background(DSColor.background)
-        .navigationTitle("장르 설정")
+        .navigationTitle("Genre Settings")
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
@@ -87,7 +87,7 @@ struct GenreSettingsView: View {
                 try await appSession.api.send(.updateGenres(ids: selected.map(\.id)))
                 dismiss()
             } catch {
-                errorMessage = "저장에 실패했어요. 다시 시도해 주세요."
+                errorMessage = String(localized: "Couldn't save. Please try again.")
             }
         }
     }

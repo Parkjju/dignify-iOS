@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DSSearchBar: View {
     @Binding var text: String
-    let placeholder: String
+    let placeholder: LocalizedStringKey
     var foregroundStyle: Color = DSColor.textPrimary
     var backgroundStyle: Color = DSColor.surface
     var borderStyle: Color = DSColor.borderLight
@@ -59,6 +59,6 @@ struct DSSearchBar: View {
 #Preview {
     @Previewable @State var text = ""
 
-    DSSearchBar(text: $text, placeholder: "아티스트, 트랙, 장르 검색")
+    DSSearchBar(text: $text, placeholder: "Search artists, tracks, genres")
         .padding()
 }

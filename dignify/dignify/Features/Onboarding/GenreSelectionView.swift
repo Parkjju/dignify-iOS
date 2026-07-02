@@ -19,11 +19,11 @@ struct GenreSelectionView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("어떤 음악을 좋아하세요?")
+                        Text("What music do you like?")
                             .font(DSTypography.title1)
                             .tracking(-0.48)
                             .foregroundStyle(DSColor.textPrimary)
-                        Text("최대 3개까지 선택할 수 있어요")
+                        Text("Pick up to 3")
                             .font(.system(size: 14))
                             .foregroundStyle(DSColor.textTertiary)
                     }
@@ -50,7 +50,7 @@ struct GenreSelectionView: View {
 
             VStack(spacing: 12) {
                 if !selectedGenres.isEmpty {
-                    Text("\(selectedGenres.map(\.name).sorted().joined(separator: ", ")) 선택됨")
+                    Text("\(selectedGenres.map(\.name).sorted().joined(separator: ", ")) selected")
                         .font(DSTypography.caption)
                         .foregroundStyle(DSColor.textTertiary)
                         .multilineTextAlignment(.center)
@@ -69,7 +69,7 @@ struct GenreSelectionView: View {
                     if isSubmitting {
                         ProgressView().tint(.white)
                     } else {
-                        Text("완료")
+                        Text("Done")
                     }
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
@@ -103,7 +103,7 @@ struct GenreSelectionView: View {
                 try await appSession.api.send(.completeOnboarding)
                 appSession.authState = .signedIn
             } catch {
-                errorMessage = "저장에 실패했어요. 다시 시도해 주세요."
+                errorMessage = String(localized: "Couldn't save. Please try again.")
             }
         }
     }

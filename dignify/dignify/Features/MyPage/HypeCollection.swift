@@ -25,13 +25,6 @@ struct HypeCollection: View {
         let tracks: [API.HypeItem]
     }
 
-    private static let headerFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "yyyy년 M월 d일"
-        return f
-    }()
-
     /// 백엔드가 최신순으로 주므로 등장 순서를 유지해 날짜별로 묶는다.
     private var groups: [DateGroup] {
         let cal = Calendar.current
@@ -42,7 +35,7 @@ struct HypeCollection: View {
             if buckets[day] == nil { order.append(day) }
             buckets[day, default: []].append(item)
         }
-        let all = order.map { DateGroup(id: $0, title: Self.headerFormatter.string(from: $0), tracks: buckets[$0] ?? []) }
+        let all = order.map { DateGroup(id: $0, title: $0.formatted(date: .long, time: .omitted), tracks: buckets[$0] ?? []) }
         if let maxGroups { return Array(all.prefix(maxGroups)) }
         return all
     }
@@ -155,21 +148,21 @@ struct HypeCollection: View {
                     detailTarget = DetailTarget(id: id)
                 }
             } label: {
-                actionRow("트랙 상세보기", systemName: "info.circle")
+                actionRow("Track details", systemName: "info.circle")
             }
             Divider().padding(.leading, 20)
             Button {
                 removeHype(track)
                 actionTarget = nil
             } label: {
-                actionRow("하입 제거", systemName: "heart.slash", destructive: true)
+                actionRow("Remove hype", systemName: "heart.slash", destructive: true)
             }
         }
         .buttonStyle(.plain)
         .presentationBackground(.white)
     }
 
-    private func actionRow(_ label: String, systemName: String, destructive: Bool = false) -> some View {
+    private func actionRow(_ label: LocalizedStringKey, systemName: String, destructive: Bool = false) -> some View {
         HStack(spacing: 14) {
             Image(systemName: systemName)
                 .font(.system(size: 17))

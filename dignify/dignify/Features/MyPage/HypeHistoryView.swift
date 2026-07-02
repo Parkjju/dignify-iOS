@@ -15,7 +15,7 @@ struct HypeHistoryView: View {
             if isLoading && items.isEmpty {
                 ProgressView().padding(.vertical, 60)
             } else if items.isEmpty {
-                Text(loadFailed ? "불러오지 못했어요" : "아직 하입한 트랙이 없어요")
+                Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
                     .font(DSTypography.body)
                     .foregroundStyle(DSColor.textSecondary)
                     .padding(.vertical, 60)
@@ -29,7 +29,7 @@ struct HypeHistoryView: View {
             }
         }
         .background(DSColor.background)
-        .navigationTitle("하입 기록")
+        .navigationTitle("Hype History")
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
