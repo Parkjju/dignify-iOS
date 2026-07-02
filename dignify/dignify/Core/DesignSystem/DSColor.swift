@@ -10,6 +10,7 @@ enum DSColor {
     static let textTertiary = Color(hex: 0x9CA3AF)
     static let border = Color(hex: 0xD1D5DB)
     static let borderLight = Color(hex: 0xE5E7EB)
+    static let divider = Color(hex: 0xF3F4F6)
     static let destructive = Color(hex: 0xEF4444)
 }
 

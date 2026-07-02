@@ -32,7 +32,7 @@ struct DSGenreChip: View {
                 }
         }
         .disabled(isDisabled)
-        .buttonStyle(.plain)
+        .buttonStyle(DSGenreChipButtonStyle(isDisabled: isDisabled))
         .animation(.easeOut(duration: 0.15), value: isSelected)
         .animation(.easeOut(duration: 0.15), value: isDisabled)
     }
@@ -51,6 +51,16 @@ struct DSGenreChip: View {
         if isSelected { return DSColor.brand }
         if isDisabled { return DSColor.borderLight }
         return DSColor.border
+    }
+}
+
+private struct DSGenreChipButtonStyle: ButtonStyle {
+    let isDisabled: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !isDisabled ? 0.95 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 

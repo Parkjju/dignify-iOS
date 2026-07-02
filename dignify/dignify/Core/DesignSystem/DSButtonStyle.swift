@@ -3,9 +3,9 @@ import SwiftUI
 struct DSPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(DSTypography.bodyMedium)
+            .font(.system(size: 16, weight: .semibold))
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .frame(height: 56)
             .foregroundStyle(.white)
             .background(DSColor.brand, in: RoundedRectangle(cornerRadius: DSRadius.medium))
             .scaleEffect(configuration.isPressed ? 0.97 : 1)

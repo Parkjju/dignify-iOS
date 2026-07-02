@@ -73,7 +73,7 @@ struct GenreSelectionView: View {
                     .fill(DSColor.background)
                     .overlay(alignment: .top) {
                         Rectangle()
-                            .fill(DSColor.borderLight)
+                            .fill(DSColor.divider)
                             .frame(height: 1)
                     }
             }
