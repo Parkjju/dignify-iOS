@@ -307,7 +307,27 @@ struct FeedView: View {
 
     private func toggleHype(for feed: Feed) {
         guard let index = feedList.firstIndex(where: { $0.trackId == feed.trackId }) else { return }
-        feedList[index].isHyped.toggle()
+        setHype(trackId: feed.trackId, to: !feedList[index].isHyped)
+    }
+
+    /// 하입 상태를 낙관적으로 갱신하고 서버와 동기화. 이미 목표 상태면 no-op.
+    /// POST 409(이미 하입)·DELETE 404(기록 없음)는 목표와 일치하므로 성공 취급,
+    /// 그 외 실패는 롤백한다. 페이징으로 인덱스가 밀릴 수 있어 매번 trackId로 재조회.
+    private func setHype(trackId: Int, to target: Bool) {
+        guard let index = feedList.firstIndex(where: { $0.trackId == trackId }),
+              feedList[index].isHyped != target else { return }
+        feedList[index].isHyped = target
+        Task {
+            do {
+                try await session.api.send(target ? .hype(trackId: trackId) : .unhype(trackId: trackId))
+            } catch APIError.server(_, _, let status) where status == 409 || status == 404 {
+                // 이미 목표 상태 — 롤백 불필요.
+            } catch {
+                if let i = feedList.firstIndex(where: { $0.trackId == trackId }) {
+                    feedList[i].isHyped = !target
+                }
+            }
+        }
     }
 
     private func backgroundArtwork(for feed: Feed, size: CGSize) -> some View {
@@ -328,7 +348,7 @@ struct FeedView: View {
 
     private func triggerHype(at location: CGPoint) {
         // 탭 제스처는 하입을 켜기만 한다(false→true, true는 유지). 해제는 하입 버튼으로만.
-        feedList[currentIndex].isHyped = true
+        setHype(trackId: feedList[currentIndex].trackId, to: true)
         burstLocation = location
         burstConfetti = Self.makeConfetti()
         showsHypeBurst = true
