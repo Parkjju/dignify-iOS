@@ -7,11 +7,16 @@ struct DSSearchBar: View {
     var backgroundStyle: Color = DSColor.surface
     var borderStyle: Color = DSColor.borderLight
     var showsClearButton: Bool = true
+    var iconSize: CGFloat = 15
+    /// 외부에서 TextField 포커스를 양방향 제어/관찰하고 싶을 때 주입(옵셔널).
+    var isFocused: Binding<Bool>? = nil
+
+    @FocusState private var fieldFocused: Bool
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(DSColor.textTertiary)
 
             TextField(placeholder, text: $text)
@@ -19,6 +24,7 @@ struct DSSearchBar: View {
                 .foregroundStyle(foregroundStyle)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .focused($fieldFocused)
 
             if showsClearButton, !text.isEmpty {
                 Button {
@@ -37,6 +43,11 @@ struct DSSearchBar: View {
         .overlay {
             RoundedRectangle(cornerRadius: DSRadius.medium)
                 .stroke(borderStyle, lineWidth: 1)
+        }
+        // 외부 바인딩 ↔ 내부 FocusState 양방향 동기화.
+        .onChange(of: fieldFocused) { _, focused in isFocused?.wrappedValue = focused }
+        .onChange(of: isFocused?.wrappedValue) { _, focused in
+            if let focused, focused != fieldFocused { fieldFocused = focused }
         }
     }
 }

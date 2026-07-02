@@ -108,3 +108,6 @@ xcuserdata
 
 # Project memory doc (AI session notes, not app source)
 dignify/dignify/docs/
+
+# macOS
+.DS_Store
