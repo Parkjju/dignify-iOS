@@ -9,7 +9,7 @@ struct AppRootView: View {
             case .unknown:
                 LaunchLoadingView()
                     .task {
-                        appSession.resolveInitialState()
+                        await appSession.resolveInitialState()
                     }
             case .signedOut, .onboardingRequired:
                 OnboardingFlowView()
