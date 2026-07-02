@@ -84,12 +84,17 @@ actor APIClient {
 
     private func perform(_ endpoint: Endpoint, isRetry: Bool = false) async throws -> Data {
         let request = try buildRequest(endpoint)
+        apiLog("→ \(endpoint.method.rawValue) \(endpoint.path)\(isRetry ? " (retry)" : "")")
 
         let (data, response): (Data, URLResponse)
         do { (data, response) = try await session.data(for: request) }
-        catch { throw APIError.transport(error) }
+        catch {
+            apiLog("✗ \(endpoint.path) transport: \(error.localizedDescription)")
+            throw APIError.transport(error)
+        }
 
         guard let http = response as? HTTPURLResponse else { throw APIError.http(status: -1) }
+        apiLog("← \(http.statusCode) \(endpoint.path)")
 
         // 401 → refresh 후 1회 재시도. refresh 엔드포인트 자체의 401은 재시도 대상 아님.
         if http.statusCode == 401, endpoint.needsAuth, !isRetry {
@@ -100,9 +105,11 @@ actor APIClient {
         guard (200..<300).contains(http.statusCode) else {
             if http.statusCode == 401 { onAuthFailure?() }
             if let env = try? JSON.decoder.decode(ErrorEnvelope.self, from: data) {
+                apiLog("✗ \(endpoint.path) \(http.statusCode) \(env.code): \(env.message)")
                 if http.statusCode == 401 { throw APIError.unauthorized }
                 throw APIError.server(code: env.code, message: env.message, status: http.statusCode)
             }
+            apiLog("✗ \(endpoint.path) \(http.statusCode) (no envelope): \(String(data: data, encoding: .utf8) ?? "")")
             throw http.statusCode == 401 ? APIError.unauthorized : APIError.http(status: http.statusCode)
         }
         return data
@@ -144,15 +151,18 @@ actor APIClient {
             throw APIError.unauthorized
         }
         let request = try buildRequest(.refresh(refreshToken: refreshToken))
+        apiLog("→ POST /auth/refresh")
 
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                apiLog("✗ /auth/refresh failed → 재로그인 필요")
                 // 슬라이딩 윈도우 refresh 실패 → 재로그인 필요
                 setTokens(nil)
                 onAuthFailure?()
                 throw APIError.unauthorized
             }
+            apiLog("← 200 /auth/refresh (토큰 갱신)")
             // 응답의 새 refreshToken까지 반드시 저장 (rotation).
             let new = try JSON.decoder.decode(AuthTokens.self, from: data)
             setTokens(new)
@@ -163,6 +173,14 @@ actor APIClient {
             throw APIError.transport(error)
         }
     }
+}
+
+/// 네트워크 요청/응답 콘솔 로그. DEBUG 빌드에서만 출력, 릴리스는 no-op.
+/// Xcode 콘솔에서 "[API]"로 필터.
+private nonisolated func apiLog(_ message: @autoclosure () -> String) {
+    #if DEBUG
+    print("[API] \(message())")
+    #endif
 }
 
 /// Encodable existential을 URLRequest body로 인코딩하기 위한 얇은 래퍼.

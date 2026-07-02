@@ -29,12 +29,25 @@ final class AppSession {
         }
 
         do {
-            let profile = try await api.send(.myProfile, as: API.UserProfile.self)
-            authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
+            try await refreshAuthState()
         } catch {
             // onAuthFailure가 이미 처리했을 수 있으나 방어적으로 명시.
             authState = .signedOut
         }
+    }
+
+    /// Apple identity token으로 로그인/가입 후 온보딩 여부에 따라 진입 상태를 결정한다.
+    /// 실패 시 throw — 호출부(로그인 화면)가 에러를 표시한다.
+    func signInWithApple(identityToken: String) async throws {
+        let tokens = try await api.send(.appleSignIn(identityToken: identityToken), as: AuthTokens.self)
+        await api.setTokens(tokens)
+        try await refreshAuthState()
+    }
+
+    /// 저장된 토큰 기준으로 /users/me를 조회해 signedIn / onboardingRequired를 분기한다.
+    private func refreshAuthState() async throws {
+        let profile = try await api.send(.myProfile, as: API.UserProfile.self)
+        authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
     }
 }
 

@@ -10,6 +10,8 @@ import SwiftUI
 struct GenreSelectionView: View {
     @Environment(AppSession.self) private var appSession
     @State private var selectedGenres: Set<Genre> = []
+    @State private var isSubmitting = false
+    @State private var errorMessage: String?
     
     private let genres: [Genre] = [
         Genre(id: 43, name: "Indie Pop"),
@@ -60,10 +62,24 @@ struct GenreSelectionView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                Button("완료") {
-                    appSession.authState = .signedIn
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(DSTypography.caption)
+                        .foregroundStyle(DSColor.destructive)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button {
+                    submit()
+                } label: {
+                    if isSubmitting {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("완료")
+                    }
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
+                .disabled(isSubmitting)
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
@@ -81,6 +97,22 @@ struct GenreSelectionView: View {
         .background(DSColor.background)
     }
     
+    /// 선택 장르를 서버에 저장하고 온보딩 완료 처리 후 signedIn으로 전환한다.
+    private func submit() {
+        errorMessage = nil
+        isSubmitting = true
+        Task {
+            defer { isSubmitting = false }
+            do {
+                try await appSession.api.send(.updateGenres(ids: selectedGenres.map(\.id)))
+                try await appSession.api.send(.completeOnboarding)
+                appSession.authState = .signedIn
+            } catch {
+                errorMessage = "저장에 실패했어요. 다시 시도해 주세요."
+            }
+        }
+    }
+
     private func toggle(_ genre: Genre) {
         if selectedGenres.contains(genre) {
             selectedGenres.remove(genre)

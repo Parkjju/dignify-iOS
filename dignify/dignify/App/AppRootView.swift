@@ -11,8 +11,10 @@ struct AppRootView: View {
                     .task {
                         await appSession.resolveInitialState()
                     }
-            case .signedOut, .onboardingRequired:
+            case .signedOut:
                 OnboardingFlowView()
+            case .onboardingRequired:
+                GenreSelectionView()
             case .signedIn:
                 MainTabView()
             }
