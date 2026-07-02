@@ -22,14 +22,9 @@ extension Feed {
     /// 170×170 등도 섞여 있음). iTunes CDN은 URL의 `WxH` 사이즈 세그먼트를 바꾸면
     /// 임의 크기를 서빙하므로, 소스 크기와 무관하게 표시용으로 키운 URL을 만든다.
     /// 'x'가 숫자 사이에 오는 곳은 사이즈 세그먼트뿐이라(경로 해시는 hex) 정규식이 안전.
-    func artworkURL(size: Int) -> URL? {
-        let upsized = artworkUrl.replacingOccurrences(
-            of: "[0-9]+x[0-9]+", with: "\(size)x\(size)", options: .regularExpression)
-        return URL(string: upsized)
-    }
+    func artworkURL(size: Int) -> URL? { artworkUrl.itunesArtworkURL(size: size) }
 
-    /// 서버 wire 타입 → 도메인 모델. 필드가 1:1이라 단순 복사.
-    init(_ item: API.FeedItem) {
+    init(_ item: API.FeedItem) {   // 서버 wire 타입 → 도메인 모델. 필드 1:1 복사.
         self.init(
             trackId: item.trackId,
             trackName: item.trackName,
@@ -39,5 +34,15 @@ extension Feed {
             trackViewUrl: item.trackViewUrl,
             isHyped: item.isHyped
         )
+    }
+}
+
+extension String {
+    /// iTunes 아트워크 URL의 `WxH` 사이즈 세그먼트를 임의 크기로 바꾼다.
+    /// 'x'가 숫자 사이에 오는 곳은 사이즈 세그먼트뿐이라(경로 해시는 hex) 정규식이 안전.
+    /// Feed·TrackDetail 등 iTunes 소스 URL을 쓰는 곳에서 공유.
+    func itunesArtworkURL(size: Int) -> URL? {
+        URL(string: replacingOccurrences(
+            of: "[0-9]+x[0-9]+", with: "\(size)x\(size)", options: .regularExpression))
     }
 }

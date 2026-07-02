@@ -71,7 +71,19 @@ nonisolated struct TokenStore {
 nonisolated enum JSON {
     static var decoder: JSONDecoder {
         let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
+        // Spring이 Instant를 소수점 초 붙여 직렬화(예 "…:56.123456Z")하는데
+        // 기본 .iso8601 포매터는 소수점 초를 못 읽는다. 둘 다 시도해서 파싱.
+        d.dateDecodingStrategy = .custom { decoder in
+            let s = try decoder.singleValueContainer().decode(String.self)
+            let fractional = ISO8601DateFormatter()
+            fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            guard let date = fractional.date(from: s) ?? ISO8601DateFormatter().date(from: s) else {
+                throw DecodingError.dataCorrupted(.init(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "ISO8601 날짜 파싱 실패: \(s)"))
+            }
+            return date
+        }
         return d
     }
     static var encoder: JSONEncoder {

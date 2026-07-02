@@ -10,6 +10,8 @@ struct DSSearchBar: View {
     var iconSize: CGFloat = 15
     /// 외부에서 TextField 포커스를 양방향 제어/관찰하고 싶을 때 주입(옵셔널).
     var isFocused: Binding<Bool>? = nil
+    /// 키보드 return(검색) 눌렀을 때. 검색 확정형 실행에 사용.
+    var onSubmit: (() -> Void)? = nil
 
     @FocusState private var fieldFocused: Bool
 
@@ -24,7 +26,9 @@ struct DSSearchBar: View {
                 .foregroundStyle(foregroundStyle)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .submitLabel(.search)
                 .focused($fieldFocused)
+                .onSubmit { onSubmit?() }
 
             if showsClearButton, !text.isEmpty {
                 Button {

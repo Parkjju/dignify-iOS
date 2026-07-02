@@ -62,6 +62,8 @@ nonisolated enum API {
     struct UserSummary: Decodable {
         let userId: Int
         let nickname: String
+        /// 하입한 시각. 백엔드 배포 전엔 필드가 없어 nil(옵셔널이라 디코딩 안 깨짐).
+        let hypedAt: Date?
     }
 
     // MARK: Users

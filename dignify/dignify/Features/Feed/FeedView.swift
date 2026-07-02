@@ -12,8 +12,17 @@ struct FeedView: View {
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
+    /// 확정된 검색어(빈 문자열이면 일반 피드). 비어있지 않으면 feedList는 검색 결과다.
+    @State private var activeQuery = ""
+    /// 검색 진입 시 일반 피드 상태를 보관 → 검색 종료 시 복원(재페치 없이).
+    @State private var savedFeed: FeedSnapshot?
+    /// 최근 검색 최대 5개. @AppStorage는 배열 미지원이라 개행으로 join.
+    /// ponytail: 단일 라인 TextField라 검색어에 개행이 안 들어와 안전.
+    @AppStorage("recentSearches") private var recentRaw = ""
     @State private var offset: CGFloat = 0
     @State private var currentIndex = 0
+    @State private var detailTarget: DetailTarget?
+    @State private var toastMessage: String?
     @State private var showsHypeBurst = false
     @State private var burstLocation: CGPoint = .zero
     @State private var burstConfetti: [ConfettiPiece] = []
@@ -57,10 +66,26 @@ struct FeedView: View {
               currentIndex >= feedList.count - 3 else { return }
         isPaging = true
         defer { isPaging = false }
-        guard let res = try? await session.api.send(.feed(cursor: cursor), as: API.FeedResponse.self)
+        // 검색 중이면 같은 쿼리로 다음 페이지를, 아니면 일반 피드를 잇는다.
+        let endpoint = activeQuery.isEmpty
+            ? Endpoint.feed(cursor: cursor)
+            : .search(query: activeQuery, cursor: cursor)
+        guard let res = try? await session.api.send(endpoint, as: API.FeedResponse.self)
         else { return }
         feedList.append(contentsOf: res.items.map(Feed.init))
         nextCursor = res.hasMore ? res.nextCursor : nil
+    }
+
+    private struct FeedSnapshot { var list: [Feed]; var index: Int; var cursor: String? }
+
+    private var recentSearches: [String] {
+        recentRaw.split(separator: "\n").map(String.init)
+    }
+
+    private func addRecentSearch(_ query: String) {
+        var list = recentSearches.filter { $0 != query }
+        list.insert(query, at: 0)
+        recentRaw = list.prefix(5).joined(separator: "\n")
     }
 
     private var previousFeed: Feed? {
@@ -126,16 +151,30 @@ struct FeedView: View {
         ZStack {
             Color.black
             VStack(spacing: 16) {
-                Text(loadFailed ? "피드를 불러오지 못했어요" : "표시할 트랙이 없어요")
+                Text(emptyMessage)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
                 if loadFailed {
-                    Button("다시 시도") { Task { await loadInitialFeed(force: true) } }
+                    Button("다시 시도") {
+                        Task { activeQuery.isEmpty ? await loadInitialFeed(force: true)
+                                                    : await loadSearch(activeQuery) }
+                    }
+                    .foregroundStyle(DSColor.brand)
+                } else if !activeQuery.isEmpty {
+                    Button("전체 피드로 돌아가기") { clearSearch() }
                         .foregroundStyle(DSColor.brand)
                 }
             }
+            .padding(.horizontal, 32)
         }
         .ignoresSafeArea()
+    }
+
+    private var emptyMessage: String {
+        if loadFailed { return "불러오지 못했어요" }
+        if !activeQuery.isEmpty { return "\"\(activeQuery)\"에 대한 결과가 없어요" }
+        return "표시할 트랙이 없어요"
     }
 
     private var feed: some View {
@@ -156,12 +195,13 @@ struct FeedView: View {
                 .gesture(dragGesture(height: size.height))
                 .simultaneousGesture(tapGestures(height: size.height))
 
-                // 검색 중엔 피드 위에 투명 레이어를 깔아, 바깥(키보드 영역 밖) 탭으로
-                // 포커스를 해제한다(→ closeSearch로 축소). 검색바보다 아래 z-order라 바 탭은 그대로.
+                // 검색 중엔 피드 위에 최근 검색 패널을 덮고, 그 바깥 탭으로 검색 모드를 빠져나온다.
                 if isSearching {
-                    Color.clear
+                    Color.black.opacity(0.001)   // 히트 테스트용 투명 배경.
                         .contentShape(Rectangle())
-                        .onTapGesture { searchFocused = false }
+                        .onTapGesture { exitSearchMode() }
+                    searchPanel
+                        .padding(.top, safeInsets.top + 56)
                 }
 
                 searchOverlay(fullWidth: size.width - 32)
@@ -182,6 +222,19 @@ struct FeedView: View {
                     HypeBurstView(isOn: feedList[currentIndex].isHyped, confetti: burstConfetti)
                         .position(burstLocation)
                 }
+
+                if let toastMessage {
+                    Text(toastMessage)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 12)
+                        .background(.black.opacity(0.8), in: Capsule())
+                        .padding(.bottom, safeInsets.bottom + 100)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
             }
             .frame(width: size.width, height: size.height)
             .background(Color.black)
@@ -199,48 +252,174 @@ struct FeedView: View {
             phase == .active ? audio.resumeCurrent() : audio.pauseCurrent()
         }
         .animation(.easeInOut(duration: 0.15), value: audio.isPaused)
+        .animation(.easeInOut(duration: 0.2), value: toastMessage)
+        .sheet(item: $detailTarget) { target in
+            TrackDetailView(trackId: target.id)
+        }
+    }
+
+    private struct DetailTarget: Identifiable { let id: Int }
+
+    /// 공유: activity 시트 대신 Apple Music URL만 클립보드에 복사하고 토스트 안내.
+    private func shareTrack(_ feed: Feed) {
+        UIPasteboard.general.string = feed.trackViewUrl
+        toastMessage = "링크가 복사됐어요"
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            toastMessage = nil
+        }
     }
 
     /// 접힌 상태(40pt 돋보기 버튼) → 탭하면 우측 기준으로 풀폭까지 펼쳐지며 포커스.
     /// 키보드가 내려가면(포커스 해제) 다시 버튼으로 축소. DSSearchBar를 그대로 재사용하고
     /// 프레임 폭만 애니메이션하며, 접힘 상태는 clip으로 돋보기 아이콘만 노출.
     private func searchOverlay(fullWidth: CGFloat) -> some View {
-        HStack {
-            Spacer(minLength: 0)   // 접힘 시 버튼을 우측에 붙이고, 펼치면 풀폭으로 채운다.
-            DSSearchBar(
-                // 접힘 상태: placeholder 비우고 배경/테두리도 투명 → 돋보기 아이콘만 남는다.
-                text: $searchText,
-                placeholder: isSearching ? "아티스트, 트랙, 장르 검색" : "",
-                backgroundStyle: isSearching ? DSColor.surface : .clear,
-                borderStyle: isSearching ? DSColor.borderLight : .clear,
-                iconSize: isSearching ? 15 : 22,
-                isFocused: $searchFocused
-            )
-            .frame(width: isSearching ? fullWidth : 40)
-            .clipShape(RoundedRectangle(cornerRadius: DSRadius.medium))
-            .allowsHitTesting(isSearching)   // 접힘 상태에선 TextField 대신 아래 버튼이 탭을 받음
-            .overlay {
-                if !isSearching {
-                    Button(action: openSearch) { Color.clear.contentShape(Rectangle()) }
-                        .buttonStyle(.plain)
+        VStack(alignment: .trailing, spacing: 8) {
+            HStack {
+                Spacer(minLength: 0)   // 접힘 시 버튼을 우측에 붙이고, 펼치면 풀폭으로 채운다.
+                if isSearching {
+                    // 펼침 상태에서만 DSSearchBar. 접힘 땐 전용 아이콘 버튼(아래)을 써서
+                    // 40pt로 축소된 서치바에 아이콘이 클립되던 문제를 피한다.
+                    DSSearchBar(
+                        text: $searchText,
+                        placeholder: "아티스트, 트랙, 장르 검색",
+                        backgroundStyle: DSColor.surface,
+                        borderStyle: DSColor.borderLight,
+                        isFocused: $searchFocused,
+                        onSubmit: { runSearch(searchText) }
+                    )
+                    .frame(width: fullWidth)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                } else {
+                    Button(action: openSearch) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                    }
+                    .buttonStyle(.plain)
                 }
+            }
+
+            // 검색 결과 보는 중(모드 아님)엔 활성 쿼리 칩 표시. 탭하면 전체 피드로 복귀.
+            if !activeQuery.isEmpty, !isSearching {
+                Button(action: clearSearch) {
+                    HStack(spacing: 4) {
+                        Text(activeQuery)
+                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "xmark")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(DSColor.brand, in: Capsule())
+                }
+                .buttonStyle(.plain)
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSearching)
-        .onChange(of: searchFocused) { _, focused in
-            // 키보드 dismiss 시 축소 + 입력 초기화(검색 결과 배선은 이후 단계).
-            if !focused { closeSearch() }
+    }
+
+    /// 검색 모드 하단 패널 — 최근 검색 + "'쿼리' 검색하기" 확정 행.
+    private var searchPanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !recentSearches.isEmpty {
+                Text("최근 검색")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(DSColor.textTertiary)
+                    .padding(.bottom, 4)
+                ForEach(recentSearches, id: \.self) { term in
+                    Button { runSearch(term) } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 14))
+                                .foregroundStyle(DSColor.textTertiary)
+                            Text(term)
+                                .font(.system(size: 15))
+                                .foregroundStyle(DSColor.textPrimary)
+                            Spacer()
+                        }
+                        .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            let typed = searchText.trimmingCharacters(in: .whitespaces)
+            if !typed.isEmpty {
+                Button { runSearch(typed) } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                        Text("\"\(typed)\" 검색하기")
+                            .font(.system(size: 15, weight: .medium))
+                        Spacer()
+                    }
+                    .foregroundStyle(DSColor.brand)
+                    .padding(.vertical, 14)
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.white)
     }
 
     private func openSearch() {
+        searchText = activeQuery          // 검색 재진입 시 기존 쿼리를 편집 가능하게.
         isSearching = true
         searchFocused = true
     }
 
-    private func closeSearch() {
+    /// 확정 없이 검색 모드만 빠져나온다(바깥 탭/뒤로). 결과·activeQuery는 유지.
+    private func exitSearchMode() {
         isSearching = false
+        searchFocused = false
+        searchText = activeQuery
+    }
+
+    /// 검색 확정(Enter/최근검색 탭). 일반 피드를 스냅샷에 보관하고 결과로 교체한다.
+    private func runSearch(_ raw: String) {
+        let query = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return }
+        addRecentSearch(query)
+        if savedFeed == nil {             // 일반 피드에서 첫 진입 → 상태 보관.
+            savedFeed = FeedSnapshot(list: feedList, index: currentIndex, cursor: nextCursor)
+        }
+        isSearching = false
+        searchFocused = false
+        searchText = query
+        activeQuery = query
+        Task { await loadSearch(query) }
+    }
+
+    private func loadSearch(_ query: String) async {
+        isLoading = true
+        loadFailed = false
+        do {
+            let res = try await session.api.send(.search(query: query), as: API.FeedResponse.self)
+            feedList = res.items.map(Feed.init)
+            currentIndex = 0
+            nextCursor = res.hasMore ? res.nextCursor : nil
+        } catch {
+            loadFailed = true
+        }
+        isLoading = false
+    }
+
+    /// 검색 종료 → 보관해둔 일반 피드로 복원(재페치 없이).
+    private func clearSearch() {
+        isSearching = false
+        searchFocused = false
         searchText = ""
+        activeQuery = ""
+        guard let saved = savedFeed else { return }
+        feedList = saved.list
+        currentIndex = saved.index
+        nextCursor = saved.cursor
+        savedFeed = nil
     }
 
     private func dragGesture(height: CGFloat) -> some Gesture {
@@ -296,10 +475,11 @@ struct FeedView: View {
             TrackCardView(
                 feed: feed,
                 screenSize: size,
-                safeAreaInsets: safeInsets
-            ) {
-                toggleHype(for: feed)
-            }
+                safeAreaInsets: safeInsets,
+                onToggleHype: { toggleHype(for: feed) },
+                onOpenDetail: { detailTarget = DetailTarget(id: feed.trackId) },
+                onShare: { shareTrack(feed) }
+            )
         }
         .frame(width: size.width, height: size.height)
         .clipped()
@@ -403,6 +583,8 @@ struct FeedView: View {
         let screenSize: CGSize
         let safeAreaInsets: EdgeInsets
         let onToggleHype: () -> Void
+        let onOpenDetail: () -> Void
+        let onShare: () -> Void
 
         private var cardWidth: CGFloat { max(0, screenSize.width - 48) }
 
@@ -459,20 +641,31 @@ struct FeedView: View {
                     .animation(.easeOut, value: feed.isHyped)
 
                     Spacer()
-                    TrackActionButton(systemName: "opticaldisc")
-                    TrackActionButton(systemName: "square.and.arrow.up")
+                    TrackActionButton(systemName: "opticaldisc", action: onOpenDetail)
+                    shareButton
                 }
             }
             .padding(.horizontal, 20)
         }
+
+        private var shareButton: some View {
+            Button(action: onShare) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.plain)
+        }
     }
-    
+
     /// subviews
     private struct TrackActionButton: View {
         let systemName: String
+        let action: () -> Void
 
         var body: some View {
-            Button {} label: {
+            Button(action: action) {
                 Image(systemName: systemName)
                     .font(.system(size: 22, weight: .regular))
                     .foregroundStyle(.white.opacity(0.82))
