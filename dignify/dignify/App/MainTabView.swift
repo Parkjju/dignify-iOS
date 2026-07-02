@@ -14,9 +14,11 @@ struct MainTabView: View {
             }
         }
         .tint(DSColor.brand)
+        .toolbarBackground(.hidden, for: .tabBar)
     }
 }
 
 #Preview {
     MainTabView()
+        .environment(AppSession())
 }

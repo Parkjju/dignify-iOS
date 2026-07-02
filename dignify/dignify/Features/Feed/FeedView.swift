@@ -4,119 +4,227 @@ struct FeedView: View {
     @State private var feedList: [Feed] = Feed.mockFeed
     @State private var searchText: String = ""
     @State private var offset: CGFloat = 0
-    @State private var containerHeight: CGFloat = 0
     @State private var currentIndex = 0
     @State private var showsHypeBurst = false
     @State private var burstLocation: CGPoint = .zero
     @State private var burstConfetti: [ConfettiPiece] = []
+    /// Read once on appear — reading UIKit window insets during body evaluation
+    /// triggers a UIKit↔SwiftUI AttributeGraph cycle that freezes all touch input.
+    @State private var safeInsets = EdgeInsets()
+
+    private var keyWindow: UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first { $0.isKeyWindow }
+    }
+
+    private func resolveSafeInsets() {
+        let i = keyWindow?.safeAreaInsets ?? .zero
+        safeInsets = EdgeInsets(top: i.top, leading: i.left, bottom: i.bottom, trailing: i.right)
+    }
+
+    private var previousFeed: Feed? {
+        feedList.indices.contains(currentIndex - 1) ? feedList[currentIndex - 1] : nil
+    }
+    private var nextFeed: Feed? {
+        feedList.indices.contains(currentIndex + 1) ? feedList[currentIndex + 1] : nil
+    }
+
+    private struct WindowedFeed: Identifiable {
+        let feed: Feed
+        let slot: Int
+        var id: Int { feed.trackId }
+    }
+
+    private var windowedFeeds: [WindowedFeed] {
+        var items: [WindowedFeed] = []
+        if let previousFeed {
+            items.append(WindowedFeed(feed: previousFeed, slot: -1))
+        }
+        if feedList.indices.contains(currentIndex) {
+            items.append(WindowedFeed(feed: feedList[currentIndex], slot: 0))
+        }
+        if let nextFeed {
+            items.append(WindowedFeed(feed: nextFeed, slot: 1))
+        }
+        return items
+    }
 
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { geo in
+            let size = geo.size
             ZStack(alignment: .top) {
-                Color.black.ignoresSafeArea()
-
-                VStack {
-                    if !feedList.isEmpty {
-                        TrackCardView(feed: feedList[currentIndex], screenSize: geometry.size) {
-                            feedList[currentIndex].isHyped.toggle()
-                        }
-                        .id(feedList[currentIndex].trackId)
+                // Paging layer — the ONE place gestures live. Slots overlap in
+                // layout, so a single gesture here avoids multiple recognizers
+                // fighting the system gesture gate (which froze all input).
+                ZStack {
+                    ForEach(windowedFeeds) { item in
+                        feedSlot(for: item.feed, size: size)
+                            .offset(y: CGFloat(item.slot) * size.height + offset)
                     }
                 }
+                .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(coordinateSpace: .global)
-                        .onChanged { value in
-                            offset = value.translation.height
-                        }
-                        .onEnded { value in
-                            if value.translation.height >= geometry.size.height * 0.22 {
-                                goingPrev()
-                            } else if value.translation.height <= geometry.size.height * -0.22 {
-                                goingNext()
-                            } else {
-                                withAnimation(.spring(response: 0.35, dampingFraction:0.7)) {
-                                    offset = 0
-                                }
-                            }
-                        }
-                )
-                .gesture(
-                    SpatialTapGesture(count: 2, coordinateSpace: .named("feed"))
-                        .onEnded { value in
-                            if !feedList.isEmpty {
-                                triggerHype(at: value.location)
-                            }
-                        }
-                )
-                .offset(y: offset)
-
+                .gesture(dragGesture(height: size.height))
+                .simultaneousGesture(doubleTapGesture())
 
                 DSSearchBar(text: $searchText, placeholder: "아티스트, 트랙, 장르 검색")
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
+                    .padding(.top, safeInsets.top + 8)
 
                 if showsHypeBurst {
                     HypeBurstView(isOn: feedList[currentIndex].isHyped, confetti: burstConfetti)
                         .position(burstLocation)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .coordinateSpace(name: "feed")
-            .onAppear { containerHeight = geometry.size.height }
+            .frame(width: size.width, height: size.height)
+            .background(Color.black)
+        }
+        .ignoresSafeArea()
+        .onAppear(perform: resolveSafeInsets)
+    }
+
+    private func dragGesture(height: CGFloat) -> some Gesture {
+        DragGesture()
+            .onChanged { value in
+                offset = value.translation.height
+            }
+            .onEnded { value in
+                if value.translation.height >= height * 0.22 {
+                    goingPrev(height: height)
+                } else if value.translation.height <= height * -0.22 {
+                    goingNext(height: height)
+                } else {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        offset = 0
+                    }
+                }
+            }
+    }
+
+    private func doubleTapGesture() -> some Gesture {
+        SpatialTapGesture(count: 2)
+            .onEnded { value in
+                triggerHype(at: value.location)
+            }
+    }
+
+    private func feedSlot(for feed: Feed, size: CGSize) -> some View {
+        ZStack {
+            backgroundArtwork(for: feed, size: size)
+
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .black.opacity(0.4), location: 0.35),
+                    .init(color: .black.opacity(0.85), location: 0.75),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            TrackCardView(
+                feed: feed,
+                screenSize: size,
+                safeAreaInsets: safeInsets
+            ) {
+                toggleHype(for: feed)
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .clipped()
+    }
+
+    private func toggleHype(for feed: Feed) {
+        guard let index = feedList.firstIndex(where: { $0.trackId == feed.trackId }) else { return }
+        feedList[index].isHyped.toggle()
+    }
+
+    private func backgroundArtwork(for feed: Feed, size: CGSize) -> some View {
+        AsyncImage(url: .init(string: feed.artworkUrl)) { image in
+            image
+                .resizable()
+                .scaledToFill()
+        } placeholder: {
+            Color.black
+        }
+        .frame(width: size.width, height: size.height)
+        .scaleEffect(1.1)
+        .blur(radius: 28)
+        .brightness(-0.3)
+        .saturation(1.4)
+        .clipped()
+    }
+
+    private func triggerHype(at location: CGPoint) {
+        // 탭 제스처는 하입을 켜기만 한다(false→true, true는 유지). 해제는 하입 버튼으로만.
+        feedList[currentIndex].isHyped = true
+        burstLocation = location
+        burstConfetti = Self.makeConfetti()
+        showsHypeBurst = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
+            showsHypeBurst = false
+        }
+    }
+
+    private static func makeConfetti(count: Int = 14) -> [ConfettiPiece] {
+        (0..<count).map { _ in
+            ConfettiPiece(
+                color: [DSColor.brand, .yellow, .pink, .mint, .orange].randomElement()!,
+                angle: .random(in: 0..<360),
+                distance: .random(in: 40...90)
+            )
+        }
+    }
+    
+    private func goingNext(height: CGFloat) {
+        if currentIndex == feedList.count - 1 {
+            withAnimation(.easeInOut(duration: 0.28)) {
+                offset = 0
+            }
+            return
+        }
+        withAnimation(.easeInOut(duration: 0.28)) {
+            offset = -height
+        } completion: {
+            currentIndex += 1
+            offset = 0
+        }
+    }
+
+    private func goingPrev(height: CGFloat) {
+        if currentIndex == 0 {
+            withAnimation(.easeInOut(duration: 0.28)) {
+                offset = 0
+            }
+            return
+        }
+        withAnimation(.easeInOut(duration: 0.28)) {
+            offset = height
+        } completion: {
+            currentIndex -= 1
+            offset = 0
         }
     }
     
     private struct TrackCardView: View {
         let feed: Feed
         let screenSize: CGSize
+        let safeAreaInsets: EdgeInsets
         let onToggleHype: () -> Void
 
-        private var cardWidth: CGFloat { screenSize.width - 48 }
+        private var cardWidth: CGFloat { max(0, screenSize.width - 48) }
 
         var body: some View {
-            ZStack {
-                backgroundArtwork
-
-                VStack {
-                    Spacer(minLength: screenSize.height * 0.08)
-                    artwork
-                    Spacer(minLength: screenSize.height * 0.3)
-                }
-
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.4), .black.opacity(0.88)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: screenSize.height * 0.45)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .allowsHitTesting(false)
-
-                VStack {
-                    Spacer()
-                    infoAndActions
-                }
+            VStack(spacing: 0) {
+                Spacer()
+                artwork
+                Spacer()
+                infoAndActions
+                    .padding(.bottom, safeAreaInsets.bottom + 72)
             }
+            .padding(.top, safeAreaInsets.top + 64)
             .frame(width: screenSize.width, height: screenSize.height)
-            .clipped()
-        }
-
-        private var backgroundArtwork: some View {
-            AsyncImage(url: .init(string: feed.artworkUrl)) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Color.black
-            }
-            .frame(width: screenSize.width, height: screenSize.height)
-            .scaleEffect(1.1)
-            .blur(radius: 28)
-            .brightness(-0.3)
-            .saturation(1.4)
-            .clipped()
         }
 
         private var artwork: some View {
@@ -125,7 +233,7 @@ struct FeedView: View {
                     .resizable()
                     .scaledToFill()
             } placeholder: {
-                Color.gray.opacity(0.2)
+                DSShimmerView()
             }
             .frame(width: cardWidth, height: cardWidth)
             .clipShape(RoundedRectangle(cornerRadius: 24))
@@ -165,59 +273,6 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-        }
-    }
-    
-    private func triggerHype(at location: CGPoint) {
-        feedList[currentIndex].isHyped.toggle()
-        burstLocation = location
-        burstConfetti = Self.makeConfetti()
-        showsHypeBurst = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
-            showsHypeBurst = false
-        }
-    }
-
-    private static func makeConfetti(count: Int = 14) -> [ConfettiPiece] {
-        (0..<count).map { _ in
-            ConfettiPiece(
-                color: [DSColor.brand, .yellow, .pink, .mint, .orange].randomElement()!,
-                angle: .random(in: 0..<360),
-                distance: .random(in: 40...90)
-            )
-        }
-    }
-    
-    private func goingNext() {
-        if currentIndex == feedList.count - 1 {
-            withAnimation(.easeInOut(duration: 0.28)) {
-                offset = 0
-            }
-            return
-        }
-        withAnimation(.easeInOut(duration: 0.28)) {
-            offset = -containerHeight
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-            currentIndex += 1
-            offset = 0
-        }
-    }
-    
-    private func goingPrev() {
-        if currentIndex == 0 {
-            withAnimation(.easeInOut(duration: 0.28)) {
-                offset = 0
-            }
-            return
-        }
-        withAnimation(.easeInOut(duration: 0.28)) {
-            offset = containerHeight
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-            currentIndex -= 1
-            offset = 0
         }
     }
     
@@ -292,5 +347,6 @@ private struct ConfettiPiece: Identifiable {
 
 #Preview {
     FeedView()
+        .environment(AppSession())
 }
 
