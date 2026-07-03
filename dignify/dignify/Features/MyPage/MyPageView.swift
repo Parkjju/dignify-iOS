@@ -14,6 +14,7 @@ struct MyPageView: View {
     @State private var loadFailed = false
 
     @State private var showWithdrawAlert = false
+    @State private var legalDoc: LegalDocument?
 
     /// 마이페이지에는 최근 며칠만 미리보기로 노출하고, 나머지는 하입 기록 화면으로.
     private let previewDayLimit = 5
@@ -147,12 +148,13 @@ struct MyPageView: View {
     private var settingsList: some View {
         VStack(spacing: 0) {
             NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
-            NavigationLink { LegalView(type: .terms) } label: { settingsRow("Terms of Service") }
-            NavigationLink { LegalView(type: .privacy) } label: { settingsRow("Privacy Policy") }
+            Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
+            Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
             Button { logout() } label: { settingsRow("Log Out") }
             Button { showWithdrawAlert = true } label: { settingsRow("Delete Account", destructive: true) }
         }
         .buttonStyle(.plain)
+        .sheet(item: $legalDoc) { SafariView(url: $0.url) }
         .alert("Delete account?", isPresented: $showWithdrawAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) { withdraw() }

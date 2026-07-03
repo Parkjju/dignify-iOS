@@ -3,13 +3,13 @@ import AuthenticationServices
 
 struct OnboardingFlowView: View {
     @Environment(AppSession.self) private var appSession
-    @State private var path = NavigationPath()
     @State private var hasAppeared = false
     @State private var isSigningIn = false
     @State private var errorMessage: String?
+    @State private var legalDoc: LegalDocument?
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             VStack {
                 Spacer()
                 VStack(spacing: 12) {
@@ -56,9 +56,9 @@ struct OnboardingFlowView: View {
                         .environment(\.openURL, OpenURLAction { url in
                             switch url.host {
                             case "terms":
-                                path.append(OnboardingDestination.legal(.terms))
+                                legalDoc = .terms
                             case "privacy":
-                                path.append(OnboardingDestination.legal(.privacy))
+                                legalDoc = .privacy
                             default:
                                 break
                             }
@@ -74,12 +74,7 @@ struct OnboardingFlowView: View {
             .padding(.bottom, 40)
             .background(DSColor.background)
             .onAppear { hasAppeared = true }
-            .navigationDestination(for: OnboardingDestination.self) { destination in
-                switch destination {
-                case .legal(let type):
-                    LegalView(type: type)
-                }
-            }
+            .sheet(item: $legalDoc) { SafariView(url: $0.url) }
         }
     }
 
@@ -113,10 +108,6 @@ struct OnboardingFlowView: View {
 
     private var termsText: LocalizedStringKey {
         "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy)."
-    }
-
-    private enum OnboardingDestination: Hashable {
-        case legal(LegalView.DocumentType)
     }
 }
 
