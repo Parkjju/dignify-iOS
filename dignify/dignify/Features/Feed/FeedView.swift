@@ -325,6 +325,7 @@ struct FeedView: View {
                             .frame(width: 40, height: 40)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Search")
                 }
             }
 
@@ -681,9 +682,11 @@ struct FeedView: View {
                     }
                     .foregroundStyle(feed.isHyped ? DSColor.brand : DSColor.textTertiary)
                     .animation(.easeOut, value: feed.isHyped)
+                    .accessibilityLabel(feed.isHyped ? "Unhype" : "Hype")
 
                     Spacer()
                     TrackActionButton(systemName: "opticaldisc", action: onOpenDetail)
+                        .accessibilityLabel("Track details")
                     shareButton
                 }
             }
@@ -698,6 +701,7 @@ struct FeedView: View {
                     .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Share")
         }
     }
 

@@ -11,6 +11,8 @@ struct GenreSelectionView: View {
     @Environment(AppSession.self) private var appSession
     @State private var genres: [Genre] = []
     @State private var selectedGenres: Set<Genre> = []
+    @State private var isLoading = true
+    @State private var loadFailed = false
     @State private var isSubmitting = false
     @State private var errorMessage: String?
 
@@ -28,10 +30,12 @@ struct GenreSelectionView: View {
                             .foregroundStyle(DSColor.textTertiary)
                     }
 
-                    if genres.isEmpty {
+                    if isLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                             .padding(.top, 40)
+                    } else if loadFailed {
+                        retryView
                     } else {
                         FlowLayout(spacing: 8, rowSpacing: 8) {
                             ForEach(genres) { genre in
@@ -89,7 +93,30 @@ struct GenreSelectionView: View {
             }
         }
         .background(DSColor.background)
-        .task { genres = (try? await appSession.fetchGenres()) ?? [] }
+        .task { await loadGenres() }
+    }
+
+    private var retryView: some View {
+        VStack(spacing: 12) {
+            Text("Couldn't load")
+                .font(DSTypography.body)
+                .foregroundStyle(DSColor.textSecondary)
+            Button("Try again") { Task { await loadGenres() } }
+                .foregroundStyle(DSColor.brand)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
+    }
+
+    private func loadGenres() async {
+        isLoading = true
+        loadFailed = false
+        do {
+            genres = try await appSession.fetchGenres()
+        } catch {
+            loadFailed = true
+        }
+        isLoading = false
     }
 
     /// 선택 장르를 서버에 저장하고 온보딩 완료 처리 후 signedIn으로 전환한다.

@@ -95,10 +95,22 @@ struct MyPageView: View {
             do {
                 let res = try await appSession.api.send(.updateNickname(new), as: API.NicknameResponse.self)
                 nickname = res.nickname
+            } catch APIError.server(_, _, let status) where status == 409 {
+                reopenNickEdit(previous: previous, attempted: new,
+                               error: String(localized: "This nickname is already in use."))
             } catch {
-                nickname = previous
+                reopenNickEdit(previous: previous, attempted: new,
+                               error: String(localized: "Couldn't update. Please try again."))
             }
         }
+    }
+
+    /// 닉네임 변경 실패 시 롤백하고 편집 모드를 다시 열어 오류를 보여준다(조용한 롤백 방지).
+    private func reopenNickEdit(previous: String, attempted: String, error: String) {
+        nickname = previous
+        nickDraft = attempted
+        nickError = error
+        isEditingNick = true
     }
 
     // MARK: - Hype preview

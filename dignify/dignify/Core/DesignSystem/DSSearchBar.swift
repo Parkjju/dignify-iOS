@@ -39,6 +39,7 @@ struct DSSearchBar: View {
                         .foregroundStyle(DSColor.textTertiary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Clear text")
             }
         }
         .padding(.horizontal, 14)

@@ -54,6 +54,16 @@
         }
       }
     },
+    "Clear text" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지우기"
+          }
+        }
+      }
+    },
     "Couldn't load" : {
       "localizations" : {
         "ko" : {
@@ -90,6 +100,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "저장에 실패했어요. 다시 시도해 주세요."
+          }
+        }
+      }
+    },
+    "Couldn't update. Please try again." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "변경에 실패했어요. 다시 시도해 주세요."
+          }
+        }
+      }
+    },
+    "This nickname is already in use." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 사용 중인 닉네임이에요."
           }
         }
       }
@@ -173,6 +203,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "하입 기록"
+          }
+        }
+      }
+    },
+    "Hype" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입"
           }
         }
       }
@@ -347,6 +387,16 @@
         }
       }
     },
+    "Search" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색"
+          }
+        }
+      }
+    },
     "Search \"%@\"" : {
       "localizations" : {
         "ko" : {
@@ -373,6 +423,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "하입 기록 전체 보기"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유"
           }
         }
       }
@@ -413,6 +473,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "다시 시도"
+          }
+        }
+      }
+    },
+    "Unhype" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입 취소"
           }
         }
       }
