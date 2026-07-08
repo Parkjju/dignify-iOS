@@ -470,12 +470,17 @@ struct FeedView: View {
                 offset = value.translation.height
             }
             .onEnded { value in
-                if value.translation.height >= height * 0.22 {
+                // 느리게 충분히 끌었거나(거리) 빠르게 튕겼으면(예측 착지점=속도 반영) 전환.
+                // predictedEndTranslation은 손을 뗀 속도로 감속했을 때 도달할 위치라
+                // 빠른 플릭은 짧게 움직여도 넘어가고, 느린 드래그는 거리 임계로 처리된다.
+                let distance = value.translation.height
+                let predicted = value.predictedEndTranslation.height
+                if distance >= height * 0.15 || predicted >= height * 0.45 {
                     goingPrev(height: height)
-                } else if value.translation.height <= height * -0.22 {
+                } else if distance <= height * -0.15 || predicted <= height * -0.45 {
                     goingNext(height: height)
                 } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                         offset = 0
                     }
                 }
@@ -519,7 +524,7 @@ struct FeedView: View {
                 screenSize: size,
                 safeAreaInsets: safeInsets,
                 onToggleHype: { toggleHype(for: feed) },
-                onOpenDetail: { detailTarget = DetailTarget(id: feed.trackId) },
+                onOpenDetail: { if requireAccount() { detailTarget = DetailTarget(id: feed.trackId) } },
                 onShare: { shareTrack(feed) }
             )
         }
@@ -527,7 +532,17 @@ struct FeedView: View {
         .clipped()
     }
 
+    /// 게스트가 계정 기능을 시도하면 로그인 시트를 띄우고 false를 반환한다.
+    private func requireAccount() -> Bool {
+        if session.authState == .guest {
+            session.pendingSignIn = true
+            return false
+        }
+        return true
+    }
+
     private func toggleHype(for feed: Feed) {
+        guard requireAccount() else { return }
         guard let index = feedList.firstIndex(where: { $0.trackId == feed.trackId }) else { return }
         setHype(trackId: feed.trackId, to: !feedList[index].isHyped)
     }
@@ -570,6 +585,7 @@ struct FeedView: View {
     }
 
     private func triggerHype(at location: CGPoint) {
+        guard requireAccount() else { return }
         // 탭 제스처는 하입을 켜기만 한다(false→true, true는 유지). 해제는 하입 버튼으로만.
         setHype(trackId: feedList[currentIndex].trackId, to: true)
         burstLocation = location
@@ -592,12 +608,13 @@ struct FeedView: View {
     
     private func goingNext(height: CGFloat) {
         if currentIndex == feedList.count - 1 {
-            withAnimation(.easeInOut(duration: 0.28)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 offset = 0
             }
             return
         }
-        withAnimation(.easeInOut(duration: 0.28)) {
+        // easeOut = fast-start → 손가락이 이미 움직인 속도를 이어받아 부드럽게 감속.
+        withAnimation(.easeOut(duration: 0.26)) {
             offset = -height
         } completion: {
             currentIndex += 1
@@ -608,12 +625,12 @@ struct FeedView: View {
 
     private func goingPrev(height: CGFloat) {
         if currentIndex == 0 {
-            withAnimation(.easeInOut(duration: 0.28)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 offset = 0
             }
             return
         }
-        withAnimation(.easeInOut(duration: 0.28)) {
+        withAnimation(.easeOut(duration: 0.26)) {
             offset = height
         } completion: {
             currentIndex -= 1

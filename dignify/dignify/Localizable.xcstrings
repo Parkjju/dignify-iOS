@@ -34,6 +34,12 @@
         }
       }
     },
+    "Browse without signing in" : {
+
+    },
+    "Build your own taste" : {
+
+    },
     "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy)." : {
       "localizations" : {
         "ko" : {
@@ -114,16 +120,6 @@
         }
       }
     },
-    "This nickname is already in use." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미 사용 중인 닉네임이에요."
-          }
-        }
-      }
-    },
     "Delete" : {
       "localizations" : {
         "ko" : {
@@ -197,22 +193,22 @@
         }
       }
     },
-    "Hype History" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입 기록"
-          }
-        }
-      }
-    },
     "Hype" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "하입"
+          }
+        }
+      }
+    },
+    "Hype History" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입 기록"
           }
         }
       }
@@ -437,6 +433,12 @@
         }
       }
     },
+    "Sign in" : {
+
+    },
+    "Sign in to hype tracks, personalize your feed, and track your picks." : {
+
+    },
     "Sign-in failed. Please try again." : {
       "localizations" : {
         "ko" : {
@@ -453,6 +455,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "이용약관"
+          }
+        }
+      }
+    },
+    "This nickname is already in use." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 사용 중인 닉네임이에요."
           }
         }
       }

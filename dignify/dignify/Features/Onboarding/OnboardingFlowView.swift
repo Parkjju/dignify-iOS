@@ -2,8 +2,19 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingFlowView: View {
+    /// launch: 앱 첫 진입(루트) — "Browse without signing in"으로 게스트 진입 가능.
+    /// gate: 게스트가 계정 기능 시도 시 시트로 표시 — 로그인 전용, 취소로 닫힘.
+    enum Mode { case launch, gate }
+    var mode: Mode = .launch
+
     @Environment(AppSession.self) private var appSession
-    @State private var hasAppeared = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var hasAppeared: Bool
+    init(mode: Mode = .launch) {
+        self.mode = mode
+        // gate(시트)로 뜰 땐 진입 페이드 애니메이션 없이 즉시 표시.
+        _hasAppeared = State(initialValue: mode == .gate)
+    }
     @State private var isSigningIn = false
     @State private var errorMessage: String?
     @State private var legalDoc: LegalDocument?
@@ -47,6 +58,17 @@ struct OnboardingFlowView: View {
                             .foregroundStyle(DSColor.destructive)
                             .multilineTextAlignment(.center)
                     }
+                    if mode == .launch {
+                        Button {
+                            appSession.enterGuest()
+                        } label: {
+                            Text("Browse without signing in")
+                                .font(DSTypography.bodyMedium)
+                                .foregroundStyle(DSColor.textSecondary)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .disabled(isSigningIn)
+                    }
                     Text(termsText)
                         .font(DSTypography.caption)
                         .foregroundStyle(DSColor.textTertiary)
@@ -75,6 +97,14 @@ struct OnboardingFlowView: View {
             .background(DSColor.background)
             .onAppear { hasAppeared = true }
             .sheet(item: $legalDoc) { SafariView(url: $0.url) }
+            .toolbar {
+                if mode == .gate {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                            .tint(DSColor.textSecondary)
+                    }
+                }
+            }
         }
     }
 

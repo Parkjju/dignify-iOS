@@ -13,6 +13,8 @@ struct AppRootView: View {
                     }
             case .signedOut:
                 OnboardingFlowView()
+            case .guest:
+                MainTabView()
             case .onboardingRequired:
                 GenreSelectionView()
             case .signedIn:
