@@ -135,6 +135,16 @@ struct FeedView: View {
     var body: some View {
         content
             .task { await loadInitialFeed() }
+            // 게스트로 본 피드는 하입 제외가 안 된 상태(userId 없이 요청). 로그인되면
+            // 새 시드로 다시 받아 교체한다. FeedView가 이미 떠 있는 게스트→signedIn만 해당
+            // (정상 로그인 진입은 마운트 전 전환이라 여기 안 걸리고 .task가 처리).
+            .onChange(of: session.authState) { _, newState in
+                guard newState == .signedIn else { return }
+                activeQuery = ""
+                savedFeed = nil
+                savedFeedCursor = ""
+                Task { await loadInitialFeed(force: true) }
+            }
     }
 
     @ViewBuilder
