@@ -8,10 +8,14 @@ struct HypeCollection: View {
     @Binding var items: [API.HypeItem]
     /// nil이면 전체, 값이 있으면 최근 N개 날짜 그룹만 렌더링(미리보기).
     var maxGroups: Int? = nil
+    /// nil이면 날짜당 전체, 값이 있으면 그 날짜의 앞 N개만(미리보기 가로 목록).
+    var perDayLimit: Int? = nil
     /// 마지막 그룹이 보이면 호출(페이지네이션). maxGroups가 있으면 호출 안 함.
     var onReachEnd: (() async -> Void)? = nil
     /// 하입 제거가 하드 실패해 목록 재동기화가 필요할 때 호출.
     var onReloadNeeded: (() async -> Void)? = nil
+    /// 미리보기에서 날짜 행 끝을 오른쪽으로 당기거나 See all 셀을 탭하면 호출(전체 화면 이동).
+    var onSeeAll: (() -> Void)? = nil
 
     @State private var audio = FeedAudioController()
     @State private var detailTarget: DetailTarget?
@@ -35,7 +39,11 @@ struct HypeCollection: View {
             if buckets[day] == nil { order.append(day) }
             buckets[day, default: []].append(item)
         }
-        let all = order.map { DateGroup(id: $0, title: $0.formatted(date: .long, time: .omitted), tracks: buckets[$0] ?? []) }
+        let all = order.map { day -> DateGroup in
+            var tracks = buckets[day] ?? []
+            if let perDayLimit { tracks = Array(tracks.prefix(perDayLimit)) }
+            return DateGroup(id: day, title: day.formatted(date: .long, time: .omitted), tracks: tracks)
+        }
         if let maxGroups { return Array(all.prefix(maxGroups)) }
         return all
     }
@@ -43,19 +51,8 @@ struct HypeCollection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(groups) { group in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(group.title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(DSColor.textTertiary)
-                        .padding(.horizontal, 20)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(group.tracks, id: \.userHypeTrackId) { track in
-                                cell(track)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
+                DayRow(group: group, onSeeAll: onSeeAll) { track in
+                    cell(track)
                 }
                 .padding(.bottom, 20)
                 .onAppear {
@@ -112,6 +109,68 @@ struct HypeCollection: View {
         .contentShape(Rectangle())
         .onTapGesture { playPreview(track) }
         .onLongPressGesture { actionTarget = track }
+    }
+
+    /// 날짜 한 줄(가로 스크롤). onSeeAll이 있으면(미리보기) 끝에 See all 셀을 붙이고,
+    /// 오른쪽 끝을 임계 이상 당겼다 놓으면 전체 화면으로 넘긴다. 셀 탭으로도 이동 가능.
+    private struct DayRow<Cell: View>: View {
+        let group: DateGroup
+        let onSeeAll: (() -> Void)?
+        @ViewBuilder let cell: (API.HypeItem) -> Cell
+
+        /// 당긴 만큼(리빌 애니메이션용)과 드래그 중 최대 오버스크롤(놓을 때 판정용).
+        @State private var reveal: CGFloat = 0
+        @State private var peak: CGFloat = 0
+        private let threshold: CGFloat = 64
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(group.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DSColor.textTertiary)
+                    .padding(.horizontal, 20)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(group.tracks, id: \.userHypeTrackId) { cell($0) }
+                        if onSeeAll != nil { seeAllCell }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .scrollBounceBehavior(.always, axes: .horizontal)
+                .onScrollGeometryChange(for: CGFloat.self) { g in
+                    // 오른쪽 끝을 넘어간 오버스크롤 양(0 이상).
+                    max(0, g.contentOffset.x + g.containerSize.width - g.contentSize.width)
+                } action: { _, v in
+                    guard onSeeAll != nil else { return }
+                    reveal = v
+                    peak = max(peak, v)
+                }
+                .onScrollPhaseChange { oldPhase, newPhase, _ in
+                    guard onSeeAll != nil else { return }
+                    if newPhase == .interacting { peak = 0; return }
+                    // 손을 뗀 순간(드래그 종료) 최대 당김이 임계를 넘었으면 이동.
+                    if oldPhase == .interacting, peak > threshold {
+                        peak = 0
+                        onSeeAll?()
+                    }
+                }
+            }
+        }
+
+        private var seeAllCell: some View {
+            VStack(spacing: 6) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .semibold))
+                    .offset(x: min(reveal, threshold) * 0.25)
+                Text("See all")
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .foregroundStyle(DSColor.brand)
+            .opacity(min(1, 0.4 + reveal / threshold))
+            .frame(width: 56, height: 72)
+            .contentShape(Rectangle())
+            .onTapGesture { onSeeAll?() }
+        }
     }
 
     /// 하입 트랙 롱프레스 모달 — 상세 보기 / 하입 제거.

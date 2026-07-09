@@ -18,6 +18,9 @@ struct MyPageView: View {
 
     /// 마이페이지에는 최근 며칠만 미리보기로 노출하고, 나머지는 하입 기록 화면으로.
     private let previewDayLimit = 5
+    /// 미리보기에서 한 날짜당 가로로 보여줄 최대 트랙 수(초과분은 See all에서).
+    private let perDayPreviewLimit = 10
+    @State private var showAllHypes = false
 
     var body: some View {
         ScrollView {
@@ -35,6 +38,7 @@ struct MyPageView: View {
         .background(DSColor.background)
         .navigationTitle("My Page")
         .task { await loadInitial() }
+        .navigationDestination(isPresented: $showAllHypes) { HypeHistoryView() }
     }
 
     // MARK: - Profile
@@ -127,9 +131,11 @@ struct MyPageView: View {
         } else {
             HypeCollection(items: $items,
                            maxGroups: previewDayLimit,
-                           onReloadNeeded: { await loadInitial() })
-            if dayCount > previewDayLimit || nextCursor != nil {
-                NavigationLink { HypeHistoryView() } label: { moreRow }
+                           perDayLimit: perDayPreviewLimit,
+                           onReloadNeeded: { await loadInitial() },
+                           onSeeAll: hasMore ? { showAllHypes = true } : nil)
+            if hasMore {
+                Button { showAllHypes = true } label: { moreRow }
                     .buttonStyle(.plain)
             }
         }
@@ -150,9 +156,12 @@ struct MyPageView: View {
         .contentShape(Rectangle())
     }
 
-    /// 현재 로드된 하입이 걸쳐 있는 날짜 수 — 미리보기 초과 여부 판단용.
-    private var dayCount: Int {
-        Set(items.map { Calendar.current.startOfDay(for: $0.hypedAt) }).count
+    /// 미리보기 밖에 더 볼 하입이 있는가 — 날짜 초과 / 다음 페이지 존재 / 특정 날짜 트랙 초과.
+    private var hasMore: Bool {
+        if nextCursor != nil { return true }
+        let byDay = Dictionary(grouping: items) { Calendar.current.startOfDay(for: $0.hypedAt) }
+        if byDay.count > previewDayLimit { return true }
+        return byDay.values.contains { $0.count > perDayPreviewLimit }
     }
 
     // MARK: - Settings
@@ -202,14 +211,28 @@ struct MyPageView: View {
 
     // MARK: - Loading
 
+    /// 백엔드는 하입을 페이지(10개)로 주므로, 최근 previewDayLimit(5)일치가 각각 완결될
+    /// 때까지 이어 받는다. 하루에 하입이 몰려도 그 날짜 미리보기가 잘리지 않게 한다.
+    /// ponytail: 페이지네이션이 날짜 단위가 아니라, 하루 하입이 아주 많으면 그날을 다 받아야
+    /// 다음 날로 넘어간다. maxPages로 상한을 둬 병적 로드를 막고, 나머지는 See all이 담당.
     private func loadInitial() async {
         async let profile = try? appSession.api.send(.myProfile, as: API.UserProfile.self)
         isLoading = true
         loadFailed = false
         do {
-            let res = try await appSession.api.send(.myHypes(), as: API.HypeListResponse.self)
-            items = res.items
-            nextCursor = res.nextCursor
+            var collected: [API.HypeItem] = []
+            var cursor: Int? = nil
+            let maxPages = 8
+            for _ in 0..<maxPages {
+                let res = try await appSession.api.send(.myHypes(cursor: cursor), as: API.HypeListResponse.self)
+                collected.append(contentsOf: res.items)
+                cursor = res.nextCursor
+                let days = Set(collected.map { Calendar.current.startOfDay(for: $0.hypedAt) }).count
+                // days > previewDayLimit 이면 6번째 날에 진입 → 앞 5일치는 완결됨.
+                if cursor == nil || days > previewDayLimit { break }
+            }
+            items = collected
+            nextCursor = cursor
         } catch {
             loadFailed = true
         }
