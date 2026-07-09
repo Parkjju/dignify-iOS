@@ -64,6 +64,9 @@ struct FeedView: View {
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
+            // force 재로드(게스트→로그인)는 currentIndex가 0 그대로일 수 있어 onChange가 안 터진다.
+            // 첫 진입은 feed의 .onAppear가 처리하지만, 여기서도 갱신해 오디오가 새 리스트를 따르게 한다.
+            audio.updateWindow(feeds: feedList, current: currentIndex)
         } catch {
             loadFailed = true
         }
@@ -455,6 +458,9 @@ struct FeedView: View {
             feedList = res.items.map(Feed.init)
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
+            // feedList를 교체하면 currentIndex는 0 그대로라 .onChange(of:currentIndex)가 안 터진다.
+            // 오디오 윈도우를 직접 갱신하지 않으면 이전 피드 트랙 player가 남아 그게 재생됨.
+            audio.updateWindow(feeds: feedList, current: currentIndex)
         } catch {
             loadFailed = true
         }
@@ -472,6 +478,7 @@ struct FeedView: View {
         currentIndex = saved.index
         nextCursor = saved.cursor
         savedFeed = nil
+        audio.updateWindow(feeds: feedList, current: currentIndex)   // 원래 피드로 오디오 윈도우 복원
     }
 
     private func dragGesture(height: CGFloat) -> some Gesture {
