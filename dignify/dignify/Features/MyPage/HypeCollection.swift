@@ -121,32 +121,48 @@ struct HypeCollection: View {
         /// 당긴 만큼(리빌 애니메이션용)과 드래그 중 최대 오버스크롤(놓을 때 판정용).
         @State private var reveal: CGFloat = 0
         @State private var peak: CGFloat = 0
+        /// 트랙 셀들의 실제 너비 / 스크롤 뷰포트 너비 — 넘치는지 판정용.
+        @State private var tracksWidth: CGFloat = 0
+        @State private var containerWidth: CGFloat = 0
         private let threshold: CGFloat = 64
+        private let hPadding: CGFloat = 20
+
+        /// 트랙들이 좌우 패딩 포함해 뷰포트 안에 다 들어오면 스크롤할 게 없다.
+        private var fits: Bool {
+            tracksWidth > 0 && containerWidth > 0 && tracksWidth <= containerWidth - hPadding * 2
+        }
+        /// 미리보기(onSeeAll 있음)이고 넘칠 때만 See all 셀·제스처를 노출.
+        private var showsSeeAll: Bool { onSeeAll != nil && !fits }
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(group.title)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DSColor.textTertiary)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, hPadding)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(group.tracks, id: \.userHypeTrackId) { cell($0) }
-                        if onSeeAll != nil { seeAllCell }
+                        HStack(spacing: 12) {
+                            ForEach(group.tracks, id: \.userHypeTrackId) { cell($0) }
+                        }
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { tracksWidth = $0 }
+                        if showsSeeAll { seeAllCell }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, hPadding)
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
+                .scrollDisabled(fits)
                 .scrollBounceBehavior(.always, axes: .horizontal)
                 .onScrollGeometryChange(for: CGFloat.self) { g in
                     // 오른쪽 끝을 넘어간 오버스크롤 양(0 이상).
                     max(0, g.contentOffset.x + g.containerSize.width - g.contentSize.width)
                 } action: { _, v in
-                    guard onSeeAll != nil else { return }
+                    guard showsSeeAll else { return }
                     reveal = v
                     peak = max(peak, v)
                 }
                 .onScrollPhaseChange { oldPhase, newPhase, _ in
-                    guard onSeeAll != nil else { return }
+                    guard showsSeeAll else { return }
                     if newPhase == .interacting { peak = 0; return }
                     // 손을 뗀 순간(드래그 종료) 최대 당김이 임계를 넘었으면 이동.
                     if oldPhase == .interacting, peak > threshold {
