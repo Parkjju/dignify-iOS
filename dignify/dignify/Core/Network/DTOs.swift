@@ -43,6 +43,8 @@ nonisolated enum API {
         let items: [FeedItem]
         let nextCursor: String?
         let hasMore: Bool
+        /// 이 페이지가 유저 장르 풀을 소진하고 장르 무관 트랙으로 채워졌는지. 검색 응답엔 없어 optional.
+        let genreExhausted: Bool?
     }
 
     // MARK: Tracks

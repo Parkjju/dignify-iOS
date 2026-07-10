@@ -84,7 +84,7 @@ struct GenreSettingsView: View {
         Task {
             defer { isSaving = false }
             do {
-                try await appSession.api.send(.updateGenres(ids: selected.map(\.id)))
+                try await appSession.updateGenres(ids: selected.map(\.id))
                 dismiss()
             } catch {
                 errorMessage = String(localized: "Couldn't save. Please try again.")

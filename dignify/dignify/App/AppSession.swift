@@ -14,6 +14,9 @@ final class AppSession {
     /// 기록하고, 같은 트랙을 들고 있는 다른 화면(피드↔마이페이지)이 관찰해 UI를 맞춘다.
     var hypeState: [Int: Bool] = [:]
 
+    /// 장르 설정이 바뀔 때마다 증가. 피드가 관찰해 새 장르로 재fetch 한다.
+    var genreVersion = 0
+
     let api: APIClient
 
     // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
@@ -67,6 +70,12 @@ final class AppSession {
     func fetchGenres() async throws -> [Genre] {
         let res = try await api.send(.genres, as: API.GenresResponse.self)
         return res.genres.map { Genre(id: $0.genreId, name: $0.genreName) }
+    }
+
+    /// 유저 장르를 갱신하고 버전을 올려 피드 재fetch를 트리거한다.
+    func updateGenres(ids: [Int]) async throws {
+        try await api.send(.updateGenres(ids: ids))
+        genreVersion += 1
     }
 
     /// 로그아웃 — 서버에 refresh token revoke 요청(best-effort) 후 로컬 토큰을 폐기한다.

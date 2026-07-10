@@ -25,6 +25,8 @@ struct FeedView: View {
     @State private var currentIndex = 0
     @State private var detailTarget: DetailTarget?
     @State private var toastMessage: String?
+    /// 장르 소진 토스트를 피드 세션당 한 번만 노출하기 위한 플래그.
+    @State private var genreExhaustedShown = false
     @State private var showsHypeBurst = false
     @State private var burstLocation: CGPoint = .zero
     @State private var burstConfetti: [ConfettiPiece] = []
@@ -52,6 +54,7 @@ struct FeedView: View {
         guard force || feedList.isEmpty else { return }
         isLoading = true
         loadFailed = false
+        genreExhaustedShown = false   // 새 피드 세션이므로 소진 토스트 다시 허용.
         do {
             let saved = savedFeedCursor.isEmpty ? nil : savedFeedCursor
             var res = try await session.api.send(.feed(cursor: saved), as: API.FeedResponse.self)
@@ -64,6 +67,7 @@ struct FeedView: View {
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
+            maybeShowGenreExhausted(res)
             // force 재로드(게스트→로그인)는 currentIndex가 0 그대로일 수 있어 onChange가 안 터진다.
             // 첫 진입은 feed의 .onAppear가 처리하지만, 여기서도 갱신해 오디오가 새 리스트를 따르게 한다.
             audio.updateWindow(feeds: feedList, current: currentIndex)
@@ -89,7 +93,23 @@ struct FeedView: View {
         feedList.append(contentsOf: res.items.map(Feed.init))
         nextCursor = res.hasMore ? res.nextCursor : nil
         // 일반 피드일 때만 커서 저장(검색 커서는 세션 한정이라 저장 안 함).
-        if activeQuery.isEmpty { savedFeedCursor = nextCursor ?? "" }
+        if activeQuery.isEmpty {
+            savedFeedCursor = nextCursor ?? ""
+            maybeShowGenreExhausted(res)
+        }
+    }
+
+    /// 로그인 유저(=장르 보유)의 피드가 장르 풀을 소진하면 세션당 한 번 토스트로 안내.
+    /// 게스트는 장르가 없어 항상 exhausted라 제외한다.
+    private func maybeShowGenreExhausted(_ res: API.FeedResponse) {
+        guard res.genreExhausted == true, !genreExhaustedShown,
+              session.authState == .signedIn else { return }
+        genreExhaustedShown = true
+        toastMessage = String(localized: "You've seen all tracks in your genres — showing more")
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            toastMessage = nil
+        }
     }
 
     private struct FeedSnapshot { var list: [Feed]; var index: Int; var cursor: String? }
@@ -143,6 +163,13 @@ struct FeedView: View {
             // (정상 로그인 진입은 마운트 전 전환이라 여기 안 걸리고 .task가 처리).
             .onChange(of: session.authState) { _, newState in
                 guard newState == .signedIn else { return }
+                activeQuery = ""
+                savedFeed = nil
+                savedFeedCursor = ""
+                Task { await loadInitialFeed(force: true) }
+            }
+            // 마이페이지에서 장르를 바꾸면(다른 탭이라 FeedView는 떠 있음) 새 장르로 다시 받는다.
+            .onChange(of: session.genreVersion) { _, _ in
                 activeQuery = ""
                 savedFeed = nil
                 savedFeedCursor = ""
