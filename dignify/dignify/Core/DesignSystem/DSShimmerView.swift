@@ -5,10 +5,10 @@ struct DSShimmerView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            Color.white.opacity(0.08)
+            Color.white.opacity(0.14)
                 .overlay(
                     LinearGradient(
-                        colors: [.clear, .white.opacity(0.18), .clear],
+                        colors: [.clear, .white.opacity(0.30), .clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

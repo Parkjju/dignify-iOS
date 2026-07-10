@@ -2,11 +2,10 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppSession.self) private var session
-    @State private var selectedTab: AppTab = .feed
 
     var body: some View {
         @Bindable var session = session
-        TabView(selection: $selectedTab) {
+        TabView(selection: $session.selectedTab) {
             ForEach(AppTab.allCases) { tab in
                 NavigationStack {
                     content(for: tab)

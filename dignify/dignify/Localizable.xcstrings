@@ -1,523 +1,514 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "@%@" : {
-
-    },
-    "%@ selected" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 선택됨"
+  "sourceLanguage": "en",
+  "strings": {
+    "@%@": {},
+    "%@ selected": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 선택됨"
           }
         }
       }
     },
-    "All your data, including hypes and genres, will be deleted permanently." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
+    "All your data, including hypes and genres, will be deleted permanently.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
           }
         }
       }
     },
-    "Back to feed" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전체 피드로 돌아가기"
+    "Back to feed": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 피드로 돌아가기"
           }
         }
       }
     },
-    "Browse without signing in" : {
-
-    },
-    "Build your own taste" : {
-
-    },
-    "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy)." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
+    "Browse without signing in": {},
+    "Build your own taste": {},
+    "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy).": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
           }
         }
       }
     },
-    "Cancel" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "취소"
+    "Cancel": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소"
           }
         }
       }
     },
-    "Clear text" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "지우기"
+    "Clear text": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지우기"
           }
         }
       }
     },
-    "Couldn't load" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "불러오지 못했어요"
+    "Couldn't load": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "불러오지 못했어요"
           }
         }
       }
     },
-    "Couldn't load track info" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "트랙 정보를 불러오지 못했어요"
+    "Couldn't load track info": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트랙 정보를 불러오지 못했어요"
           }
         }
       }
     },
-    "Couldn't read your sign-in info. Please try again." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "로그인 정보를 읽지 못했어요. 다시 시도해 주세요."
+    "Couldn't read your sign-in info. Please try again.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인 정보를 읽지 못했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Couldn't save. Please try again." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "저장에 실패했어요. 다시 시도해 주세요."
+    "Couldn't save. Please try again.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장에 실패했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Couldn't update. Please try again." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "변경에 실패했어요. 다시 시도해 주세요."
+    "Couldn't update. Please try again.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "변경에 실패했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Delete" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "삭제"
+    "Delete": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제"
           }
         }
       }
     },
-    "Delete Account" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "계정 삭제"
+    "Delete Account": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 삭제"
           }
         }
       }
     },
-    "Delete account?" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "계정을 삭제할까요?"
+    "Delete account?": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정을 삭제할까요?"
           }
         }
       }
     },
-    "Dignify" : {
-
-    },
-    "Discover indie music and build your own taste." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "인디 음악을 발굴하고 당신만의 취향을 쌓아가세요."
+    "Dignify": {},
+    "Discover indie music and build your own taste.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인디 음악을 발굴하고 당신만의 취향을 쌓아가세요."
           }
         }
       }
     },
-    "Done" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "완료"
+    "Done": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "완료"
           }
         }
       }
     },
-    "Feed" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "피드"
+    "Feed": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피드"
           }
         }
       }
     },
-    "Genre Settings" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "장르 설정"
+    "Genre Settings": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "장르 설정"
           }
         }
       }
     },
-    "Hype" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입"
+    "Hype": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입"
           }
         }
       }
     },
-    "Hype History" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입 기록"
+    "Hype History": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입 기록"
           }
         }
       }
     },
-    "Hyped by" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입한 유저"
+    "Hyped by": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입한 유저"
           }
         }
       }
     },
-    "Letters, numbers, and _ only (1–20 characters)" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "영문·한글·숫자·_ 1~20자만 가능해요"
+    "Letters, numbers, and _ only (1–20 characters)": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영문·한글·숫자·_ 1~20자만 가능해요"
           }
         }
       }
     },
-    "Link copied" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "링크가 복사됐어요"
+    "Link copied": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "링크가 복사됐어요"
           }
         }
       }
     },
-    "Listen on Apple Music" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Music에서 듣기"
+    "Listen on Apple Music": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Music에서 듣기"
           }
         }
       }
     },
-    "Log Out" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "로그아웃"
+    "Log Out": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그아웃"
           }
         }
       }
     },
-    "My" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마이"
+    "My": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마이"
           }
         }
       }
     },
-    "My Page" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마이페이지"
+    "My Page": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마이페이지"
           }
         }
       }
     },
-    "Nickname" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "닉네임"
+    "Nickname": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "닉네임"
           }
         }
       }
     },
-    "No hyped tracks yet" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아직 하입한 트랙이 없어요"
+    "No hyped tracks yet": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 하입한 트랙이 없어요"
           }
         }
       }
     },
-    "No hypes yet" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아직 하입한 유저가 없어요"
+    "No hypes yet": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 하입한 유저가 없어요"
           }
         }
       }
     },
-    "No results for \"%@\"" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "\"%@\"에 대한 결과가 없어요"
+    "No results for \"%@\"": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\"%@\"에 대한 결과가 없어요"
           }
         }
       }
     },
-    "No tracks to show" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "표시할 트랙이 없어요"
+    "No tracks to show": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표시할 트랙이 없어요"
           }
         }
       }
     },
-    "Pick up to 3" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최대 3개까지 선택할 수 있어요"
+    "Pick up to 3": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최대 3개까지 선택할 수 있어요"
           }
         }
       }
     },
-    "Privacy Policy" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "개인정보처리방침"
+    "Privacy Policy": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인정보처리방침"
           }
         }
       }
     },
-    "Recent searches" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최근 검색"
+    "Recent searches": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 검색"
           }
         }
       }
     },
-    "Remove hype" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입 제거"
+    "Remove hype": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입 제거"
           }
         }
       }
     },
-    "Save" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "저장"
+    "Save": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장"
           }
         }
       }
     },
-    "Search" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "검색"
+    "Search": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검색"
           }
         }
       }
     },
-    "Search \"%@\"" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "\"%@\" 검색하기"
+    "Search \"%@\"": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\"%@\" 검색하기"
           }
         }
       }
     },
-    "Search artists, tracks, genres" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아티스트, 트랙, 장르 검색"
+    "Search artists, tracks, genres": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아티스트, 트랙, 장르 검색"
           }
         }
       }
     },
-    "See all" : {
-
-    },
-    "See all hypes" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입 기록 전체 보기"
+    "See all": {},
+    "See all hypes": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입 기록 전체 보기"
           }
         }
       }
     },
-    "Share" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "공유"
+    "Share": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공유"
           }
         }
       }
     },
-    "Sign in" : {
-
-    },
-    "Sign in to hype tracks, personalize your feed, and track your picks." : {
-
-    },
-    "Sign-in failed. Please try again." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "로그인에 실패했어요. 다시 시도해 주세요."
+    "Sign in": {},
+    "Sign in to hype tracks, personalize your feed, and track your picks.": {},
+    "Sign-in failed. Please try again.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인에 실패했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Terms of Service" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이용약관"
+    "Terms of Service": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이용약관"
           }
         }
       }
     },
-    "This nickname is already in use." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미 사용 중인 닉네임이에요."
+    "This nickname is already in use.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미 사용 중인 닉네임이에요."
           }
         }
       }
     },
-    "Track details" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "트랙 상세보기"
+    "Track details": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트랙 상세보기"
           }
         }
       }
     },
-    "Try again" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다시 시도"
+    "Try again": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 시도"
           }
         }
       }
     },
-    "Unhype" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입 취소"
+    "Unhype": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입 취소"
           }
         }
       }
     },
-    "v1.0.0" : {
-
-    },
-    "What music do you like?" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "어떤 음악을 좋아하세요?"
+    "v1.0.0": {},
+    "What music do you like?": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "어떤 음악을 좋아하세요?"
           }
         }
       }
     },
-    "You've seen all tracks in your genres — showing more" : {
-
+    "More beyond your genres": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "장르 밖 트랙도 보여줄게요"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

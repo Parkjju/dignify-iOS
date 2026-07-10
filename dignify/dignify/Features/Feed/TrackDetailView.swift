@@ -75,13 +75,10 @@ struct TrackDetailView: View {
 
     private func header(_ d: API.TrackDetail) -> some View {
         HStack(spacing: 16) {
-            AsyncImage(url: d.artworkUrl.itunesArtworkURL(size: 200)) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                DSShimmerView()
-            }
-            .frame(width: 88, height: 88)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            RemoteImage(url: d.artworkUrl.itunesArtworkURL(size: 200)) { DSShimmerView() }
+                .scaledToFill()
+                .frame(width: 88, height: 88)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(d.trackName)

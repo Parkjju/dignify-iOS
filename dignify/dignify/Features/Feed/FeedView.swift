@@ -67,10 +67,13 @@ struct FeedView: View {
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
-            maybeShowGenreExhausted(res)
-            // force 재로드(게스트→로그인)는 currentIndex가 0 그대로일 수 있어 onChange가 안 터진다.
-            // 첫 진입은 feed의 .onAppear가 처리하지만, 여기서도 갱신해 오디오가 새 리스트를 따르게 한다.
-            audio.updateWindow(feeds: feedList, current: currentIndex)
+            prefetchArtwork(feedList)
+            // 소진 토스트는 스크롤로 실제 소진(페이징)했을 때만. 첫 로드/장르 교체 직후엔 안 띄운다.
+            // 피드 탭일 때만 오디오를 갱신한다 — 다른 탭에서 장르 변경으로 재fetch된 경우
+            // 여기서 재생하면 안 되고, 탭 복귀 시 onChange(selectedTab)가 새 리스트로 세팅한다.
+            if session.selectedTab == .feed {
+                audio.updateWindow(feeds: feedList, current: currentIndex)
+            }
         } catch {
             loadFailed = true
         }
@@ -90,12 +93,23 @@ struct FeedView: View {
             : .search(query: activeQuery, cursor: cursor)
         guard let res = try? await session.api.send(endpoint, as: API.FeedResponse.self)
         else { return }
-        feedList.append(contentsOf: res.items.map(Feed.init))
+        let newFeeds = res.items.map(Feed.init)
+        feedList.append(contentsOf: newFeeds)
         nextCursor = res.hasMore ? res.nextCursor : nil
+        prefetchArtwork(newFeeds)
         // 일반 피드일 때만 커서 저장(검색 커서는 세션 한정이라 저장 안 함).
         if activeQuery.isEmpty {
             savedFeedCursor = nextCursor ?? ""
             maybeShowGenreExhausted(res)
+        }
+    }
+
+    /// 페이지의 아트워크(600px)를 URLCache에 미리 데운다. 완료를 기다리지 않고 발사만 —
+    /// URLSession이 호스트당 동시성을 큐잉하고, 슬롯 렌더 시 AsyncImage가 캐시 히트로 즉시 뜬다.
+    private func prefetchArtwork(_ feeds: [Feed]) {
+        for feed in feeds {
+            guard let url = feed.artworkURL(size: 600) else { continue }
+            URLSession.shared.dataTask(with: url).resume()
         }
     }
 
@@ -105,9 +119,9 @@ struct FeedView: View {
         guard res.genreExhausted == true, !genreExhaustedShown,
               session.authState == .signedIn else { return }
         genreExhaustedShown = true
-        toastMessage = String(localized: "You've seen all tracks in your genres — showing more")
+        toastMessage = String(localized: "More beyond your genres")
         Task {
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(3))
             toastMessage = nil
         }
     }
@@ -283,16 +297,18 @@ struct FeedView: View {
                 }
 
                 if let toastMessage {
+                    // 상단 배치 — 트랙 타이틀/액션이 모두 하단에 있어 겹치지 않는다. 위에서 슬라이드로 등장.
                     Text(toastMessage)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 12)
                         .background(.black.opacity(0.8), in: Capsule())
-                        .padding(.bottom, safeInsets.bottom + 100)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .padding(.top, safeInsets.top + 64)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .allowsHitTesting(false)
-                        .transition(.opacity)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
             .frame(width: size.width, height: size.height)
@@ -301,9 +317,20 @@ struct FeedView: View {
         .ignoresSafeArea()
         .onAppear {
             resolveSafeInsets()
-            audio.updateWindow(feeds: feedList, current: currentIndex)
+            if session.selectedTab == .feed {
+                audio.updateWindow(feeds: feedList, current: currentIndex)
+            }
         }
-        .onDisappear { audio.stop() }          // 탭 이탈 시 정지
+        .onDisappear { audio.stop() }          // 뷰 해제 시 정지
+        // 탭 전환을 결정적으로 처리 — onAppear/onDisappear는 TabView에서 신뢰 불가.
+        // 피드로 오면 현재 리스트로 재생 세팅, 떠나면 정지.
+        .onChange(of: session.selectedTab) { _, tab in
+            if tab == .feed {
+                audio.updateWindow(feeds: feedList, current: currentIndex)
+            } else {
+                audio.stop()
+            }
+        }
         .onChange(of: currentIndex) { _, _ in
             audio.updateWindow(feeds: feedList, current: currentIndex)
         }
@@ -319,7 +346,8 @@ struct FeedView: View {
             }
         }
         .animation(.easeInOut(duration: 0.15), value: audio.isPaused)
-        .animation(.easeInOut(duration: 0.2), value: toastMessage)
+        // 등장·퇴장 대칭 — 위에서 슬라이드로 들어오고, 나갈 때도 같은 길로 위로 물러난다.
+        .animation(.easeInOut(duration: 0.4), value: toastMessage)
         .sheet(item: $detailTarget) { target in
             TrackDetailView(trackId: target.id)
         }
@@ -613,15 +641,10 @@ struct FeedView: View {
     }
 
     private func backgroundArtwork(for feed: Feed, size: CGSize) -> some View {
-        AsyncImage(url: .init(string: feed.artworkUrl)) { image in
-            image
-                .resizable()
-                .scaledToFill()
-        } placeholder: {
-            Color.black
-        }
-        .frame(width: size.width, height: size.height)
-        .scaleEffect(1.1)
+        RemoteImage(url: URL(string: feed.artworkUrl)) { Color.black }
+            .scaledToFill()
+            .frame(width: size.width, height: size.height)
+            .scaleEffect(1.1)
         .blur(radius: 28)
         .brightness(-0.3)
         .saturation(1.4)
@@ -705,16 +728,11 @@ struct FeedView: View {
         }
 
         private var artwork: some View {
-            AsyncImage(url: feed.artworkURL(size: 600)) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                DSShimmerView()
-            }
-            .frame(width: cardWidth, height: cardWidth)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
+            RemoteImage(url: feed.artworkURL(size: 600)) { DSShimmerView() }
+                .scaledToFill()
+                .frame(width: cardWidth, height: cardWidth)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
         }
 
         private var infoAndActions: some View {

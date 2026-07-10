@@ -17,6 +17,11 @@ final class AppSession {
     /// 장르 설정이 바뀔 때마다 증가. 피드가 관찰해 새 장르로 재fetch 한다.
     var genreVersion = 0
 
+    /// 현재 선택된 탭. MainTabView가 소유·바인딩하고, 피드가 "지금 피드 탭인가"를
+    /// 결정적으로 판단해 다른 탭에 있을 때 오디오를 켜지 않도록 쓴다.
+    /// (onAppear/onDisappear는 TabView에서 신뢰할 수 없어 이 값으로 대체.)
+    var selectedTab: AppTab = .feed
+
     let api: APIClient
 
     // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
