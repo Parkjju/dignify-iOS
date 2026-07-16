@@ -133,6 +133,8 @@ struct HypeCollection: View {
         }
         /// 미리보기(onSeeAll 있음)이고 넘칠 때만 See all 셀·제스처를 노출.
         private var showsSeeAll: Bool { onSeeAll != nil && !fits }
+        /// 당김 리빌은 iOS 18 스크롤 관측 API가 있어야 한다. 그 아래선 See all 셀 탭이 유일한 경로.
+        private var revealsByOverscroll: Bool { if #available(iOS 18.0, *) { true } else { false } }
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
@@ -140,36 +142,47 @@ struct HypeCollection: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DSColor.textTertiary)
                     .padding(.horizontal, hPadding)
-                ScrollView(.horizontal, showsIndicators: false) {
+                scroller
+            }
+        }
+
+        @ViewBuilder
+        private var scroller: some View {
+            let base = ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
                     HStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            ForEach(group.tracks, id: \.userHypeTrackId) { cell($0) }
+                        ForEach(group.tracks, id: \.userHypeTrackId) { cell($0) }
+                    }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { tracksWidth = $0 }
+                    if showsSeeAll { seeAllCell }
+                }
+                .padding(.horizontal, hPadding)
+            }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
+            .scrollDisabled(fits)
+            .scrollBounceBehavior(.always, axes: .horizontal)
+
+            if #available(iOS 18.0, *) {
+                base
+                    .onScrollGeometryChange(for: CGFloat.self) { g in
+                        // 오른쪽 끝을 넘어간 오버스크롤 양(0 이상).
+                        max(0, g.contentOffset.x + g.containerSize.width - g.contentSize.width)
+                    } action: { _, v in
+                        guard showsSeeAll else { return }
+                        reveal = v
+                        peak = max(peak, v)
+                    }
+                    .onScrollPhaseChange { oldPhase, newPhase, _ in
+                        guard showsSeeAll else { return }
+                        if newPhase == .interacting { peak = 0; return }
+                        // 손을 뗀 순간(드래그 종료) 최대 당김이 임계를 넘었으면 이동.
+                        if oldPhase == .interacting, peak > threshold {
+                            peak = 0
+                            onSeeAll?()
                         }
-                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { tracksWidth = $0 }
-                        if showsSeeAll { seeAllCell }
                     }
-                    .padding(.horizontal, hPadding)
-                }
-                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
-                .scrollDisabled(fits)
-                .scrollBounceBehavior(.always, axes: .horizontal)
-                .onScrollGeometryChange(for: CGFloat.self) { g in
-                    // 오른쪽 끝을 넘어간 오버스크롤 양(0 이상).
-                    max(0, g.contentOffset.x + g.containerSize.width - g.contentSize.width)
-                } action: { _, v in
-                    guard showsSeeAll else { return }
-                    reveal = v
-                    peak = max(peak, v)
-                }
-                .onScrollPhaseChange { oldPhase, newPhase, _ in
-                    guard showsSeeAll else { return }
-                    if newPhase == .interacting { peak = 0; return }
-                    // 손을 뗀 순간(드래그 종료) 최대 당김이 임계를 넘었으면 이동.
-                    if oldPhase == .interacting, peak > threshold {
-                        peak = 0
-                        onSeeAll?()
-                    }
-                }
+            } else {
+                base
             }
         }
 
@@ -182,7 +195,7 @@ struct HypeCollection: View {
                     .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(DSColor.brand)
-            .opacity(min(1, 0.4 + reveal / threshold))
+            .opacity(revealsByOverscroll ? min(1, 0.4 + reveal / threshold) : 1)
             .frame(width: 56, height: 72)
             .contentShape(Rectangle())
             .onTapGesture { onSeeAll?() }
