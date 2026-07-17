@@ -15,6 +15,7 @@ struct Feed {
     let previewUrl: String
     let trackViewUrl: String
     var isHyped: Bool
+    let genreName: String?
 }
 
 extension Feed {
@@ -32,7 +33,8 @@ extension Feed {
             artworkUrl: item.artworkUrl,
             previewUrl: item.previewUrl,
             trackViewUrl: item.trackViewUrl,
-            isHyped: item.isHyped
+            isHyped: item.isHyped,
+            genreName: item.genreName
         )
     }
 }

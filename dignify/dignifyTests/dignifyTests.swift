@@ -22,4 +22,26 @@ struct dignifyTests {
         #expect(abs(f(30, 30, 1, 2)) < 0.0001)
     }
 
+    @MainActor
+    @Test func listenFiresOnceAfterThreshold() {
+        let audio = FeedAudioController()
+        var fired: [Int] = []
+        audio.onListen = { fired.append($0) }
+
+        // 훑고 지나간 스와이프는 청취가 아니다.
+        audio.recordListenIfNeeded(trackId: 1, playedFor: 4.9)
+        #expect(fired.isEmpty)
+
+        audio.recordListenIfNeeded(trackId: 1, playedFor: 5)
+        #expect(fired == [1])
+
+        // 루프로 위치가 0으로 돌아가 임계값을 다시 넘어도 재발사하지 않는다.
+        audio.recordListenIfNeeded(trackId: 1, playedFor: 0.1)
+        audio.recordListenIfNeeded(trackId: 1, playedFor: 12)
+        #expect(fired == [1])
+
+        audio.recordListenIfNeeded(trackId: 2, playedFor: 7)
+        #expect(fired == [1, 2])
+    }
+
 }

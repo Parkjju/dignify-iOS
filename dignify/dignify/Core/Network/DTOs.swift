@@ -36,6 +36,10 @@ nonisolated enum API {
         let previewUrl: String
         let trackViewUrl: String
         let isHyped: Bool
+        /// 이 트랙이 왜 떴는지 보여주는 장르 라벨(서버가 Accept-Language로 현지화).
+        /// optional인 이유는 배포 순서 — 백엔드보다 앱이 먼저 나가도 피드가 죽지 않게.
+        /// 양쪽 배포가 안정되면 non-optional로 조여도 된다.
+        let genreName: String?
     }
 
     /// 피드/검색 공통 응답. nextCursor 없으면 hasMore=false (피드 소진).

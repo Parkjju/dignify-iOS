@@ -12,6 +12,18 @@ final class FeedAudioController {
     /// 탭 토글·인터럽션·백그라운드·트랙 전환 모두 이 값을 갱신하고, 뷰는 이것만 읽는다.
     private(set) var isPaused = false
 
+    /// listenThreshold 이상 재생된 트랙을 트랙당 한 번 알린다.
+    /// 서버 기록은 뷰가 한다 — 이 컨트롤러는 네트워크를 모른다.
+    /// (설정하지 않으면 아무것도 발사되지 않는다: 마이페이지 미리듣기는 집계 대상이 아님.)
+    var onListen: ((Int) -> Void)?
+
+    /// onListen을 이미 보낸 트랙 — 루프·재진입으로 중복 발사하지 않게 한다.
+    private var listenedTrackIds: Set<Int> = []
+
+    // ponytail: 훑고 지나간 스와이프와 실제 청취를 가르는 값 하나.
+    // 실데이터 보고 조정. 프리뷰가 30초라 상한은 그쪽.
+    private let listenThreshold: Double = 5
+
     private var players: [Int: AVPlayer] = [:]              // trackId → player
     private var loopObservers: [Int: NSObjectProtocol] = [:]
     private var currentTrackId: Int?
@@ -101,7 +113,7 @@ final class FeedAudioController {
         player.volume = 0                    // fade in은 time observer가 올린다
         player.play()
         isPaused = false                     // 새 current는 항상 재생 상태로 시작
-        addTimeObserver(for: player)
+        addTimeObserver(for: player, trackId: trackId)
     }
 
     // MARK: - Loop & fade
@@ -121,7 +133,7 @@ final class FeedAudioController {
         loopObservers[id] = obs
     }
 
-    private func addTimeObserver(for player: AVPlayer) {
+    private func addTimeObserver(for player: AVPlayer, trackId: Int) {
         timeObserverPlayer = player
         let interval = CMTime(seconds: 0.05, preferredTimescale: 600)
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
@@ -131,8 +143,18 @@ final class FeedAudioController {
                 guard duration.isFinite, duration > 0 else { return }
                 player.volume = Float(Self.fadeVolume(
                     at: time.seconds, duration: duration, fadeIn: self.fadeIn, fadeOut: self.fadeOut))
+                self.recordListenIfNeeded(trackId: trackId, playedFor: time.seconds)
             }
         }
+    }
+
+    /// 재생 위치가 임계값을 넘으면 트랙당 한 번만 onListen을 호출한다.
+    /// 시크 UI가 없어 재생 위치 = 실제 들은 시간이고, 일시정지 중엔 옵저버가 안 돈다.
+    /// 루프로 위치가 0으로 돌아가도 listenedTrackIds가 재발사를 막는다.
+    func recordListenIfNeeded(trackId: Int, playedFor seconds: Double) {
+        guard seconds >= listenThreshold, !listenedTrackIds.contains(trackId) else { return }
+        listenedTrackIds.insert(trackId)
+        onListen?(trackId)
     }
 
     /// 종료 fadeOut초 전부터 1→0, 시작 fadeIn초 동안 0→1. 그 외 1.0.
