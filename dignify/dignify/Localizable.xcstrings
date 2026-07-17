@@ -511,9 +511,6 @@
         }
       }
     },
-    "Thanks! We'll look into adding them." : {
-
-    },
     "This nickname is already in use." : {
       "localizations" : {
         "ko" : {
@@ -555,6 +552,9 @@
       }
     },
     "v1.0.0" : {
+
+    },
+    "We'll notify you when they're added." : {
 
     },
     "What music do you like?" : {

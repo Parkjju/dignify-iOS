@@ -80,6 +80,10 @@ nonisolated extension Endpoint {
 
     static var artistRequests: Endpoint { Endpoint(method: .get, path: "/artist-requests") }
 
+    static func deleteArtistRequest(id: Int) -> Endpoint {
+        Endpoint(method: .delete, path: "/artist-requests/\(id)")
+    }
+
     // MARK: Users
 
     static var myProfile: Endpoint { Endpoint(method: .get, path: "/users/me") }

@@ -17,8 +17,17 @@ struct ArtistRequestHistoryView: View {
             } else if items.isEmpty {
                 emptyState
             } else {
-                List(items) { RequestRow(request: $0) }
-                    .listStyle(.plain)
+                List(items) { request in
+                    RequestRow(request: request)
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                Task { await delete(request) }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                }
+                .listStyle(.plain)
             }
         }
         .background(DSColor.background)
@@ -49,6 +58,17 @@ struct ArtistRequestHistoryView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// 낙관적 제거 후 서버 삭제. 실패하면 목록을 원복한다.
+    private func delete(_ request: API.ArtistRequest) async {
+        let previous = items
+        items.removeAll { $0.id == request.id }
+        do {
+            try await session.api.send(.deleteArtistRequest(id: request.id))
+        } catch {
+            items = previous
+        }
     }
 
     private func load() async {
