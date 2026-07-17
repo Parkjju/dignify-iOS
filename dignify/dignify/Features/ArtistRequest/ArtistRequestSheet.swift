@@ -83,7 +83,7 @@ struct ArtistRequestSheet: View {
             Text("Request sent")
                 .font(DSTypography.title2)
                 .foregroundStyle(DSColor.textPrimary)
-            Text("Thanks! We'll look into adding them.")
+            Text("We'll notify you when they're added.")
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
         }
@@ -99,6 +99,8 @@ struct ArtistRequestSheet: View {
             do {
                 try await session.api.send(.requestArtist(artistName: trimmed))
                 submitted = true
+                // "추가되면 알려드릴게요" 맥락에서 알림 권한을 요청한다.
+                session.requestPushAuthorization()
             } catch {
                 submitting = false   // 실패 시 그대로 두고 재시도 가능하게.
             }

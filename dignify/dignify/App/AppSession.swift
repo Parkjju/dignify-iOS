@@ -1,10 +1,16 @@
 import Foundation
 import Observation
 import PostHog
+import UIKit
+import UserNotifications
 
 @MainActor
 @Observable
 final class AppSession {
+    /// AppDelegate가 APNs 토큰을 넘길 수 있게 살아있는 단일 인스턴스를 노출한다.
+    /// 앱 수명 동안 AppRootView가 하나만 소유하므로 weak static으로 충분.
+    static weak var current: AppSession?
+
     var authState: AuthState = .unknown
 
     /// 게스트가 계정 기능(하입·마이페이지 등)을 시도할 때 로그인 시트를 띄우는 트리거.
@@ -30,6 +36,40 @@ final class AppSession {
 
     init(api: APIClient = APIClient(baseURL: AppSession.baseURL)) {
         self.api = api
+        AppSession.current = self
+    }
+
+    // MARK: - Push notifications
+
+    /// 아티스트 요청 제출 직후 맥락에서 호출. 아직 안 물어봤으면 권한을 요청하고,
+    /// 이미 허용됐으면 토큰만 갱신한다. 거부 상태면 조용히 무시(재알림 안 함).
+    func requestPushAuthorization() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                    guard granted else { return }
+                    Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
+                }
+            case .authorized, .provisional, .ephemeral:
+                Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
+            default:
+                break   // denied 등 → 무시
+            }
+        }
+    }
+
+    /// AppDelegate가 APNs 토큰을 받으면 호출. 로그인 유저의 토큰만 서버에 등록한다.
+    /// environment는 빌드 종류로 결정 — 디버그=sandbox, 릴리스(TestFlight/출시)=production.
+    func registerDeviceToken(_ hex: String) {
+        guard authState == .signedIn else { return }
+        #if DEBUG
+        let environment = "sandbox"
+        #else
+        let environment = "production"
+        #endif
+        Task { try? await api.send(.deviceToken(token: hex, environment: environment)) }
     }
 
     /// 앱 시작 시 저장된 토큰으로 초기 진입 상태를 결정한다.
