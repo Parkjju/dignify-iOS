@@ -27,6 +27,7 @@ struct FeedView: View {
     /// track_viewed 중복 방지 — 탭 복귀 등으로 같은 트랙이 다시 current가 돼도 한 번만 찍는다.
     @State private var lastViewedTrackId: Int?
     @State private var detailTarget: DetailTarget?
+    @State private var showRequestSheet = false
     @State private var toastMessage: String?
     /// 장르 소진 토스트를 피드 세션당 한 번만 노출하기 위한 플래그.
     @State private var genreExhaustedShown = false
@@ -238,13 +239,20 @@ struct FeedView: View {
                     }
                     .foregroundStyle(DSColor.brand)
                 } else if !activeQuery.isEmpty {
+                    Button("Request \"\(activeQuery)\"") {
+                        if requireAccount() { showRequestSheet = true }
+                    }
+                    .foregroundStyle(DSColor.brand)
                     Button("Back to feed") { clearSearch() }
-                        .foregroundStyle(DSColor.brand)
+                        .foregroundStyle(DSColor.textTertiary)
                 }
             }
             .padding(.horizontal, 32)
         }
         .ignoresSafeArea()
+        .sheet(isPresented: $showRequestSheet) {
+            ArtistRequestSheet(prefill: activeQuery)
+        }
     }
 
     private var emptyMessage: String {

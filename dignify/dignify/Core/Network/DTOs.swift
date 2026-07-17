@@ -103,4 +103,26 @@ nonisolated enum API {
         let items: [HypeItem]
         let nextCursor: Int?
     }
+
+    /// 아티스트 요청 처리 상태. 서버가 새 값을 추가해도 깨지지 않게 미지 값은 pending으로 폴백.
+    enum RequestStatus: String, Decodable {
+        case pending = "PENDING", added = "ADDED", canceled = "CANCELED"
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            self = RequestStatus(rawValue: raw) ?? .pending
+        }
+    }
+
+    struct ArtistRequest: Decodable, Identifiable {
+        let id: Int
+        let artistName: String
+        let status: RequestStatus
+        let cancelReason: String?   // status == .canceled 일 때만 채워짐
+        let createdAt: Date         // date-time(ISO8601)
+    }
+
+    /// 내 요청 히스토리(최신순). 현실적으로 소량이라 페이지네이션 없이 전체를 준다.
+    struct ArtistRequestListResponse: Decodable {
+        let items: [ArtistRequest]
+    }
 }

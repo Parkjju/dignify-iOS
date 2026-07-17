@@ -14,6 +14,9 @@
         }
       }
     },
+    "Added" : {
+
+    },
     "All your data, including hypes and genres, will be deleted permanently." : {
       "localizations" : {
         "ko" : {
@@ -23,6 +26,12 @@
           }
         }
       }
+    },
+    "Artist name" : {
+
+    },
+    "Artist Requests" : {
+
     },
     "Back to feed" : {
       "localizations" : {
@@ -50,6 +59,9 @@
         }
       }
     },
+    "Can't find an artist? Tell us who, and we'll look into adding their tracks." : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "ko" : {
@@ -59,6 +71,9 @@
           }
         }
       }
+    },
+    "Canceled" : {
+
     },
     "Clear text" : {
       "localizations" : {
@@ -326,6 +341,9 @@
         }
       }
     },
+    "No requests yet" : {
+
+    },
     "No results for \"%@\"" : {
       "localizations" : {
         "ko" : {
@@ -345,6 +363,9 @@
           }
         }
       }
+    },
+    "Pending" : {
+
     },
     "Pick up to 3" : {
       "localizations" : {
@@ -385,6 +406,15 @@
           }
         }
       }
+    },
+    "Request \"%@\"" : {
+
+    },
+    "Request an artist" : {
+
+    },
+    "Request sent" : {
+
     },
     "Save" : {
       "localizations" : {
@@ -439,6 +469,9 @@
         }
       }
     },
+    "Send request" : {
+
+    },
     "Share" : {
       "localizations" : {
         "ko" : {
@@ -465,6 +498,9 @@
         }
       }
     },
+    "Tap + to request an artist." : {
+
+    },
     "Terms of Service" : {
       "localizations" : {
         "ko" : {
@@ -474,6 +510,9 @@
           }
         }
       }
+    },
+    "Thanks! We'll look into adding them." : {
+
     },
     "This nickname is already in use." : {
       "localizations" : {

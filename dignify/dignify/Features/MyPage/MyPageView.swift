@@ -169,6 +169,7 @@ struct MyPageView: View {
     private var settingsList: some View {
         VStack(spacing: 0) {
             NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
+            NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
             Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
             Button { logout() } label: { settingsRow("Log Out") }

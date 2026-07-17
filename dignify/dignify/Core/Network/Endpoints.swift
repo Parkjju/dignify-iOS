@@ -12,6 +12,7 @@ private nonisolated struct IdentityTokenBody: Encodable { let identityToken: Str
 private nonisolated struct RefreshTokenBody: Encodable { let refreshToken: String }
 private nonisolated struct NicknameBody: Encodable { let nickname: String }
 private nonisolated struct GenreIdsBody: Encodable { let genreIds: [Int] }
+private nonisolated struct ArtistRequestBody: Encodable { let artistName: String }
 
 /// openapi.yaml 14개 엔드포인트 팩토리. 호출부: `client.send(.feed(cursor: c), as: API.FeedResponse.self)`
 nonisolated extension Endpoint {
@@ -71,6 +72,12 @@ nonisolated extension Endpoint {
     static func listen(trackId: Int) -> Endpoint {
         Endpoint(method: .post, path: "/tracks/\(trackId)/listen")
     }
+
+    static func requestArtist(artistName: String) -> Endpoint {
+        Endpoint(method: .post, path: "/artist-requests", body: ArtistRequestBody(artistName: artistName))
+    }
+
+    static var artistRequests: Endpoint { Endpoint(method: .get, path: "/artist-requests") }
 
     // MARK: Users
 
