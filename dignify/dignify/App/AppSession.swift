@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import PostHog
 
 @MainActor
 @Observable
@@ -68,6 +69,9 @@ final class AppSession {
         let tokens = try await api.send(.appleSignIn(identityToken: identityToken), as: AuthTokens.self)
         await api.setTokens(tokens)
         try await refreshAuthState()
+        // 게스트→로그인 전환. distinct_id는 익명 그대로 이어져 전환 퍼널이 한 사람으로 연결된다.
+        // ponytail: 백엔드가 안정적 userId를 안 내려줘 identify는 생략 — 익명 id로 리텐션·전환 다 나옴.
+        PostHogSDK.shared.capture("signed_in", properties: ["is_new": authState == .onboardingRequired])
         pendingSignIn = false   // 게스트 게이트 시트에서 로그인한 경우 시트를 닫는다.
     }
 

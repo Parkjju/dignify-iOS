@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 struct FeedView: View {
     @Environment(AppSession.self) private var session
@@ -23,6 +24,8 @@ struct FeedView: View {
     @AppStorage("recentSearches") private var recentRaw = ""
     @State private var offset: CGFloat = 0
     @State private var currentIndex = 0
+    /// track_viewed 중복 방지 — 탭 복귀 등으로 같은 트랙이 다시 current가 돼도 한 번만 찍는다.
+    @State private var lastViewedTrackId: Int?
     @State private var detailTarget: DetailTarget?
     @State private var toastMessage: String?
     /// 장르 소진 토스트를 피드 세션당 한 번만 노출하기 위한 플래그.
@@ -317,8 +320,10 @@ struct FeedView: View {
         .ignoresSafeArea()
         .onAppear {
             resolveSafeInsets()
+            audio.onListen = { trackId in recordListen(trackId: trackId) }
             if session.selectedTab == .feed {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
+                logTrackViewed()   // 첫 트랙(index 0)은 onChange가 안 터지므로 여기서.
             }
         }
         .onDisappear { audio.stop() }          // 뷰 해제 시 정지
@@ -333,6 +338,7 @@ struct FeedView: View {
         }
         .onChange(of: currentIndex) { _, _ in
             audio.updateWindow(feeds: feedList, current: currentIndex)
+            logTrackViewed()
         }
         .onChange(of: scenePhase) { _, phase in
             phase == .active ? audio.resumeCurrent() : audio.pauseCurrent()
@@ -613,6 +619,29 @@ struct FeedView: View {
         return true
     }
 
+    /// 실제 청취(임계 시간 이상 재생)를 서버에 기록한다. fire-and-forget —
+    /// 집계용이라 실패해도 재시도·UI 반응 없음.
+    /// 게스트는 조용히 건너뛴다: /tracks/{id}/listen은 인증 엔드포인트라 401이고,
+    /// 익명 기록은 유저별 리텐션 분석에 쓸 수 없다. 로그인 시트도 띄우면 안 되므로
+    /// requireAccount()가 아니라 직접 가드한다.
+    /// current 트랙이 실제로 바뀌었을 때만 노출 이벤트를 찍는다(스킵률의 분모).
+    private func logTrackViewed() {
+        guard feedList.indices.contains(currentIndex) else { return }
+        let feed = feedList[currentIndex]
+        guard feed.trackId != lastViewedTrackId else { return }
+        lastViewedTrackId = feed.trackId
+        PostHogSDK.shared.capture("track_viewed", properties: [
+            "track_id": feed.trackId, "artist": feed.artistName, "genre": feed.genreName ?? "",
+        ])
+    }
+
+    private func recordListen(trackId: Int) {
+        // 스킵률 = 1 - track_listened/track_viewed. 게스트도 세야 하므로 서버 가드보다 먼저 찍는다.
+        PostHogSDK.shared.capture("track_listened", properties: ["track_id": trackId])
+        guard session.authState == .signedIn else { return }
+        Task { try? await session.api.send(.listen(trackId: trackId)) }
+    }
+
     private func toggleHype(for feed: Feed) {
         guard requireAccount() else { return }
         guard let index = feedList.firstIndex(where: { $0.trackId == feed.trackId }) else { return }
@@ -627,6 +656,7 @@ struct FeedView: View {
               feedList[index].isHyped != target else { return }
         feedList[index].isHyped = target
         session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
+        if target { PostHogSDK.shared.capture("track_hyped", properties: ["track_id": trackId]) }
         Task {
             do {
                 try await session.api.send(target ? .hype(trackId: trackId) : .unhype(trackId: trackId))
@@ -735,18 +765,39 @@ struct FeedView: View {
                 .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
         }
 
+        /// "이 트랙이 왜 떴는지" 힌트. 유저가 고른 장르 기준으로 피드가 구성되므로
+        /// 장르명 자체가 선정 근거다. 서버가 현지화해 내려주며, 백엔드 배포 전이면 숨는다.
+        /// DSGenreChip은 밝은 배경의 선택형 Button이라 어두운 카드엔 안 맞아 별도 스타일.
+        @ViewBuilder
+        private var genreLabel: some View {
+            if let genreName = feed.genreName {
+                Text(genreName)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.white.opacity(0.15), in: Capsule())
+                    .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
+                    .accessibilityLabel("Genre: \(genreName)")
+            }
+        }
+
         private var infoAndActions: some View {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(feed.trackName)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
+                VStack(alignment: .leading, spacing: 8) {
+                    genreLabel
 
-                    Text(feed.artistName)
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.75))
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(feed.trackName)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+
+                        Text(feed.artistName)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white.opacity(0.75))
+                            .lineLimit(1)
+                    }
                 }
 
                 HStack {
