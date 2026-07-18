@@ -29,7 +29,7 @@ struct MyPageView: View {
                 hypeSection
                 Divider().padding(.horizontal, 20).padding(.vertical, 4)
                 settingsList
-                Text("v1.0.0")
+                Text("v1.0.3")
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.border)
                     .padding(.vertical, 24)
