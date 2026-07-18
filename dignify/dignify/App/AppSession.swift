@@ -63,13 +63,23 @@ final class AppSession {
     /// AppDelegate가 APNs 토큰을 받으면 호출. 로그인 유저의 토큰만 서버에 등록한다.
     /// environment는 빌드 종류로 결정 — 디버그=sandbox, 릴리스(TestFlight/출시)=production.
     func registerDeviceToken(_ hex: String) {
-        guard authState == .signedIn else { return }
+        guard authState == .signedIn else {
+            print("[Push] 토큰 수신했지만 미로그인 상태 → 등록 스킵")
+            return
+        }
         #if DEBUG
         let environment = "sandbox"
         #else
         let environment = "production"
         #endif
-        Task { try? await api.send(.deviceToken(token: hex, environment: environment)) }
+        Task {
+            do {
+                try await api.send(.deviceToken(token: hex, environment: environment))
+                print("[Push] 디바이스 토큰 등록 성공 (\(environment))")
+            } catch {
+                print("[Push] 디바이스 토큰 등록 실패: \(error)")
+            }
+        }
     }
 
     /// 앱 시작 시 저장된 토큰으로 초기 진입 상태를 결정한다.

@@ -15,7 +15,14 @@
       }
     },
     "Added" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가됨"
+          }
+        }
+      }
     },
     "All your data, including hypes and genres, will be deleted permanently." : {
       "localizations" : {
@@ -28,10 +35,24 @@
       }
     },
     "Artist name" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 이름"
+          }
+        }
+      }
     },
     "Artist Requests" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 요청"
+          }
+        }
+      }
     },
     "Back to feed" : {
       "localizations" : {
@@ -60,7 +81,14 @@
       }
     },
     "Can't find an artist? Tell us who, and we'll look into adding their tracks." : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "찾는 아티스트가 없나요? 알려주시면 추가를 검토할게요."
+          }
+        }
+      }
     },
     "Cancel" : {
       "localizations" : {
@@ -73,7 +101,14 @@
       }
     },
     "Canceled" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취소됨"
+          }
+        }
+      }
     },
     "Clear text" : {
       "localizations" : {
@@ -342,7 +377,14 @@
       }
     },
     "No requests yet" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 요청이 없어요"
+          }
+        }
+      }
     },
     "No results for \"%@\"" : {
       "localizations" : {
@@ -365,7 +407,14 @@
       }
     },
     "Pending" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대기 중"
+          }
+        }
+      }
     },
     "Pick up to 3" : {
       "localizations" : {
@@ -383,6 +432,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "개인정보처리방침"
+          }
+        }
+      }
+    },
+    "push_artist_added_body" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to start digging"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 디깅하러 가기"
+          }
+        }
+      }
+    },
+    "push_artist_added_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' is here"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' 등록 완료"
           }
         }
       }
@@ -408,13 +491,34 @@
       }
     },
     "Request \"%@\"" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" 요청하기"
+          }
+        }
+      }
     },
     "Request an artist" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 요청하기"
+          }
+        }
+      }
     },
     "Request sent" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 완료"
+          }
+        }
+      }
     },
     "Save" : {
       "localizations" : {
@@ -470,7 +574,14 @@
       }
     },
     "Send request" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 보내기"
+          }
+        }
+      }
     },
     "Share" : {
       "localizations" : {
@@ -499,7 +610,14 @@
       }
     },
     "Tap + to request an artist." : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "＋를 눌러 아티스트를 요청하세요."
+          }
+        }
+      }
     },
     "Terms of Service" : {
       "localizations" : {
@@ -555,7 +673,14 @@
 
     },
     "We'll notify you when they're added." : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가되면 알림으로 알려드릴게요."
+          }
+        }
+      }
     },
     "What music do you like?" : {
       "localizations" : {
