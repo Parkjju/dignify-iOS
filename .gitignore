@@ -111,3 +111,6 @@ dignify/dignify/docs/
 
 # macOS
 .DS_Store
+
+# Marketing assets (App Store screenshots, generators — not app source)
+marketing/appstore/

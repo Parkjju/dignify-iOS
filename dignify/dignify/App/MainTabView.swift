@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppSession.self) private var session
+    /// 로그인 유저에게 1회. 게스트는 제외(로그인 이후부터 적용).
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
 
     var body: some View {
         @Bindable var session = session
@@ -19,6 +21,16 @@ struct MainTabView: View {
         .sheet(isPresented: $session.pendingSignIn) {
             OnboardingFlowView(mode: .gate)
         }
+        .fullScreenCover(isPresented: showTutorial) {
+            TutorialView { hasSeenTutorial = true }
+        }
+    }
+
+    private var showTutorial: Binding<Bool> {
+        Binding(
+            get: { session.authState == .signedIn && !hasSeenTutorial },
+            set: { if !$0 { hasSeenTutorial = true } }
+        )
     }
 
     /// 게스트는 계정 기반 탭(마이페이지) 대신 로그인 유도 플레이스홀더를 본다.
