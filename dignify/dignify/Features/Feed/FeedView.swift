@@ -27,6 +27,7 @@ struct FeedView: View {
     /// track_viewed 중복 방지 — 탭 복귀 등으로 같은 트랙이 다시 current가 돼도 한 번만 찍는다.
     @State private var lastViewedTrackId: Int?
     @State private var detailTarget: DetailTarget?
+    @State private var shareItem: ShareItem?
     @State private var showRequestSheet = false
     @State private var toastMessage: String?
     /// 장르 소진 토스트를 피드 세션당 한 번만 노출하기 위한 플래그.
@@ -365,17 +366,32 @@ struct FeedView: View {
         .sheet(item: $detailTarget) { target in
             TrackDetailView(trackId: target.id)
         }
+        // 같은 뷰에 .sheet 두 개(detailTarget)는 충돌 → 공유 시트는 별도 노드에 부착.
+        .background {
+            Color.clear.sheet(item: $shareItem) { item in
+                ShareSheet(items: [item.image, item.url])
+            }
+        }
     }
 
     private struct DetailTarget: Identifiable { let id: Int }
 
-    /// 공유: activity 시트 대신 Apple Music URL만 클립보드에 복사하고 토스트 안내.
+    private struct ShareItem: Identifiable {
+        let id = UUID()
+        let image: UIImage
+        let url: String
+    }
+
+    /// 공유: dignify 아이덴티티 카드를 렌더해 시스템 공유 시트로 인스타그램 등 SNS에 보낸다.
     private func shareTrack(_ feed: Feed) {
-        UIPasteboard.general.string = feed.trackViewUrl
-        toastMessage = String(localized: "Link copied")
         Task {
-            try? await Task.sleep(for: .seconds(2))
-            toastMessage = nil
+            guard let image = await ShareCard.render(
+                trackName: feed.trackName,
+                artistName: feed.artistName,
+                genreName: feed.genreName,
+                artworkURL: feed.artworkURL(size: 600)
+            ) else { return }
+            shareItem = ShareItem(image: image, url: feed.trackViewUrl)
         }
     }
 

@@ -1,32 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "What's New" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새로운 기능"
-          }
-        }
-      }
+    "@%@" : {
+
     },
-    "Got it" : {
+    "%@ selected" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "확인"
-          }
-        }
-      }
-    },
-    "Version %@" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "버전 %@"
+            "value" : "%@ 선택됨"
           }
         }
       }
@@ -37,69 +20,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "시작을 돕는 간단한 튜토리얼이 추가됐어요."
-          }
-        }
-      }
-    },
-    "See what's new after every update." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "업데이트할 때마다 새로운 기능을 확인할 수 있어요."
-          }
-        }
-      }
-    },
-    "Request artists you can't find yet." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아직 없는 아티스트를 요청할 수 있어요."
-          }
-        }
-      }
-    },
-    "Get notified when your request is added." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "요청한 아티스트가 추가되면 알림을 받아요."
-          }
-        }
-      }
-    },
-    "Missing an artist?" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "찾는 아티스트가 없나요?"
-          }
-        }
-      }
-    },
-    "Search for them and tap Request — or add one from Artist Requests in My Page." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "검색 후 요청 버튼을 누르거나, 마이페이지의 아티스트 요청에서 추가할 수 있어요."
-          }
-        }
-      }
-    },
-    "@%@" : {
-
-    },
-    "%@ selected" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 선택됨"
           }
         }
       }
@@ -290,6 +210,29 @@
         }
       }
     },
+    "dig deeper" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dig deeper"
+          }
+        }
+      }
+    },
+    "DIGGING" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DIGGING"
+          }
+        }
+      }
+    },
+    "dignify" : {
+
+    },
     "Dignify" : {
 
     },
@@ -299,6 +242,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "인디 음악을 발굴하고 당신만의 취향을 쌓아가세요."
+          }
+        }
+      }
+    },
+    "Discover music on Dignify" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify에서 음악을 발견하세요"
           }
         }
       }
@@ -319,6 +273,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "더블 탭으로 하입"
+          }
+        }
+      }
+    },
+    "Dug up on Dignify" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify에서 발굴한 곡"
           }
         }
       }
@@ -346,12 +311,32 @@
     "Genre: %@" : {
 
     },
+    "Get notified when your request is added." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청한 아티스트가 추가되면 알림을 받아요."
+          }
+        }
+      }
+    },
     "Get started" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "시작하기"
+          }
+        }
+      }
+    },
+    "Got it" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
           }
         }
       }
@@ -407,6 +392,7 @@
       }
     },
     "Link copied" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -452,6 +438,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "마음에 드는 곡이 있나요? 카드를 더블 탭하면 바로 하입할 수 있어요."
+          }
+        }
+      }
+    },
+    "Missing an artist?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "찾는 아티스트가 없나요?"
           }
         }
       }
@@ -690,6 +686,16 @@
         }
       }
     },
+    "Request artists you can't find yet." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 없는 아티스트를 요청할 수 있어요."
+          }
+        }
+      }
+    },
     "Request sent" : {
       "localizations" : {
         "ko" : {
@@ -740,6 +746,16 @@
         }
       }
     },
+    "Search for them and tap Request — or add one from Artist Requests in My Page." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색 후 요청 버튼을 누르거나, 마이페이지의 아티스트 요청에서 추가할 수 있어요."
+          }
+        }
+      }
+    },
     "See all" : {
 
     },
@@ -759,6 +775,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "트랙 정보 보기"
+          }
+        }
+      }
+    },
+    "See what's new after every update." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트할 때마다 새로운 기능을 확인할 수 있어요."
           }
         }
       }
@@ -902,6 +928,16 @@
     "v1.0.3" : {
 
     },
+    "Version %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "버전 %@"
+          }
+        }
+      }
+    },
     "We'll notify you when they're added." : {
       "localizations" : {
         "ko" : {
@@ -918,6 +954,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "어떤 음악을 좋아하세요?"
+          }
+        }
+      }
+    },
+    "What's New" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새로운 기능"
           }
         }
       }
