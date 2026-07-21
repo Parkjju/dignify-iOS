@@ -44,4 +44,20 @@ struct dignifyTests {
         #expect(fired == [1, 2])
     }
 
+    @Test func whatsNewShowsOnlyOnUpdate() {
+        let current = Changelog.releases.first!.version
+        func show(_ lastSeen: String, returning: Bool = false) -> Bool {
+            Changelog.shouldShowWhatsNew(lastSeen: lastSeen, current: current, isReturningUser: returning)
+        }
+        // 이전 버전에서 올라오면 뜬다.
+        #expect(show("1.0.3") == true)
+        // 같은 버전 재실행엔 안 뜬다.
+        #expect(show(current) == false)
+        // 첫 버전추적 실행(lastSeen 빈 값): 신규 온보딩 유저는 제외, 기존 유저만 표시.
+        #expect(show("", returning: false) == false)
+        #expect(show("", returning: true) == true)
+        // 노트 없는 버전으로 올라가면 안 뜬다(returning이어도).
+        #expect(Changelog.shouldShowWhatsNew(lastSeen: "1.0.3", current: "9.9.9", isReturningUser: true) == false)
+    }
+
 }

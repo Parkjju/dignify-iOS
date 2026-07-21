@@ -128,6 +128,8 @@ struct GenreSelectionView: View {
             do {
                 try await appSession.api.send(.updateGenres(ids: selectedGenres.map(\.id)))
                 try await appSession.api.send(.completeOnboarding)
+                // 신규 온보딩 유저에게만 튜토리얼을 띄운다(MainTabView가 이 플래그로 게이트).
+                UserDefaults.standard.set(true, forKey: "pendingTutorial")
                 appSession.authState = .signedIn
             } catch {
                 errorMessage = String(localized: "Couldn't save. Please try again.")

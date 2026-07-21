@@ -2,8 +2,16 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppSession.self) private var session
-    /// 로그인 유저에게 1회. 게스트는 제외(로그인 이후부터 적용).
-    @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
+    /// 온보딩(장르 선택)을 막 마친 신규 유저에게만 튜토리얼을 띄우기 위한 일회성 플래그.
+    /// GenreSelectionView가 세팅하고, 튜토리얼을 닫으면 클리어. 기존/업데이트 유저는 대상 아님.
+    @AppStorage("pendingTutorial") private var pendingTutorial = false
+    /// 업데이트 감지용. 신규 설치엔 안 띄우고 조용히 현재 버전만 기록.
+    @AppStorage("lastSeenVersion") private var lastSeenVersion = ""
+    @State private var showWhatsNew = false
+
+    private var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    }
 
     var body: some View {
         @Bindable var session = session
@@ -22,14 +30,28 @@ struct MainTabView: View {
             OnboardingFlowView(mode: .gate)
         }
         .fullScreenCover(isPresented: showTutorial) {
-            TutorialView { hasSeenTutorial = true }
+            TutorialView { pendingTutorial = false }
+        }
+        // 같은 뷰에 .sheet 두 개(pendingSignIn)는 충돌 → 별도 노드에 부착.
+        .background {
+            Color.clear.sheet(isPresented: $showWhatsNew) {
+                WhatsNewView(highlight: currentVersion)
+            }
+        }
+        .task {
+            // 기존 로그인 유저가 업데이트로 들어온 경우 = 온보딩 안 거침(pendingTutorial false) + signedIn.
+            let isReturningUser = !pendingTutorial && session.authState == .signedIn
+            if Changelog.shouldShowWhatsNew(lastSeen: lastSeenVersion, current: currentVersion, isReturningUser: isReturningUser) {
+                showWhatsNew = true
+            }
+            lastSeenVersion = currentVersion
         }
     }
 
     private var showTutorial: Binding<Bool> {
         Binding(
-            get: { session.authState == .signedIn && !hasSeenTutorial },
-            set: { if !$0 { hasSeenTutorial = true } }
+            get: { pendingTutorial },
+            set: { if !$0 { pendingTutorial = false } }
         )
     }
 

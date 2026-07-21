@@ -15,6 +15,7 @@ struct MyPageView: View {
 
     @State private var showWithdrawAlert = false
     @State private var showTutorial = false
+    @State private var showWhatsNew = false
     @State private var legalDoc: LegalDocument?
 
     /// 마이페이지에는 최근 며칠만 미리보기로 노출하고, 나머지는 하입 기록 화면으로.
@@ -172,6 +173,7 @@ struct MyPageView: View {
             NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             Button { showTutorial = true } label: { settingsRow("How to Use") }
+            Button { showWhatsNew = true } label: { settingsRow("What's New") }
             Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
             Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
             Button { logout() } label: { settingsRow("Log Out") }
@@ -181,6 +183,12 @@ struct MyPageView: View {
         .sheet(item: $legalDoc) { SafariView(url: $0.url) }
         .fullScreenCover(isPresented: $showTutorial) {
             TutorialView { showTutorial = false }
+        }
+        // 같은 뷰에 .sheet 두 개(legalDoc)는 충돌 → 별도 노드에 부착.
+        .background {
+            Color.clear.sheet(isPresented: $showWhatsNew) {
+                WhatsNewView()
+            }
         }
         .alert("Delete account?", isPresented: $showWithdrawAlert) {
             Button("Cancel", role: .cancel) {}
