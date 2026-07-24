@@ -8,27 +8,16 @@ struct MyPageView: View {
     @State private var nickDraft = ""
     @State private var nickError: String?
 
-    @State private var items: [API.HypeItem] = []
-    @State private var nextCursor: Int?
-    @State private var isLoading = true
-    @State private var loadFailed = false
-
     @State private var showWithdrawAlert = false
     @State private var showTutorial = false
     @State private var showWhatsNew = false
     @State private var legalDoc: LegalDocument?
 
-    /// 마이페이지에는 최근 며칠만 미리보기로 노출하고, 나머지는 하입 기록 화면으로.
-    private let previewDayLimit = 5
-    /// 미리보기에서 한 날짜당 가로로 보여줄 최대 트랙 수(초과분은 See all에서).
-    private let perDayPreviewLimit = 10
-    @State private var showAllHypes = false
-
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 profileHeader
-                hypeSection
+                diggingProfileEntry
                 Divider().padding(.horizontal, 20).padding(.vertical, 4)
                 settingsList
                 Text("v1.0.3")
@@ -39,8 +28,7 @@ struct MyPageView: View {
         }
         .background(DSColor.background)
         .navigationTitle("My Page")
-        .task { await loadInitial() }
-        .navigationDestination(isPresented: $showAllHypes) { HypeHistoryView() }
+        .task { await loadProfile() }
     }
 
     // MARK: - Profile
@@ -119,51 +107,35 @@ struct MyPageView: View {
         isEditingNick = true
     }
 
-    // MARK: - Hype preview
+    // MARK: - Digging Profile entry
 
-    @ViewBuilder
-    private var hypeSection: some View {
-        if isLoading && items.isEmpty {
-            ProgressView().padding(.vertical, 40)
-        } else if items.isEmpty {
-            Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
-                .font(DSTypography.body)
-                .foregroundStyle(DSColor.textSecondary)
-                .padding(.vertical, 40)
-        } else {
-            HypeCollection(items: $items,
-                           maxGroups: previewDayLimit,
-                           perDayLimit: perDayPreviewLimit,
-                           onReloadNeeded: { await loadInitial() },
-                           onSeeAll: hasMore ? { showAllHypes = true } : nil)
-            if hasMore {
-                Button { showAllHypes = true } label: { moreRow }
-                    .buttonStyle(.plain)
+    private var diggingProfileEntry: some View {
+        NavigationLink { DiggingProfileView() } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.bar.xaxis")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(DSColor.brand, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Digging Profile")
+                        .font(DSTypography.bodyMedium)
+                        .foregroundStyle(DSColor.textPrimary)
+                    Text("Your taste, typed")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(DSColor.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DSColor.border)
             }
+            .padding(12)
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.horizontal, 20)
+            .padding(.bottom, 12)
         }
-    }
-
-    private var moreRow: some View {
-        HStack {
-            Text("See all hypes")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(DSColor.brand)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(DSColor.brand)
-        }
-        .padding(.horizontal, 20)
-        .frame(height: 44)
-        .contentShape(Rectangle())
-    }
-
-    /// 미리보기 밖에 더 볼 하입이 있는가 — 날짜 초과 / 다음 페이지 존재 / 특정 날짜 트랙 초과.
-    private var hasMore: Bool {
-        if nextCursor != nil { return true }
-        let byDay = Dictionary(grouping: items) { Calendar.current.startOfDay(for: $0.hypedAt) }
-        if byDay.count > previewDayLimit { return true }
-        return byDay.values.contains { $0.count > perDayPreviewLimit }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Settings
@@ -225,33 +197,11 @@ struct MyPageView: View {
 
     // MARK: - Loading
 
-    /// 백엔드는 하입을 페이지(10개)로 주므로, 최근 previewDayLimit(5)일치가 각각 완결될
-    /// 때까지 이어 받는다. 하루에 하입이 몰려도 그 날짜 미리보기가 잘리지 않게 한다.
-    /// ponytail: 페이지네이션이 날짜 단위가 아니라, 하루 하입이 아주 많으면 그날을 다 받아야
-    /// 다음 날로 넘어간다. maxPages로 상한을 둬 병적 로드를 막고, 나머지는 See all이 담당.
-    private func loadInitial() async {
-        async let profile = try? appSession.api.send(.myProfile, as: API.UserProfile.self)
-        isLoading = true
-        loadFailed = false
-        do {
-            var collected: [API.HypeItem] = []
-            var cursor: Int? = nil
-            let maxPages = 8
-            for _ in 0..<maxPages {
-                let res = try await appSession.api.send(.myHypes(cursor: cursor), as: API.HypeListResponse.self)
-                collected.append(contentsOf: res.items)
-                cursor = res.nextCursor
-                let days = Set(collected.map { Calendar.current.startOfDay(for: $0.hypedAt) }).count
-                // days > previewDayLimit 이면 6번째 날에 진입 → 앞 5일치는 완결됨.
-                if cursor == nil || days > previewDayLimit { break }
-            }
-            items = collected
-            nextCursor = cursor
-        } catch {
-            loadFailed = true
+    /// 하입 브라우징은 Digging Profile로 이관됨 — 마이페이지는 닉네임만 복원한다.
+    private func loadProfile() async {
+        if let profile = try? await appSession.api.send(.myProfile, as: API.UserProfile.self) {
+            nickname = profile.nickname
         }
-        isLoading = false
-        if let name = await profile?.nickname { nickname = name }
     }
 }
 

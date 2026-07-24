@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import LinkPresentation
 
 /// SNS(인스타그램 스토리 등) 공유용 dignify 아이덴티티 카드. 9:16 비율.
 /// ImageRenderer로 UIImage를 뽑아 공유 시트에 실어 보낸다. 아트워크는 원격 로드라
@@ -149,4 +150,34 @@ struct ShareSheet: UIViewControllerRepresentable {
         UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
+}
+
+/// 이미지 공유 시 상단 프리뷰에 제목(앱 이름)이 뜨게 하는 래퍼.
+/// `UIImage`만 넘기면 iOS가 제목을 안 붙여 이름 칸이 비므로 LPLinkMetadata로 채운다.
+final class ImageShareSource: NSObject, UIActivityItemSource {
+    let image: UIImage
+    let title: String
+
+    init(image: UIImage, title: String? = nil) {
+        self.image = image
+        self.title = title
+            ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
+            ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String)
+            ?? "dignify"
+    }
+
+    func activityViewControllerPlaceholderItem(_ controller: UIActivityViewController) -> Any { image }
+
+    func activityViewController(_ controller: UIActivityViewController,
+                                itemForActivityType activityType: UIActivity.ActivityType?) -> Any? { image }
+
+    func activityViewController(_ controller: UIActivityViewController,
+                                subjectForActivityType activityType: UIActivity.ActivityType?) -> String { title }
+
+    func activityViewControllerLinkMetadata(_ controller: UIActivityViewController) -> LPLinkMetadata? {
+        let metadata = LPLinkMetadata()
+        metadata.title = title
+        metadata.imageProvider = NSItemProvider(object: image)   // 프리뷰 썸네일 = 카드 이미지
+        return metadata
+    }
 }
