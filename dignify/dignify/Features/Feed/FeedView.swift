@@ -577,9 +577,10 @@ struct FeedView: View {
                 // 빠른 플릭은 짧게 움직여도 넘어가고, 느린 드래그는 거리 임계로 처리된다.
                 let distance = value.translation.height
                 let predicted = value.predictedEndTranslation.height
-                if distance >= height * 0.15 || predicted >= height * 0.45 {
+                // 감도 완화(쉽게 전환): 거리 10% / 속도예측 30%만 넘겨도 전환.
+                if distance >= height * 0.10 || predicted >= height * 0.30 {
                     goingPrev(height: height)
-                } else if distance <= height * -0.15 || predicted <= height * -0.45 {
+                } else if distance <= height * -0.10 || predicted <= height * -0.30 {
                     goingNext(height: height)
                 } else {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
