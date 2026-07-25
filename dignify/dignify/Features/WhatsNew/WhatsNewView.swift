@@ -10,6 +10,12 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.0.5", notes: [
+            "Digging Profile: your taste, typed.",
+            "See the gap between what you play and what you keep.",
+            "Your hyped tracks now live in your profile.",
+            "Share your taste as a card.",
+        ]),
         Release(version: "1.0.4", notes: [
             "A quick tutorial to help you get started.",
             "See what's new after every update.",

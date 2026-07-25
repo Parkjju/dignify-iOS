@@ -20,7 +20,7 @@ struct MyPageView: View {
                 diggingProfileEntry
                 Divider().padding(.horizontal, 20).padding(.vertical, 4)
                 settingsList
-                Text("v1.0.3")
+                Text(verbatim: "v" + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""))
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.border)
                     .padding(.vertical, 24)

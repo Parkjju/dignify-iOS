@@ -197,6 +197,16 @@
         }
       }
     },
+    "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피드에서 5초 이상 들으면 한 곡으로 셉니다. 앱을 켠 동안 같은 곡은 한 번만 셉니다."
+          }
+        }
+      }
+    },
     "DIGGING": {
       "localizations": {
         "ko": {
@@ -253,6 +263,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "디깅 프로필"
+          }
+        }
+      }
+    },
+    "Digging Profile: your taste, typed.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "디깅 프로필 — 내 취향에 유형이 생겼어요."
           }
         }
       }
@@ -367,6 +387,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "확인"
+          }
+        }
+      }
+    },
+    "How this is counted": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "세는 기준"
           }
         }
       }
@@ -793,6 +823,16 @@
         }
       }
     },
+    "See the gap between what you play and what you keep.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "많이 들은 장르와 실제로 담은 장르의 차이를 보여줘요."
+          }
+        }
+      }
+    },
     "See track details": {
       "localizations": {
         "ko": {
@@ -839,6 +879,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 취향 공유"
+          }
+        }
+      }
+    },
+    "Share your taste as a card.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 취향을 카드 한 장으로 공유해보세요."
           }
         }
       }
@@ -1136,6 +1186,16 @@
         }
       }
     },
+    "Your hyped tracks now live in your profile.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입한 트랙을 이제 프로필에서 볼 수 있어요."
+          }
+        }
+      }
+    },
     "Your taste, typed": {
       "localizations": {
         "ko": {
@@ -1201,26 +1261,6 @@
         }
       }
     },
-    "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드에서 5초 이상 들으면 한 곡으로 셉니다. 앱을 켠 동안 같은 곡은 한 번만 셉니다."
-          }
-        }
-      }
-    },
-    "How this is counted": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "세는 기준"
-          }
-        }
-      }
-    },
     "tracks dug": {
       "localizations": {
         "ko": {
@@ -1241,7 +1281,6 @@
         }
       }
     },
-    "v1.0.3": {},
     "—": {}
   },
   "version": "1.0"
