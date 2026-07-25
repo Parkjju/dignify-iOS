@@ -4,7 +4,8 @@ import SwiftUI
 struct DiggingProfileView: View {
     /// rawValue가 그대로 `GET /users/me/stats`의 range 쿼리값.
     enum Range: String, CaseIterable { case week, all
-        var label: String { self == .week ? "This week" : "All time" }
+        /// String으로 두면 Text가 번역을 안 타고 영어로 박힌다.
+        var label: LocalizedStringKey { self == .week ? "This week" : "All time" }
     }
 
     @Environment(AppSession.self) private var appSession
