@@ -80,46 +80,18 @@ enum DiggingType {
     }
 }
 
-// MARK: - Mock (프로토타입 전용)
+// MARK: - API 매핑
 
 extension DiggingStats {
-    /// All time — 해제된 상태. Curator × Wanderer + 격차(Hip-Hop→Jazz).
-    static let mockAllTime = DiggingStats(
-        distinctListenedCount: 42,
-        hypeCount: 8,
-        listenedByGenre: [
-            .init(name: "Hip-Hop", count: 18), .init(name: "R&B", count: 9),
-            .init(name: "Jazz", count: 6), .init(name: "Electronic", count: 5),
-            .init(name: "Pop", count: 4),
-        ],
-        hypedByGenre: [
-            .init(name: "Jazz", count: 4), .init(name: "Hip-Hop", count: 2),
-            .init(name: "R&B", count: 2),
-        ],
-        listenedByArtist: [
-            .init(name: "MF DOOM", count: 6), .init(name: "Robert Glasper", count: 4),
-            .init(name: "Kaytranada", count: 3), .init(name: "Alfa Mist", count: 3),
-            .init(name: "SZA", count: 2),
-        ],
-        hypedByArtist: [
-            .init(name: "Robert Glasper", count: 3), .init(name: "Alfa Mist", count: 2),
-            .init(name: "MF DOOM", count: 1),
-        ]
-    )
-
-    /// This week — 잠금 상태(하입 부족). 볼륨 페어는 그대로 노출됨을 보여줌.
-    static let mockThisWeek = DiggingStats(
-        distinctListenedCount: 8,
-        hypeCount: 1,
-        listenedByGenre: [
-            .init(name: "Hip-Hop", count: 4), .init(name: "Jazz", count: 2),
-            .init(name: "R&B", count: 2),
-        ],
-        hypedByGenre: [.init(name: "Jazz", count: 1)],
-        listenedByArtist: [
-            .init(name: "MF DOOM", count: 2), .init(name: "Alfa Mist", count: 2),
-            .init(name: "SZA", count: 1),
-        ],
-        hypedByArtist: [.init(name: "Alfa Mist", count: 1)]
-    )
+    /// 장르/아티스트는 라벨만 다르고 화면에선 같은 (이름, 개수) 행이라 `Count` 하나로 합친다.
+    init(_ dto: API.UserStats) {
+        self.init(
+            distinctListenedCount: dto.distinctListenedCount,
+            hypeCount: dto.hypeCount,
+            listenedByGenre: dto.listenedByGenre.map { Count(name: $0.genreName, count: $0.count) },
+            hypedByGenre: dto.hypedByGenre.map { Count(name: $0.genreName, count: $0.count) },
+            listenedByArtist: dto.listenedByArtist.map { Count(name: $0.artistName, count: $0.count) },
+            hypedByArtist: dto.hypedByArtist.map { Count(name: $0.artistName, count: $0.count) }
+        )
+    }
 }

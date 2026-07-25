@@ -109,6 +109,12 @@ nonisolated extension Endpoint {
         Endpoint(method: .get, path: "/users/me/hypes",
                  query: cursor.map(String.init).queryItems(name: "cursor"))
     }
+
+    /// range: "all"(전체) | "week"(최근 7일). 그 외 값은 서버가 전체로 처리.
+    static func myStats(range: String) -> Endpoint {
+        Endpoint(method: .get, path: "/users/me/stats",
+                 query: [URLQueryItem(name: "range", value: range)])
+    }
 }
 
 private extension Optional where Wrapped == String {

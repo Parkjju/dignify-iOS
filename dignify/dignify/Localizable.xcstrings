@@ -1201,12 +1201,32 @@
         }
       }
     },
+    "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피드에서 5초 이상 들으면 한 곡으로 셉니다. 앱을 켠 동안 같은 곡은 한 번만 셉니다."
+          }
+        }
+      }
+    },
+    "How this is counted": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "세는 기준"
+          }
+        }
+      }
+    },
     "tracks dug": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "캔 트랙"
+            "value": "디깅한 트랙"
           }
         }
       }

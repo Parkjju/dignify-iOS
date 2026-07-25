@@ -104,6 +104,30 @@ nonisolated enum API {
         let nextCursor: Int?
     }
 
+    /// 디깅 프로필 통계. 개수는 전부 재생 횟수가 아니라 **곡 종류 수**(COUNT DISTINCT).
+    /// 유형·격차 헤드라인·잠금 판정은 서버가 모르고 클라(`DiggingStats`)가 이 숫자로 계산한다.
+    /// 응답의 `range`는 요청값 그대로라 쓰지 않는다.
+    struct UserStats: Decodable {
+        let distinctListenedCount: Int
+        let hypeCount: Int
+        /// 전체 장르, count 내림차순.
+        let listenedByGenre: [GenreCount]
+        let hypedByGenre: [GenreCount]
+        /// 상위 5개만 — 합계 용도로 쓰면 안 됨.
+        let listenedByArtist: [ArtistCount]
+        let hypedByArtist: [ArtistCount]
+
+        struct GenreCount: Decodable {
+            let genreName: String   // Accept-Language 로케일(ko/en)
+            let count: Int
+        }
+
+        struct ArtistCount: Decodable {
+            let artistName: String
+            let count: Int
+        }
+    }
+
     /// 아티스트 요청 처리 상태. 서버가 새 값을 추가해도 깨지지 않게 미지 값은 pending으로 폴백.
     enum RequestStatus: String, Decodable {
         case pending = "PENDING", added = "ADDED", canceled = "CANCELED"

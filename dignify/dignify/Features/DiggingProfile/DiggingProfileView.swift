@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// 마이페이지에서 진입하는 취향 유형 리포트. 프로토타입은 목 데이터로 구동.
-/// ponytail: 네트워크 미배선 — `stats(for:)`만 나중에 `GET /users/me/stats` 매핑으로 교체.
+/// 마이페이지에서 진입하는 취향 유형 리포트. 게스트는 마이페이지 탭 자체가 막혀 여기 못 온다.
 struct DiggingProfileView: View {
+    /// rawValue가 그대로 `GET /users/me/stats`의 range 쿼리값.
     enum Range: String, CaseIterable { case week, all
         var label: String { self == .week ? "This week" : "All time" }
     }
@@ -12,38 +12,37 @@ struct DiggingProfileView: View {
     @State private var range: Range = .all
     @State private var shareImage: ShareImage?
 
+    @State private var stats: DiggingStats?
+    @State private var statsFailed = false
+    /// 이미 받아온 range. `.task`는 화면에 다시 들어올 때마다 재실행되므로, 같은 range면 재요청하지 않는다.
+    @State private var loadedRange: Range?
+
     // 크레이트(하입) 브라우징 — 마이페이지에서 이관. 실 API(GET /users/me/hypes).
     @State private var hypes: [API.HypeItem] = []
     @State private var hypeCursor: Int?
     @State private var hypesLoading = true
     @State private var hypesFailed = false
+    /// 한 번 받아온 뒤엔 재진입해도 다시 안 받는다. 목록이 바뀌는 삭제 경로만 force로 갱신.
+    @State private var hypesLoaded = false
     @State private var showAllHypes = false
     /// 프로필엔 최근 N일 미리보기만, 나머지는 See all → HypeHistoryView.
     /// 3일 = 최근 흐름은 보이되 스크롤이 길어지지 않는 선(전체는 See all).
     private let previewDayLimit = 3
     private let perDayPreviewLimit = 10
 
-    private var stats: DiggingStats {
-        range == .all ? .mockAllTime : .mockThisWeek
-    }
-
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 rangeToggle
-                hero
-                if let headline = stats.headline {
-                    Text(headline)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(DSColor.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
+                if let stats {
+                    statsSections(stats)
+                } else if statsFailed {
+                    statsError
+                } else {
+                    ProgressView().frame(maxWidth: .infinity).padding(.vertical, 80)
                 }
-                volumePair
-                lensBlock(title: "Top genres", dig: stats.listenedByGenre, keep: stats.hypedByGenre)
-                lensBlock(title: "Top artists", dig: stats.listenedByArtist, keep: stats.hypedByArtist)
                 crateSection
-                if stats.isUnlocked { shareButton }
+                if let stats, stats.isUnlocked { shareButton(stats) }
             }
             .padding(.vertical, 20)
         }
@@ -52,7 +51,52 @@ struct DiggingProfileView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $shareImage) { ShareSheet(items: [ImageShareSource(image: $0.image)]) }
         .navigationDestination(isPresented: $showAllHypes) { HypeHistoryView() }
+        .task(id: range) { await loadStats() }
         .task { await loadHypes() }
+    }
+
+    @ViewBuilder
+    private func statsSections(_ stats: DiggingStats) -> some View {
+        hero(stats)
+        if let headline = stats.headline {
+            Text(headline)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(DSColor.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
+        volumePair(stats)
+        lensBlock(title: "Top genres", dig: stats.listenedByGenre, keep: stats.hypedByGenre)
+        lensBlock(title: "Top artists", dig: stats.listenedByArtist, keep: stats.hypedByArtist)
+    }
+
+    private var statsError: some View {
+        VStack(spacing: 10) {
+            Text("Couldn't load")
+                .font(DSTypography.body)
+                .foregroundStyle(DSColor.textSecondary)
+            Button("Try again") { Task { await loadStats() } }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(DSColor.brand)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+    }
+
+    /// range 전환마다 재조회. 이전 range의 숫자가 잠깐이라도 새 라벨 아래 남지 않도록 먼저 비운다.
+    /// 같은 range를 이미 받아왔으면(크레이트 전체보기에 다녀온 경우 등) 그대로 두고 재요청하지 않는다.
+    /// 실패했을 땐 loadedRange를 안 채우므로 다시 들어오면 재시도된다.
+    private func loadStats(force: Bool = false) async {
+        if !force, loadedRange == range, stats != nil { return }
+        stats = nil
+        statsFailed = false
+        do {
+            let res = try await appSession.api.send(.myStats(range: range.rawValue), as: API.UserStats.self)
+            stats = DiggingStats(res)
+            loadedRange = range
+        } catch {
+            statsFailed = true
+        }
     }
 
     // MARK: - Toggle
@@ -67,7 +111,7 @@ struct DiggingProfileView: View {
 
     // MARK: - Hero (type or lock)
 
-    private var hero: some View {
+    private func hero(_ stats: DiggingStats) -> some View {
         VStack(spacing: 8) {
             if let type = stats.type {
                 Text("YOUR TYPE")
@@ -114,26 +158,63 @@ struct DiggingProfileView: View {
 
     // MARK: - Volume pair
 
-    private var volumePair: some View {
+    private func volumePair(_ stats: DiggingStats) -> some View {
         HStack(spacing: 12) {
-            stat(value: stats.distinctListenedCount, label: "tracks dug")
-            stat(value: stats.hypeCount, label: "tracks kept")
+            // 세는 기준(5초·세션당 1회·피드 한정)이 숫자만 보고는 안 드러나서 여기만 안내를 붙인다.
+            // 담은 트랙은 하입 버튼을 누른 결과라 설명이 필요 없다.
+            StatBox(value: stats.distinctListenedCount, label: "tracks dug",
+                    note: "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app.")
+            StatBox(value: stats.hypeCount, label: "tracks kept")
         }
         .padding(.horizontal, 20)
     }
 
-    private func stat(value: Int, label: LocalizedStringKey) -> some View {
-        VStack(spacing: 4) {
-            Text("\(value)")
-                .font(.system(size: 30, weight: .bold))
-                .foregroundStyle(DSColor.textPrimary)
-            Text(label)
-                .font(DSTypography.caption)
-                .foregroundStyle(DSColor.textSecondary)
+    private struct StatBox: View {
+        let value: Int
+        let label: LocalizedStringKey
+        var note: LocalizedStringKey?
+
+        @State private var showNote = false
+
+        var body: some View {
+            VStack(spacing: 4) {
+                Text("\(value)")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(DSColor.textPrimary)
+                HStack(spacing: 4) {
+                    Text(label)
+                        .font(DSTypography.caption)
+                        .foregroundStyle(DSColor.textSecondary)
+                    if note != nil {
+                        Button { showNote = true } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 12))
+                                .foregroundStyle(DSColor.textTertiary)
+                                .padding(6)          // 아이콘이 작아 탭 영역만 넓힌다
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("How this is counted")
+                    }
+                }
+                .padding(.trailing, note != nil ? -6 : 0)   // 탭 영역 padding만큼 중앙이 밀리는 것 보정
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .popover(isPresented: $showNote) {
+                if let note {
+                    Text(note)
+                        .font(DSTypography.body)
+                        .foregroundStyle(DSColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(16)
+                        .frame(width: 260)
+                        // 아이폰에선 popover가 시트로 바뀌는 게 기본이라, 말풍선으로 고정한다.
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     // MARK: - Two-lens block (dig / keep)
@@ -228,7 +309,7 @@ struct DiggingProfileView: View {
                 HypeCollection(items: $hypes,
                                maxGroups: previewDayLimit,
                                perDayLimit: perDayPreviewLimit,
-                               onReloadNeeded: { await loadHypes() },
+                               onReloadNeeded: { await loadHypes(force: true) },
                                onSeeAll: hasMoreHypes ? { showAllHypes = true } : nil)
                 if hasMoreHypes {
                     Button { showAllHypes = true } label: { seeAllRow }
@@ -262,7 +343,9 @@ struct DiggingProfileView: View {
     }
 
     /// 최근 previewDayLimit일치가 완결될 때까지 페이지를 이어 받는다(마이페이지 로직 이관).
-    private func loadHypes() async {
+    /// 최대 8페이지라 재진입마다 다시 받으면 비싸다. 하입을 지운 뒤처럼 목록이 바뀐 경우만 force로 다시 받는다.
+    private func loadHypes(force: Bool = false) async {
+        if !force, hypesLoaded { return }
         hypesLoading = true
         hypesFailed = false
         do {
@@ -278,6 +361,7 @@ struct DiggingProfileView: View {
             }
             hypes = collected
             hypeCursor = cursor
+            hypesLoaded = true
         } catch {
             hypesFailed = true
         }
@@ -286,7 +370,7 @@ struct DiggingProfileView: View {
 
     // MARK: - Share
 
-    private var shareButton: some View {
+    private func shareButton(_ stats: DiggingStats) -> some View {
         Button {
             if let img = ProfileShareCard.render(stats: stats) {
                 shareImage = ShareImage(image: img)
