@@ -13,6 +13,10 @@ struct MyPageView: View {
     @State private var showWhatsNew = false
     @State private var legalDoc: LegalDocument?
 
+    /// 닉네임 아래 유형 배지용. 확정 유형은 전체 기간 기준으로만 본다 —
+    /// 주간으로 보면 한 주 안 들었다고 정체성이 사라졌다 나타났다 한다.
+    @State private var confirmedType: DiggingType?
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -109,6 +113,26 @@ struct MyPageView: View {
 
     // MARK: - Digging Profile entry
 
+    /// 셀 부제목 자리에 실제 유형을 넣는다 — 확정 > 예상 > 아직 없음.
+    /// 새 배지를 만드는 대신 이미 있는 한 줄을 쓴다. 유형이 곧 이 화면의 내용이라
+    /// "Your taste, typed"보다 실제 유형이 언제나 더 알려주는 게 많다.
+    @ViewBuilder
+    private var entrySubtitle: some View {
+        if let type = confirmedType {
+            Text(verbatim: "\(type.emoji) \(type.name)")
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColor.brand)
+        } else if let predicted = DiggingType.predicted {
+            Text("\(predicted.emoji) \(predicted.name) · not confirmed yet")
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColor.textSecondary)
+        } else {
+            Text("Your taste, typed")
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColor.textSecondary)
+        }
+    }
+
     private var diggingProfileEntry: some View {
         NavigationLink { DiggingProfileView() } label: {
             HStack(spacing: 12) {
@@ -121,9 +145,7 @@ struct MyPageView: View {
                     Text("Digging Profile")
                         .font(DSTypography.bodyMedium)
                         .foregroundStyle(DSColor.textPrimary)
-                    Text("Your taste, typed")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(DSColor.textSecondary)
+                    entrySubtitle
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
@@ -199,9 +221,14 @@ struct MyPageView: View {
 
     /// 하입 브라우징은 Digging Profile로 이관됨 — 마이페이지는 닉네임만 복원한다.
     private func loadProfile() async {
-        if let profile = try? await appSession.api.send(.myProfile, as: API.UserProfile.self) {
+        // 배지는 실패해도 예상 유형으로 폴백되므로 둘을 나란히 쏘고 각각 try?로 삼킨다.
+        async let profileResult = try? appSession.api.send(.myProfile, as: API.UserProfile.self)
+        async let statsResult = try? appSession.api.send(.myStats(range: "all"), as: API.UserStats.self)
+
+        if let profile = await profileResult {
             nickname = profile.nickname
         }
+        confirmedType = (await statsResult).map(DiggingStats.init)?.type
     }
 }
 

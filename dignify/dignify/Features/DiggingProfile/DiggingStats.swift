@@ -35,13 +35,7 @@ struct DiggingStats {
         guard isUnlocked, distinctListenedCount > 0 else { return nil }
         let selective = Double(hypeCount) / Double(distinctListenedCount) < Self.selectivityThreshold
         let topShare = Double(listenedByGenre.first?.count ?? 0) / Double(distinctListenedCount)
-        let concentrated = topShare > Self.breadthThreshold
-        switch (selective, concentrated) {
-        case (true, true):   return .purist
-        case (true, false):  return .restlessCurator
-        case (false, true):  return .loyalist
-        case (false, false): return .omnivore
-        }
+        return DiggingType(selective: selective, concentrated: topShare > Self.breadthThreshold)
     }
 
     /// 유형 라벨 뒤 향미("deep in Hip-Hop").
@@ -57,9 +51,65 @@ struct DiggingStats {
     }
 }
 
-/// 2축 4유형. 표시명/한 줄 설명은 여기(브랜드 카피).
-enum DiggingType {
+/// 2축 4유형. 표시명/설명/시각 기호는 여기(브랜드 카피).
+/// rawValue는 온보딩 예상 유형을 UserDefaults에 저장할 때 쓰므로 값을 바꾸지 말 것.
+enum DiggingType: String {
     case restlessCurator, purist, omnivore, loyalist
+
+    /// 두 축 → 유형. 행동 기반(DiggingStats)과 퀴즈 기반(TasteQuiz)이 같은 규칙을 쓰도록
+    /// 매핑을 여기 한 곳에 둔다 — 갈라지면 "예상과 확정" 비교 자체가 무의미해진다.
+    init(selective: Bool, concentrated: Bool) {
+        switch (selective, concentrated) {
+        case (true, true):   self = .purist
+        case (true, false):  self = .restlessCurator
+        case (false, true):  self = .loyalist
+        case (false, false): self = .omnivore
+        }
+    }
+
+    /// 온보딩 취향 테스트가 예측한 유형. 행동 기반 유형이 확정되기 전까지의 자리표시.
+    /// 퀴즈를 건너뛴 유저는 nil.
+    static var predicted: DiggingType? {
+        UserDefaults.standard.string(forKey: "predictedType").flatMap(DiggingType.init(rawValue:))
+    }
+
+    /// 취향 테스트를 마칠 때마다 갱신(온보딩·설정에서 재검사 모두). 확정 유형이 생기면
+    /// `DiggingStats.type`이 우선하므로 이 값은 그때부터 무시된다.
+    static func setPredicted(_ type: DiggingType) {
+        UserDefaults.standard.set(type.rawValue, forKey: "predictedType")
+    }
+
+    /// 유형의 시각 기호. MBTI가 정체성이 되는 건 이름에 그림이 붙어서다.
+    var emoji: String {
+        switch self {
+        case .restlessCurator: return "🧭"
+        case .purist:          return "💎"
+        case .omnivore:        return "🍽"
+        case .loyalist:        return "🔁"
+        }
+    }
+
+    /// 결과 화면의 "맞아 나 저래" 불릿. blurb 한 줄보다 이쪽이 자기 인식을 만든다.
+    var traits: [String] {
+        switch self {
+        case .restlessCurator:
+            return [String(localized: "You'll try anything once"),
+                    String(localized: "Almost nothing makes the cut"),
+                    String(localized: "Your saves are a short, sharp list")]
+        case .purist:
+            return [String(localized: "One lane, all the way down"),
+                    String(localized: "You skip fast and don't feel bad"),
+                    String(localized: "You'd rather know ten artists deeply")]
+        case .omnivore:
+            return [String(localized: "Genre isn't a thing you think about"),
+                    String(localized: "Press play first, decide later"),
+                    String(localized: "Your library is gloriously messy")]
+        case .loyalist:
+            return [String(localized: "You know your sound"),
+                    String(localized: "You keep what you like, no gatekeeping"),
+                    String(localized: "Same artists on repeat, happily")]
+        }
+    }
 
     var name: String {
         switch self {

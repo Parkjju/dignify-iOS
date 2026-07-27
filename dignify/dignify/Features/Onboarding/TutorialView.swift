@@ -81,7 +81,8 @@ private struct TutorialPageView: View {
     }
 }
 
-private struct PageDots: View {
+/// 페이지 인디케이터. 튜토리얼과 장르 가이드(샘플 페이징)가 공유한다.
+struct PageDots: View {
     let count: Int
     let index: Int
 

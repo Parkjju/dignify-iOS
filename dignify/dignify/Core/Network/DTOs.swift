@@ -20,6 +20,9 @@ nonisolated enum API {
     struct Genre: Decodable {
         let genreId: Int
         let genreName: String
+        /// 배포 순서 때문에 optional — 백엔드보다 앱이 먼저 나가도 장르 목록이 죽지 않게.
+        /// 양쪽 배포가 안정되면 non-optional로 조여도 된다(FeedItem.genreName과 같은 이유).
+        let genreNameEn: String?
     }
 
     struct GenresResponse: Decodable {
@@ -80,6 +83,9 @@ nonisolated enum API {
         let genres: [ProfileGenre]
 
         struct ProfileGenre: Decodable {
+            /// 서버는 원래 보내고 있었는데 앱이 안 읽고 있었다. 장르 대조는 이걸로 한다 —
+            /// 이름은 로케일마다 달라져서 엔드포인트 간에 문자열이 어긋날 수 있다.
+            let genreId: Int
             let genreName: String
         }
     }
