@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PostHog
 
 /// 온보딩 장르 선택 플로우.
 ///
@@ -93,7 +94,10 @@ struct GenreSelectionView: View {
             }
             Spacer()
             VStack(spacing: 4) {
-                Button { step = .quiz } label: {
+                Button {
+                    PostHogSDK.shared.capture("quiz_started")
+                    step = .quiz
+                } label: {
                     Text("Take the taste test")
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
@@ -211,6 +215,12 @@ struct GenreSelectionView: View {
         recommended = result.genreNames.compactMap { name in
             genres.first { ($0.nameEn ?? $0.name) == name }
         }
+        // answers를 같이 남겨야 배점표를 고쳤을 때 과거 응답으로 재계산해볼 수 있다.
+        PostHogSDK.shared.capture("quiz_completed", properties: [
+            "type": result.type.rawValue,
+            "genres": result.genreNames,
+            "answers": answers,
+        ])
         selectedGenres = Set(recommended)
         // 예상 유형을 남겨 두면 프로필이 잠긴 동안에도 유형 자리를 채울 수 있다.
         DiggingType.setPredicted(result.type)

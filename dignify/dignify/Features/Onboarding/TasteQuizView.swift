@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 /// 취향 테스트 문항 화면. 한 화면에 한 문항, 탭하면 바로 다음으로 넘어간다.
 /// 확인 버튼을 두지 않는 건 문항이 11개라 탭 수가 두 배가 되기 때문.
@@ -53,7 +54,11 @@ struct TasteQuizView: View {
                     }
                 }
                 Spacer()
-                Button("Skip", action: onSkip)
+                // 몇 번째 문항에서 나갔는지가 문항 수를 줄일지 판단하는 근거가 된다.
+                Button("Skip") {
+                    PostHogSDK.shared.capture("quiz_abandoned", properties: ["at_question": index])
+                    onSkip()
+                }
                     .font(DSTypography.bodyMedium)
                     .foregroundStyle(DSColor.textTertiary)
             }
