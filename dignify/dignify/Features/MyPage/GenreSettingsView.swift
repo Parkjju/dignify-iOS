@@ -116,6 +116,7 @@ struct GenreSettingsView: View {
             )
         } else {
             TasteQuizView(
+                source: "retake",
                 onFinish: showRetakeResult,
                 onSkip: { isRetaking = false }
             )

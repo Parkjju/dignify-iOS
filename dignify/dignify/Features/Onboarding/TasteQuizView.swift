@@ -4,6 +4,9 @@ import PostHog
 /// 취향 테스트 문항 화면. 한 화면에 한 문항, 탭하면 바로 다음으로 넘어간다.
 /// 확인 버튼을 두지 않는 건 문항이 11개라 탭 수가 두 배가 되기 때문.
 struct TasteQuizView: View {
+    /// 온보딩과 재검사가 같은 화면을 쓴다. 태그가 없으면 재검사 중도이탈이
+    /// 온보딩 퍼널에 섞여 이탈률이 실제보다 나빠 보인다.
+    var source: String = "onboarding"
     var onFinish: ([Int]) -> Void
     var onSkip: () -> Void
 
@@ -56,7 +59,10 @@ struct TasteQuizView: View {
                 Spacer()
                 // 몇 번째 문항에서 나갔는지가 문항 수를 줄일지 판단하는 근거가 된다.
                 Button("Skip") {
-                    PostHogSDK.shared.capture("quiz_abandoned", properties: ["at_question": index])
+                    PostHogSDK.shared.capture(
+                        "quiz_abandoned",
+                        properties: ["at_question": index, "source": source]
+                    )
                     onSkip()
                 }
                     .font(DSTypography.bodyMedium)
