@@ -43,6 +43,9 @@ nonisolated enum API {
         /// optional인 이유는 배포 순서 — 백엔드보다 앱이 먼저 나가도 피드가 죽지 않게.
         /// 양쪽 배포가 안정되면 non-optional로 조여도 된다.
         let genreName: String?
+        /// 같은 장르가 로케일별로 다른 값이 되면 분석에서 집계가 쪼개진다(Rock/록).
+        /// 화면엔 안 쓰고 이벤트 프로퍼티로만 나간다. optional인 이유는 genreName과 동일.
+        let genreNameEn: String?
     }
 
     /// 피드/검색 공통 응답. nextCursor 없으면 hasMore=false (피드 소진).

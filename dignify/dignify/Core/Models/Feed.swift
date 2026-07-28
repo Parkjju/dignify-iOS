@@ -16,6 +16,8 @@ struct Feed {
     let trackViewUrl: String
     var isHyped: Bool
     let genreName: String?
+    /// 표시용은 genreName, 분석용은 이쪽. 로케일을 안 타므로 집계가 쪼개지지 않는다.
+    let genreNameEn: String?
 }
 
 extension Feed {
@@ -34,7 +36,8 @@ extension Feed {
             previewUrl: item.previewUrl,
             trackViewUrl: item.trackViewUrl,
             isHyped: item.isHyped,
-            genreName: item.genreName
+            genreName: item.genreName,
+            genreNameEn: item.genreNameEn
         )
     }
 }

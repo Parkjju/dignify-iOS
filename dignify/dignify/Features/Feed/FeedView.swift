@@ -655,8 +655,11 @@ struct FeedView: View {
         let feed = feedList[currentIndex]
         guard feed.trackId != lastViewedTrackId else { return }
         lastViewedTrackId = feed.trackId
+        // genre는 로케일 무관한 영문명으로 보낸다 — 표시용 라벨을 보내면 Rock/록이
+        // 서로 다른 값으로 집계돼 장르별 스킵률을 볼 수 없다.
         PostHogSDK.shared.capture("track_viewed", properties: [
-            "track_id": feed.trackId, "artist": feed.artistName, "genre": feed.genreName ?? "",
+            "track_id": feed.trackId, "artist": feed.artistName,
+            "genre": feed.genreNameEn ?? feed.genreName ?? "",
         ])
     }
 
