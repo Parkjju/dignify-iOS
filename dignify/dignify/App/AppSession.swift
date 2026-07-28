@@ -29,6 +29,10 @@ final class AppSession {
     /// (onAppear/onDisappear는 TabView에서 신뢰할 수 없어 이 값으로 대체.)
     var selectedTab: AppTab = .feed
 
+    /// 큐레이션 푸시로 진입했음을 피드에 알리는 1회성 플래그. 피드가 읽고 즉시 내린다.
+    /// 이미 완주한 세트라도 이때는 다시 앞세운다 — 푸시를 눌렀는데 없으면 안 되므로.
+    var pendingCurationOpen = false
+
     let api: APIClient
 
     // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
@@ -72,9 +76,12 @@ final class AppSession {
         #else
         let environment = "production"
         #endif
+        // 타임존을 같이 올려야 서버가 기기 로컬 시각으로 발송할 수 있다. 유저가
+        // Asia/Seoul과 America/*로 갈려 있어 UTC 고정 발송은 한쪽이 반드시 새벽이 된다.
+        let timeZone = TimeZone.current.identifier
         Task {
             do {
-                try await api.send(.deviceToken(token: hex, environment: environment))
+                try await api.send(.deviceToken(token: hex, environment: environment, timeZone: timeZone))
                 print("[Push] 디바이스 토큰 등록 성공 (\(environment))")
             } catch {
                 print("[Push] 디바이스 토큰 등록 실패: \(error)")

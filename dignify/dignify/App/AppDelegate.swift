@@ -1,5 +1,6 @@
 import UIKit
 import UserNotifications
+import PostHog
 
 /// SwiftUI에는 APNs 디바이스 토큰을 받는 API가 없어 UIApplicationDelegate가 필요하다.
 /// 토큰을 hex 문자열로 바꿔 살아있는 AppSession(단일 인스턴스)에 넘긴다.
@@ -16,6 +17,22 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .list])
+    }
+
+    /// 푸시를 탭했을 때. 큐레이션 푸시면 피드 탭으로 보내고 세트를 다시 앞세우게 한다 —
+    /// 곡을 보여주겠다고 알림을 띄워놓고 일반 피드 첫 화면을 열면 그 곡을 못 찾는다.
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let type = response.notification.request.content.userInfo["type"] as? String ?? "unknown"
+        PostHogSDK.shared.capture("push_opened", properties: ["type": type])
+        if type == "curation" {
+            Task { @MainActor in
+                AppSession.current?.pendingCurationOpen = true
+                AppSession.current?.selectedTab = .feed
+            }
+        }
+        completionHandler()
     }
 
     func application(_ application: UIApplication,
