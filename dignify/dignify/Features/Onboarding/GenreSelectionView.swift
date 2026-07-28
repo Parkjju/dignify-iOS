@@ -95,7 +95,9 @@ struct GenreSelectionView: View {
             Spacer()
             VStack(spacing: 4) {
                 Button {
-                    PostHogSDK.shared.capture("quiz_started")
+                    // 웹 랜딩(dignify.web.app)이 같은 PostHog 프로젝트에 quiz_* 를 보낸다.
+                    // 앱 이벤트는 onboarding_ 접두사로 분리해야 두 퍼널이 안 섞인다.
+                    PostHogSDK.shared.capture("onboarding_quiz_started")
                     step = .quiz
                 } label: {
                     Text("Take the taste test")
@@ -216,7 +218,7 @@ struct GenreSelectionView: View {
             genres.first { ($0.nameEn ?? $0.name) == name }
         }
         // answers를 같이 남겨야 배점표를 고쳤을 때 과거 응답으로 재계산해볼 수 있다.
-        PostHogSDK.shared.capture("quiz_completed", properties: [
+        PostHogSDK.shared.capture("onboarding_quiz_completed", properties: [
             "type": result.type.rawValue,
             "genres": result.genreNames,
             "answers": answers,

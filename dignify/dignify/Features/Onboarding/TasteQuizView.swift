@@ -60,7 +60,7 @@ struct TasteQuizView: View {
                 // 몇 번째 문항에서 나갔는지가 문항 수를 줄일지 판단하는 근거가 된다.
                 Button("Skip") {
                     PostHogSDK.shared.capture(
-                        "quiz_abandoned",
+                        "onboarding_quiz_abandoned",
                         properties: ["at_question": index, "source": source]
                     )
                     onSkip()
