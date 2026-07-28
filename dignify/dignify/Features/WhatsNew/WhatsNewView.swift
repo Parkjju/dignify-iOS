@@ -11,8 +11,8 @@ struct Release: Identifiable {
 enum Changelog {
     static let releases: [Release] = [
         Release(version: "1.0.6", notes: [
-            "A hand-picked set now leads your feed every week.",
-            "Turn on notifications and we'll tell you when the new set lands.",
+            "A special playlist we dug up ourselves now leads your feed every week.",
+            "Turn on notifications and we'll tell you when the next one drops.",
             "Open any track in YouTube Music, not just Apple Music.",
             "New here? Take the taste test and we'll pick your genres.",
             "Every genre now comes with a plain-language description.",

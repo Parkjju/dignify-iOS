@@ -88,23 +88,23 @@
         }
       }
     },
-    "A hand-picked set now leads your feed every week." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "매주 새로 고른 세트가 피드 맨 앞에 와요."
-          }
-        }
-      }
-    },
     "A quick tutorial to help you get started." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "시작을 돕는 간단한 튜토리얼이 추가됐어요."
+          }
+        }
+      }
+    },
+    "A special playlist we dug up ourselves now leads your feed every week." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저희가 직접 디깅해서 고른 특집 플레이리스트가 매주 피드 맨 앞에 와요."
           }
         }
       }
@@ -1154,6 +1154,17 @@
         }
       }
     },
+    "Not now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "나중에"
+          }
+        }
+      }
+    },
     "Not sure what to pick?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1161,6 +1172,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무엇을 고를지 모르겠다면"
+          }
+        }
+      }
+    },
+    "Notify me" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림 받기"
           }
         }
       }
@@ -1993,12 +2015,35 @@
         }
       }
     },
-    "This week's picks %lld/%lld" : {
+    "This week's set, all done" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이번 주 큐레이션 %lld/%lld"
+            "value" : "이번 주 특집, 여기까지예요"
+          }
+        }
+      }
+    },
+    "Those were dug up by us, by hand. We do it again every week — want a heads-up when the next one drops?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "방금 보신 곡들은 저희가 직접 판 거예요. 매주 새로 파고 있는데, 다음 편 올라오면 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "This week's set %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 특집 %lld/%lld"
           }
         }
       }
@@ -2063,13 +2108,13 @@
         }
       }
     },
-    "Turn on notifications and we'll tell you when the new set lands." : {
+    "Turn on notifications and we'll tell you when the next one drops." : {
       "extractionState" : "manual",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "알림을 켜두면 새 세트가 올라올 때 알려드려요."
+            "value" : "알림을 켜두면 다음 편이 올라올 때 알려드려요."
           }
         }
       }

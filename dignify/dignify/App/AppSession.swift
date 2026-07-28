@@ -45,14 +45,32 @@ final class AppSession {
 
     // MARK: - Push notifications
 
-    /// 아티스트 요청 제출 직후 맥락에서 호출. 아직 안 물어봤으면 권한을 요청하고,
-    /// 이미 허용됐으면 토큰만 갱신한다. 거부 상태면 조용히 무시(재알림 안 함).
-    func requestPushAuthorization() {
+    /// 시스템 팝업은 설치당 한 번뿐이라, 자체 안내 화면(PushOptInView)을 띄울지
+    /// 판단할 때 쓴다. 이미 허용/거부된 상태면 안내를 보여줄 이유가 없다.
+    /// async notificationSettings()를 그대로 await 하면 non-Sendable인 UNNotificationSettings가
+    /// MainActor 경계를 넘는다. 콜백 안에서 Bool로 접어 넘기면 건너오는 값이 Sendable뿐이다.
+    func pushAuthorizationUndecided() async -> Bool {
+        await withCheckedContinuation { continuation in
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                continuation.resume(returning: settings.authorizationStatus == .notDetermined)
+            }
+        }
+    }
+
+    /// 하입·아티스트 요청 직후, 그리고 PushOptInView에서 "알림 받기"를 누를 때 호출.
+    /// 아직 안 물어봤으면 권한을 요청하고, 이미 허용됐으면 토큰만 갱신한다.
+    /// 거부 상태면 조용히 무시(재알림 안 함).
+    ///
+    /// `source`는 시스템 팝업을 어느 맥락에서 태웠는지 구분한다. 요청 지점별 수락률을
+    /// 비교하려는 것이므로 호출부를 추가하면 여기도 같이 늘려야 한다.
+    func requestPushAuthorization(source: String) {
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
             switch settings.authorizationStatus {
             case .notDetermined:
                 center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                    PostHogSDK.shared.capture("push_permission_result",
+                                              properties: ["granted": granted, "source": source])
                     guard granted else { return }
                     Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
                 }

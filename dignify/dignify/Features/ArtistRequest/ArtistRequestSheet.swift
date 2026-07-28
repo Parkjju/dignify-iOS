@@ -100,7 +100,7 @@ struct ArtistRequestSheet: View {
                 try await session.api.send(.requestArtist(artistName: trimmed))
                 submitted = true
                 // "추가되면 알려드릴게요" 맥락에서 알림 권한을 요청한다.
-                session.requestPushAuthorization()
+                session.requestPushAuthorization(source: "artist_request")
             } catch {
                 submitting = false   // 실패 시 그대로 두고 재시도 가능하게.
             }

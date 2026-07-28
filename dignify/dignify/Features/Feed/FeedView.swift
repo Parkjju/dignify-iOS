@@ -18,6 +18,9 @@ struct FeedView: View {
     @State private var curationSetKey = ""
     /// 완주한 세트 키. 같은 세트를 매 진입마다 다시 앞세우지 않기 위한 기억.
     @AppStorage("seenCurationSet") private var seenCurationSet = ""
+    /// 푸시 권한 자체 안내를 이미 한 번 보여줬는지. 시스템 팝업과 달리 이건 우리가 센다.
+    @AppStorage("didOfferPush") private var didOfferPush = false
+    @State private var showPushOffer = false
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
@@ -330,7 +333,7 @@ struct FeedView: View {
                 // 세트를 통째로 받았다는 감각은 이 배지와 곡 수만으로 낸다 —
                 // 리스트 화면을 만들면 "뭘 누를까" 결정 비용이 생겨 스와이프 경험과 충돌한다.
                 if !isSearching, curationCount > 0, currentIndex < curationCount {
-                    Text("This week's picks \(currentIndex + 1)/\(curationCount)")
+                    Text("This week's set \(currentIndex + 1)/\(curationCount)")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
@@ -415,11 +418,35 @@ struct FeedView: View {
         .sheet(item: $detailTarget) { target in
             TrackDetailView(trackId: target.id)
         }
-        // 같은 뷰에 .sheet 두 개(detailTarget)는 충돌 → 공유 시트는 별도 노드에 부착.
-        .background {
-            Color.clear.sheet(item: $shareItem) { item in
-                ShareSheet(items: [item.image, item.url])
-            }
+        .background { shareSheetHost }
+        .overlay { pushOptInOverlay }
+    }
+
+    /// 특집 세트 완주 직후의 푸시 권한 안내. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
+    /// 가운데 다이얼로그 형태를 유지한다 — 한 번의 대화가 두 단계로 이어지는 모양이 된다.
+    /// 거절은 아무것도 호출하지 않아 .notDetermined가 남고, 하입 시점에 기회가 다시 온다.
+    @ViewBuilder
+    private var pushOptInOverlay: some View {
+        if showPushOffer {
+            PushOptInPopup(
+                onAccept: {
+                    PostHogSDK.shared.capture("push_optin_accepted")
+                    session.requestPushAuthorization(source: "curation_done")
+                    withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                },
+                onDecline: {
+                    PostHogSDK.shared.capture("push_optin_declined")
+                    withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                }
+            )
+        }
+    }
+
+    /// 같은 뷰에 .sheet를 두 개(detailTarget과 함께) 달면 충돌하므로 별도 노드에 붙인다.
+    /// 프로퍼티로 뺀 건 feed 체인이 길어져 타입체커가 시간 초과를 냈기 때문.
+    private var shareSheetHost: some View {
+        Color.clear.sheet(item: $shareItem) { item in
+            ShareSheet(items: [item.image, item.url])
         }
     }
 
@@ -706,7 +733,11 @@ struct FeedView: View {
         lastViewedTrackId = feed.trackId
         // 세트를 지나 일반 피드로 넘어온 시점 = 완주. 다음 진입부터는 이 세트를 안 앞세운다.
         if curationCount > 0, currentIndex >= curationCount, !curationSetKey.isEmpty {
+            // 이 블록은 세트 이후 모든 트랙에서 돌기 때문에, 기록 전 값으로 "방금 넘었는지"를
+            // 가른다. 안 그러면 완주 후 스와이프할 때마다 권한 안내를 다시 검사하게 된다.
+            let justFinished = seenCurationSet != curationSetKey
             seenCurationSet = curationSetKey
+            if justFinished { offerPushIfNeeded() }
         }
         // genre는 로케일 무관한 영문명으로 보낸다 — 표시용 라벨을 보내면 Rock/록이
         // 서로 다른 값으로 집계돼 장르별 스킵률을 볼 수 없다.
@@ -714,6 +745,19 @@ struct FeedView: View {
             "track_id": feed.trackId, "artist": feed.artistName,
             "genre": feed.genreNameEn ?? feed.genreName ?? "",
         ])
+    }
+
+    /// 특집 세트 완주 직후 푸시 권한 안내를 띄운다. 알림이 알리는 대상이 방금 본 세트라
+    /// 여기가 물어보기 가장 좋은 지점이다. 이미 답한 유저(.notDetermined 아님)에겐
+    /// 보여줄 이유가 없으므로 그 경우엔 조용히 넘어간다.
+    private func offerPushIfNeeded() {
+        guard !didOfferPush, session.authState == .signedIn else { return }
+        Task {
+            guard await session.pushAuthorizationUndecided() else { return }
+            PostHogSDK.shared.capture("push_optin_shown")
+            didOfferPush = true
+            withAnimation(.easeOut(duration: 0.2)) { showPushOffer = true }
+        }
     }
 
     private func recordListen(trackId: Int) {
@@ -742,7 +786,7 @@ struct FeedView: View {
             // iOS 알림 권한은 평생 한 번만 물을 수 있다. 하입 = 유저가 곡을 저장한 직후라
             // 맥락이 가장 좋은 순간이고, requireAccount() 뒤라 로그인도 보장돼 토큰 등록까지 이어진다.
             // (이미 답한 상태면 내부에서 no-op이라 매번 불러도 안전.)
-            session.requestPushAuthorization()
+            session.requestPushAuthorization(source: "hype")
         }
         Task {
             do {
