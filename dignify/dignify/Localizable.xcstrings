@@ -10,6 +10,17 @@
     "@%@" : {
 
     },
+    "%@ %@ · not confirmed yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@ · 아직 예상이에요"
+          }
+        }
+      }
+    },
     "%@ selected" : {
       "localizations" : {
         "ko" : {
@@ -51,17 +62,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "일단 담고 보는 300곡이다"
-          }
-        }
-      }
-    },
-    "%@ %@ · not confirmed yet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ %@ · 아직 예상이에요"
           }
         }
       }
@@ -617,6 +617,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "피드"
+          }
+        }
+      }
+    },
+    "Find on YouTube Music" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YouTube Music에서 찾기"
           }
         }
       }

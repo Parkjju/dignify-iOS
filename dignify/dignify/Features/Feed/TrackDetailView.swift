@@ -18,7 +18,7 @@ struct TrackDetailView: View {
     @State private var loadFailed = false
     /// 콘텐츠 실측 높이로 시트를 딱 맞춘다(측정 전 추정치). 하입 영역이 5행 고정이라
     /// 트랙별 하입 수와 무관하게 높이가 일정 → 여백/리사이즈 없음.
-    @State private var sheetHeight: CGFloat = 470
+    @State private var sheetHeight: CGFloat = 528
 
     var body: some View {
         Group {
@@ -147,24 +147,53 @@ struct TrackDetailView: View {
     }
 
     private func actions(_ d: API.TrackDetail) -> some View {
-        Button {
-            if let url = URL(string: d.trackViewUrl) { openURL(url) }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "music.note")
-                Text("Listen on Apple Music")
-                    .font(.system(size: 14, weight: .semibold))
+        VStack(spacing: 10) {
+            Button {
+                if let url = URL(string: d.trackViewUrl) { openURL(url) }
+            } label: {
+                storeLabel("music.note", "Listen on Apple Music")
+                    .foregroundStyle(.white)
+                    .background(Color.black, in: RoundedRectangle(cornerRadius: 16))
             }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .background(Color.black, in: RoundedRectangle(cornerRadius: 16))
+            .buttonStyle(.plain)
+
+            Button {
+                if let url = youTubeMusicURL(d) { openURL(url) }
+            } label: {
+                storeLabel("play.rectangle.fill", "Find on YouTube Music")
+                    .foregroundStyle(DSColor.textPrimary)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(DSColor.border, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+    }
+
+    // title은 String이 아니라 LocalizedStringKey여야 한다. String을 넘기면 Text가
+    // 비현지화 오버로드로 잡혀 xcstrings 추출·번역이 통째로 죽는다.
+    private func storeLabel(_ icon: String, _ title: LocalizedStringKey) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+            Text(title)
+                .font(.system(size: 14, weight: .semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 48)
+    }
+
+    /// YouTube Music은 공식 API가 없어 videoId를 알 수 없다 → 검색 URL이 유일한 무비용 경로.
+    /// 정확한 트랙으로 꽂으려면 tracks에 videoId 컬럼 + YouTube Data API 백필이 필요하다.
+    /// ponytail: 아티스트/곡명은 원문 그대로 넘긴다. 괄호 접미사 제거는 "(2024 Remaster)"는
+    /// 걸러도 "(pull me out of this)"처럼 제목의 일부인 경우를 망가뜨려서 안 함.
+    private func youTubeMusicURL(_ d: API.TrackDetail) -> URL? {
+        var c = URLComponents(string: "https://music.youtube.com/search")
+        // queryItems 세터가 값 안의 &를 %26으로 이스케이프한다("Tiësto & Ava Max").
+        // .urlQueryAllowed는 &를 통과시켜 쿼리가 거기서 잘리므로 쓰면 안 된다.
+        c?.queryItems = [URLQueryItem(name: "q", value: "\(d.artistName) \(d.trackName)")]
+        return c?.url
     }
 }
 
 private struct SheetHeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = 470
+    static let defaultValue: CGFloat = 528
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
