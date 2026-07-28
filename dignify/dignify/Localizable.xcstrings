@@ -1960,6 +1960,16 @@
         }
       }
     },
+    "This week's picks %lld/%lld" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 큐레이션 %lld/%lld"
+          }
+        }
+      }
+    },
     "Top artists" : {
       "localizations" : {
         "ko" : {

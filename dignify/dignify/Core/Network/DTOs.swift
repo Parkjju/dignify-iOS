@@ -48,6 +48,13 @@ nonisolated enum API {
         let genreNameEn: String?
     }
 
+    /// 이번 주 큐레이션 세트. setKey는 세트가 교체될 때만 바뀌는 식별자로,
+    /// 같은 세트를 이미 다 본 유저에게 다시 앞세우지 않기 위해 로컬에 저장한다.
+    struct CurationResponse: Decodable {
+        let setKey: String
+        let items: [FeedItem]
+    }
+
     /// 피드/검색 공통 응답. nextCursor 없으면 hasMore=false (피드 소진).
     struct FeedResponse: Decodable {
         let items: [FeedItem]

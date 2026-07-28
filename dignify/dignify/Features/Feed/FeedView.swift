@@ -12,6 +12,12 @@ struct FeedView: View {
     @State private var isPaging = false
     /// 앱 재구동 후 이어보기용으로 마지막 일반 피드 커서를 저장. 비면 처음부터(새 시드).
     @AppStorage("feedCursor") private var savedFeedCursor = ""
+    /// 피드 맨 앞에 붙은 이번 주 큐레이션 곡 수. 0이면 세트가 없거나 이미 완주한 세트.
+    @State private var curationCount = 0
+    /// 지금 앞세운 세트의 식별자. 완주 시점에 seenCurationSet으로 옮겨 적는다.
+    @State private var curationSetKey = ""
+    /// 완주한 세트 키. 같은 세트를 매 진입마다 다시 앞세우지 않기 위한 기억.
+    @AppStorage("seenCurationSet") private var seenCurationSet = ""
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
@@ -68,7 +74,7 @@ struct FeedView: View {
                 savedFeedCursor = ""
                 res = try await session.api.send(.feed(), as: API.FeedResponse.self)
             }
-            feedList = res.items.map(Feed.init)
+            feedList = await curationPrefix() + res.items.map(Feed.init)
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
@@ -83,6 +89,26 @@ struct FeedView: View {
             loadFailed = true
         }
         isLoading = false
+    }
+
+    /// 이번 주 큐레이션 세트를 일반 피드 앞에 붙인다. 세트가 끝나면 그대로 일반 피드로
+    /// 이어지므로 별도 화면도 종료 처리도 없다.
+    ///
+    /// 도달을 푸시에 의존하지 않는 게 핵심 — 푸시 권한이 없는 유저도 앱을 열면 세트부터 본다.
+    /// 푸시로 들어온 경우엔 이미 완주한 세트라도 다시 앞세운다(눌렀는데 없으면 안 되므로).
+    /// ponytail: 실패하면 그냥 일반 피드 — 큐레이션이 없다고 피드가 비면 안 된다.
+    private func curationPrefix() async -> [Feed] {
+        curationCount = 0
+        curationSetKey = ""
+        let fromPush = session.pendingCurationOpen
+        session.pendingCurationOpen = false
+        guard let set = try? await session.api.send(.curation, as: API.CurationResponse.self),
+              !set.items.isEmpty,
+              fromPush || set.setKey != seenCurationSet
+        else { return [] }
+        curationCount = set.items.count
+        curationSetKey = set.setKey
+        return set.items.map(Feed.init)
     }
 
     /// 끝 3장 이내로 접근하면 다음 페이지를 붙인다. 커서 소진 시 정지.
@@ -185,6 +211,14 @@ struct FeedView: View {
                 activeQuery = ""
                 savedFeed = nil
                 savedFeedCursor = ""
+                Task { await loadInitialFeed(force: true) }
+            }
+            // 앱이 떠 있는 채로 큐레이션 푸시를 탭한 경우. .task는 이미 끝났으므로
+            // 여기서 다시 받아야 세트가 앞으로 온다(플래그는 curationPrefix가 내린다).
+            .onChange(of: session.pendingCurationOpen) { _, pending in
+                guard pending else { return }
+                activeQuery = ""
+                savedFeed = nil
                 Task { await loadInitialFeed(force: true) }
             }
             // 마이페이지에서 장르를 바꾸면(다른 탭이라 FeedView는 떠 있음) 새 장르로 다시 받는다.
@@ -292,6 +326,21 @@ struct FeedView: View {
                 searchOverlay(fullWidth: size.width - 32)
                     .padding(.horizontal, 16)
                     .padding(.top, safeInsets.top + 8)
+
+                // 세트를 통째로 받았다는 감각은 이 배지와 곡 수만으로 낸다 —
+                // 리스트 화면을 만들면 "뭘 누를까" 결정 비용이 생겨 스와이프 경험과 충돌한다.
+                if !isSearching, curationCount > 0, currentIndex < curationCount {
+                    Text("This week's picks \(currentIndex + 1)/\(curationCount)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(.black.opacity(0.55), in: Capsule())
+                        .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
+                        .padding(.top, safeInsets.top + 56)
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
 
                 if audio.isPaused && !isSearching {   // 검색 패널 아래에 가리도록 검색 중엔 숨김
                     Image(systemName: "play.fill")
@@ -655,6 +704,10 @@ struct FeedView: View {
         let feed = feedList[currentIndex]
         guard feed.trackId != lastViewedTrackId else { return }
         lastViewedTrackId = feed.trackId
+        // 세트를 지나 일반 피드로 넘어온 시점 = 완주. 다음 진입부터는 이 세트를 안 앞세운다.
+        if curationCount > 0, currentIndex >= curationCount, !curationSetKey.isEmpty {
+            seenCurationSet = curationSetKey
+        }
         // genre는 로케일 무관한 영문명으로 보낸다 — 표시용 라벨을 보내면 Rock/록이
         // 서로 다른 값으로 집계돼 장르별 스킵률을 볼 수 없다.
         PostHogSDK.shared.capture("track_viewed", properties: [
@@ -684,7 +737,13 @@ struct FeedView: View {
               feedList[index].isHyped != target else { return }
         feedList[index].isHyped = target
         session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
-        if target { PostHogSDK.shared.capture("track_hyped", properties: ["track_id": trackId]) }
+        if target {
+            PostHogSDK.shared.capture("track_hyped", properties: ["track_id": trackId])
+            // iOS 알림 권한은 평생 한 번만 물을 수 있다. 하입 = 유저가 곡을 저장한 직후라
+            // 맥락이 가장 좋은 순간이고, requireAccount() 뒤라 로그인도 보장돼 토큰 등록까지 이어진다.
+            // (이미 답한 상태면 내부에서 no-op이라 매번 불러도 안전.)
+            session.requestPushAuthorization()
+        }
         Task {
             do {
                 try await session.api.send(target ? .hype(trackId: trackId) : .unhype(trackId: trackId))
