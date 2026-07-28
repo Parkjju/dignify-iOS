@@ -88,6 +88,17 @@
         }
       }
     },
+    "A hand-picked set now leads your feed every week." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매주 새로 고른 세트가 피드 맨 앞에 와요."
+          }
+        }
+      }
+    },
     "A quick tutorial to help you get started." : {
       "localizations" : {
         "ko" : {
@@ -1186,6 +1197,17 @@
         }
       }
     },
+    "Open any track in YouTube Music, not just Apple Music." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "애플 뮤직 대신 유튜브 뮤직으로도 열 수 있어요."
+          }
+        }
+      }
+    },
     "Or use the hype button" : {
       "localizations" : {
         "ko" : {
@@ -2037,6 +2059,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "다시 시도"
+          }
+        }
+      }
+    },
+    "Turn on notifications and we'll tell you when the new set lands." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림을 켜두면 새 세트가 올라올 때 알려드려요."
           }
         }
       }
