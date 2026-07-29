@@ -46,7 +46,9 @@ struct ShareCardView: View {
                 footer
                     .padding(.bottom, 40)
             }
-            .padding(.horizontal, 32)
+            // padding이 아니라 고정 frame. ImageRenderer는 폭 제안 없이 렌더할 수 있어
+            // padding만 있으면 Text가 줄바꿈/말줄임 없이 카드 밖으로 잘린다.
+            .frame(width: Self.size.width - 64)
         }
         .frame(width: Self.size.width, height: Self.size.height)
     }
