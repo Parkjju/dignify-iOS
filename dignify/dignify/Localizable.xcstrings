@@ -969,6 +969,17 @@
         }
       }
     },
+    "Long titles and headlines no longer get cut off on share cards." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유 카드에서 긴 제목이나 문구가 잘리지 않아요."
+          }
+        }
+      }
+    },
     "Love a track? Double-tap the card to hype it instantly." : {
       "localizations" : {
         "ko" : {
