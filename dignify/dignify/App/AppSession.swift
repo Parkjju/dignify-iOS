@@ -63,11 +63,16 @@ final class AppSession {
     ///
     /// `source`는 시스템 팝업을 어느 맥락에서 태웠는지 구분한다. 요청 지점별 수락률을
     /// 비교하려는 것이므로 호출부를 추가하면 여기도 같이 늘려야 한다.
-    func requestPushAuthorization(source: String) {
+    ///
+    /// `promptIfUndecided=false`는 시스템 팝업 없이 토큰만 다시 올리는 모드다. 실행마다 부르는
+    /// 쪽에서 쓴다 — 여기서 팝업이 뜨면 소프트 프롬프트 설계(거절을 안 만들어 .notDetermined를
+    /// 살려두는 것)가 통째로 무너진다.
+    func requestPushAuthorization(source: String, promptIfUndecided: Bool = true) {
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
             switch settings.authorizationStatus {
             case .notDetermined:
+                guard promptIfUndecided else { return }
                 center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
                     PostHogSDK.shared.capture("push_permission_result",
                                               properties: ["granted": granted, "source": source])
@@ -197,6 +202,12 @@ final class AppSession {
     private func refreshAuthState() async throws {
         let profile = try await api.send(.myProfile, as: API.UserProfile.self)
         authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
+
+        // 실행마다 토큰을 다시 올린다. 서버의 app_build/time_zone은 이 등록 요청의 부산물이라,
+        // 여기서 안 올리면 하입이나 아티스트 요청을 하기 전까지 옛날 빌드·옛날 타임존으로 남고
+        // 발송 필터에 조용히 걸려 최신 버전 유저가 푸시를 못 받는다.
+        // authState를 세운 뒤에 불러야 registerDeviceToken의 signedIn 가드를 통과한다.
+        if authState == .signedIn { requestPushAuthorization(source: "launch", promptIfUndecided: false) }
     }
 }
 
