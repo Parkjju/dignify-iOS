@@ -11,8 +11,7 @@ struct Release: Identifiable {
 enum Changelog {
     static let releases: [Release] = [
         Release(version: "1.0.8", notes: [
-            "Notifications now arrive when they're supposed to.",
-            "Find us on Instagram from My Page.",
+            "Find dignify on Instagram from My Page.",
         ]),
         Release(version: "1.0.7", notes: [
             "Long titles and headlines no longer get cut off on share cards.",

@@ -169,7 +169,7 @@ struct MyPageView: View {
             Button { showTutorial = true } label: { settingsRow("How to Use") }
             Button { showWhatsNew = true } label: { settingsRow("What's New") }
             // Link는 유니버설 링크라 인스타 앱이 있으면 앱으로, 없으면 사파리로 알아서 간다.
-            Link(destination: instagramURL) { settingsRow("Instagram") }
+            Link(destination: instagramURL) { settingsRow("dignify on Instagram") }
             Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
             Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
             Button { logout() } label: { settingsRow("Log Out") }

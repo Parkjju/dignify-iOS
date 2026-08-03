@@ -502,6 +502,17 @@
     "dignify" : {
 
     },
+    "dignify on Instagram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dignify 인스타그램"
+          }
+        }
+      }
+    },
     "Dignify" : {
 
     },
@@ -643,13 +654,13 @@
         }
       }
     },
-    "Find us on Instagram from My Page." : {
+    "Find dignify on Instagram from My Page." : {
       "extractionState" : "manual",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "마이페이지에서 인스타그램으로 바로 갈 수 있어요."
+            "value" : "마이페이지에서 dignify 인스타그램 계정으로 바로 갈 수 있어요."
           }
         }
       }
@@ -885,9 +896,6 @@
           }
         }
       }
-    },
-    "Instagram" : {
-
     },
     "Just put me in a good mood" : {
       "extractionState" : "manual",
@@ -1197,17 +1205,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무엇을 고를지 모르겠다면"
-          }
-        }
-      }
-    },
-    "Notifications now arrive when they're supposed to." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "알림이 제때 도착해요."
           }
         }
       }
