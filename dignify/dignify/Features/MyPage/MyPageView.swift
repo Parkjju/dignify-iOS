@@ -168,6 +168,8 @@ struct MyPageView: View {
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             Button { showTutorial = true } label: { settingsRow("How to Use") }
             Button { showWhatsNew = true } label: { settingsRow("What's New") }
+            // Link는 유니버설 링크라 인스타 앱이 있으면 앱으로, 없으면 사파리로 알아서 간다.
+            Link(destination: instagramURL) { settingsRow("Instagram") }
             Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
             Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
             Button { logout() } label: { settingsRow("Log Out") }
@@ -190,6 +192,13 @@ struct MyPageView: View {
         } message: {
             Text("All your data, including hypes and genres, will be deleted permanently.")
         }
+    }
+
+    /// 한국어 기기는 국내 계정, 그 외는 글로벌 계정. 약관 링크와 같은 로케일 분기.
+    private var instagramURL: URL {
+        let ko = Locale.current.language.languageCode?.identifier == "ko"
+        return URL(string: ko ? "https://instagram.com/dignify_music.kr"
+                              : "https://instagram.com/dignify_music")!
     }
 
     private func settingsRow(_ label: LocalizedStringKey, destructive: Bool = false) -> some View {
