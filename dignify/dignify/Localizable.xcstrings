@@ -643,6 +643,17 @@
         }
       }
     },
+    "Find us on Instagram from My Page." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이페이지에서 인스타그램으로 바로 갈 수 있어요."
+          }
+        }
+      }
+    },
     "Front row at a live show" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -875,6 +886,9 @@
         }
       }
     },
+    "Instagram" : {
+
+    },
     "Just put me in a good mood" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -959,16 +973,6 @@
         }
       }
     },
-    "Long-press a track in My Page to open details or remove it." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마이페이지에서 트랙을 길게 누르면 상세 정보를 보거나 삭제할 수 있어요."
-          }
-        }
-      }
-    },
     "Long titles and headlines no longer get cut off on share cards." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -976,6 +980,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "공유 카드에서 긴 제목이나 문구가 잘리지 않아요."
+          }
+        }
+      }
+    },
+    "Long-press a track in My Page to open details or remove it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이페이지에서 트랙을 길게 누르면 상세 정보를 보거나 삭제할 수 있어요."
           }
         }
       }
@@ -1183,6 +1197,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무엇을 고를지 모르겠다면"
+          }
+        }
+      }
+    },
+    "Notifications now arrive when they're supposed to." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림이 제때 도착해요."
           }
         }
       }
@@ -2026,6 +2051,17 @@
         }
       }
     },
+    "This week's set %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 특집 %lld/%lld"
+          }
+        }
+      }
+    },
     "This week's set, all done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2044,17 +2080,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "방금 보신 곡들은 저희가 직접 판 거예요. 매주 새로 파고 있는데, 다음 편 올라오면 알려드릴까요?"
-          }
-        }
-      }
-    },
-    "This week's set %lld/%lld" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이번 주 특집 %lld/%lld"
           }
         }
       }
