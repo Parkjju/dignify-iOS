@@ -125,7 +125,21 @@ struct FeedView: View {
             // 이전 화면의 player가 남아 그게 재생된다(loadSearch가 같은 함정을 기록해뒀다).
             audio.updateWindow(feeds: feedList, current: currentIndex)
         } catch {
+            #if DEBUG
+            // 백엔드에 /picks/{id}가 아직 없다. 일반 피드 앞부분을 픽인 척 꽂아 재생·배지·닫기를
+            // 시뮬레이터에서 실제로 눌러볼 수 있게 한다. 서버가 나오면 이 블록만 지운다.
+            if let res = try? await session.api.send(.feed(), as: API.FeedResponse.self) {
+                feedList = res.items.prefix(5).map(Feed.init)
+                currentIndex = 0
+                nextCursor = nil
+                audio.updateWindow(feeds: feedList, current: currentIndex)
+                print("[Picks] 픽 상세 요청 실패 → 피드로 대체: \(error)")
+            } else {
+                loadFailed = true
+            }
+            #else
             loadFailed = true
+            #endif
         }
         isLoading = false
     }
@@ -459,6 +473,27 @@ struct FeedView: View {
     /// 거절은 아무것도 호출하지 않아 .notDetermined가 남고, 하입 시점에 기회가 다시 온다.
     @ViewBuilder
     private var pushOptInOverlay: some View {
+        // 픽 닫기 버튼. `.overlay`는 콘텐츠 전체 위에 얹혀 히트 테스트를 먼저 가져가므로,
+        // 페이징 레이어의 탭 제스처와 경쟁하지 않는다(ZStack 형제로 두면 경쟁한다).
+        if case .pick = mode {
+            Button {
+                audio.stop()
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.black.opacity(0.35), in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+            // overlay는 safe area 안쪽에 배치되므로 safeInsets를 또 더하면 두 번 밀린다.
+            .padding(.leading, 12)
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
         if showPushOffer {
             PushOptInPopup(
                 onAccept: {
@@ -534,22 +569,13 @@ struct FeedView: View {
             .transition(.opacity)
     }
 
-    /// 일반 피드는 검색, 픽 재생은 닫기. 호출부(feed)는 그대로 두려고 여기서 가른다 —
-    /// 그쪽 표현식은 이미 타입체커 한계에 걸려 있다.
+    /// 픽 모드엔 검색이 없다. 닫기 버튼은 여기가 아니라 최상위 오버레이에 있다 —
+    /// 이 자리(ZStack 형제)에 두면 아래 페이징 레이어의 탭 제스처가 먼저 먹어
+    /// 첫 탭이 재생 토글로 새어 나간다.
     @ViewBuilder
     private func searchOverlay(fullWidth: CGFloat) -> some View {
         if mode == .normal {
             searchControls(fullWidth: fullWidth)
-        } else {
-            Button { dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 40, height: 40)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Close")
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -755,11 +781,14 @@ struct FeedView: View {
             })
     }
 
-    /// 하단 정보/컨트롤 밴드(제목·하입·상세·공유) 탭은 무시 — 버튼과 겹쳐
-    /// 재생 토글이 오발동하는 걸 막는다. 그 위 영역 탭만 재생/일시정지.
+    /// 위아래 컨트롤 밴드 탭은 무시 — 버튼과 겹쳐 재생 토글이 오발동하는 걸 막는다.
+    /// 아래는 정보/하입·상세·공유, 위는 검색 버튼(일반)과 닫기 버튼(픽).
+    /// 제스처 레이어는 `simultaneousGesture`라 버튼 위에서도 같이 발동한다 —
+    /// 그래서 첫 탭이 일시정지에 먹히고 버튼은 두 번째 탭에야 반응했다.
     private func handleSingleTap(at location: CGPoint, height: CGFloat) {
-        let controlBand = safeInsets.bottom + 160
-        guard location.y < height - controlBand else { return }
+        let topBand = safeInsets.top + 56
+        let bottomBand = safeInsets.bottom + 160
+        guard location.y > topBand, location.y < height - bottomBand else { return }
         audio.toggleCurrentPlayback()
     }
 
@@ -932,6 +961,13 @@ struct FeedView: View {
 
     private func goingPrev(height: CGFloat) {
         if currentIndex == 0 {
+            // 픽은 커버라 첫 곡에서 더 당기면 "닫기"가 자연스럽다. 스냅백만 하면
+            // 위로 튕겨나가려는 손짓이 아무 데도 안 닿는다.
+            if case .pick = mode {
+                audio.stop()
+                dismiss()
+                return
+            }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 offset = 0
             }
