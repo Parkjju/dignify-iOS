@@ -41,9 +41,15 @@ struct PickListView: View {
     }
 
     var body: some View {
+        // 제목은 네비바가 아니라 스크롤 콘텐츠 안에 직접 그린다(`titleHeader`).
+        // 다크 지면에 흰 large title을 세우는 방법이 iOS 26엔 없다 — SwiftUI엔 색 API가 없고
+        // (`toolbarColorScheme`은 좁아진 제목만 바꾼다), UIKit appearance는 navigationItem·
+        // navigationBar 어디에 박아도 NavigationStack이 곧바로 자기 것으로 되돌린다
+        // (전역 프록시·async 재적용까지 전부 밀렸다).
         content
-            .navigationTitle("Picks")
-            .background(DSColor.background)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(DSColor.pickBackground)
+            .toolbar(.hidden, for: .navigationBar)
             // 목록이 있을 때만. 빈 화면엔 이미 큰 CTA가 있어 두 개가 겹친다.
             .overlay(alignment: .bottom) { if !visiblePicks.isEmpty { composeButton } }
             .task { await load() }
@@ -70,11 +76,22 @@ struct PickListView: View {
             }
     }
 
+    /// 시스템 large title 대체물. 스크롤 콘텐츠의 첫 요소라 스크롤에 그대로 밀려 올라간다.
+    private var titleHeader: some View {
+        Text("Picks")
+            .font(.system(size: 34, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 12)
+    }
+
     @ViewBuilder
     private var content: some View {
         if isLoading && picks.isEmpty {
             // 스피너 대신 카드 골격. 도착 순간 레이아웃이 안 바뀌어 화면이 덜 튄다.
+            // 제목까지 같이 그려야 로딩→목록 전환에 제목이 뒤늦게 나타나지 않는다.
             VStack(spacing: 12) {
+                titleHeader
                 ForEach(0..<3, id: \.self) { _ in PickSkeletonCard() }
                 Spacer()
             }
@@ -92,6 +109,7 @@ struct PickListView: View {
     private var list: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
+                titleHeader
                 ForEach(Array(visiblePicks.enumerated()), id: \.element.pickId) { index, pick in
                     PickCard(
                         pick: pick,
@@ -120,14 +138,14 @@ struct PickListView: View {
             Text(verbatim: "🎵")
                 .font(.system(size: 32))
                 .frame(width: 72, height: 72)
-                .background(DSColor.brandLight, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .padding(.bottom, 20)
             Text("No picks yet")
                 .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(DSColor.textPrimary)
+                .foregroundStyle(.white)
             Text("Put a few tracks together and send them out.")
                 .font(.system(size: 14))
-                .foregroundStyle(DSColor.textSecondary)
+                .foregroundStyle(.white.opacity(0.6))
                 .lineSpacing(3)
                 .padding(.top, 8)
             Button("Make a pick") { if requireAccount() { showCompose = true } }
@@ -148,24 +166,24 @@ struct PickListView: View {
         VStack(spacing: 0) {
             Image(systemName: "exclamationmark.circle")
                 .font(.system(size: 40, weight: .light))
-                .foregroundStyle(DSColor.border)
+                .foregroundStyle(.white.opacity(0.35))
                 .padding(.bottom, 16)
             Text("Couldn't load")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(DSColor.textPrimary)
+                .foregroundStyle(.white)
             Text("Please try again in a moment.")
                 .font(.system(size: 14))
-                .foregroundStyle(DSColor.textTertiary)
+                .foregroundStyle(.white.opacity(0.5))
                 .padding(.top, 4)
             Button { Task { await load(force: true) } } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "arrow.clockwise").font(.system(size: 13, weight: .semibold))
                     Text("Try again").font(.system(size: 14))
                 }
-                .foregroundStyle(DSColor.textSecondary)
+                .foregroundStyle(.white.opacity(0.75))
                 .padding(.horizontal, 20)
                 .frame(height: 40)
-                .overlay { Capsule().stroke(DSColor.border, lineWidth: 1) }
+                .overlay { Capsule().stroke(.white.opacity(0.25), lineWidth: 1) }
             }
             .buttonStyle(.plain)
             .padding(.top, 20)
@@ -199,12 +217,13 @@ struct PickListView: View {
     @ViewBuilder
     private var toastView: some View {
         if let toast {
+            // 다크 지면에선 검은 알약이 배경에 묻는다 — 명암을 뒤집어야 토스트가 토스트로 보인다.
             Text(toast)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(DSColor.pickBackground)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
-                .background(.black.opacity(0.8), in: Capsule())
+                .background(.white, in: Capsule())
                 .padding(.top, 8)
                 .transition(.move(edge: .top).combined(with: .opacity))
         }
@@ -366,7 +385,7 @@ private struct PickCard: View {
                     .padding(.bottom, 16)
                 Text(title)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(DSColor.textPrimary)
+                    .foregroundStyle(.white)
                     .lineSpacing(2)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -377,13 +396,13 @@ private struct PickCard: View {
                     // 곡수·시간(짧고 사실 정보)을 지키고 닉네임을 자른다.
                     Text(verbatim: "@\(pick.nickname)")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(DSColor.brand)
+                        .foregroundStyle(DSColor.pickAccent)
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer(minLength: 8)
                     Text("\(pick.trackCount) tracks · \(pick.createdAt.formatted(.relative(presentation: .named)))")
                         .font(.system(size: 12))
-                        .foregroundStyle(DSColor.textTertiary)
+                        .foregroundStyle(.white.opacity(0.45))
                         .lineLimit(1)
                         .layoutPriority(1)
                         .fixedSize(horizontal: true, vertical: false)
@@ -398,7 +417,7 @@ private struct PickCard: View {
             reactionRow
         }
         .padding(16)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
         .overlay(alignment: .topTrailing) { overflowMenu }
     }
 
@@ -412,14 +431,16 @@ private struct PickCard: View {
                 HStack(spacing: 8) {
                     Image(systemName: "plus")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(DSColor.textSecondary)
+                        .foregroundStyle(.white.opacity(0.7))
                         .frame(width: 30, height: 30)
-                        .background(DSColor.background, in: Circle())
-                        .overlay { Circle().stroke(DSColor.border, lineWidth: 1) }
+                        // 다크 카드 위에선 색을 얹는 대신 흰색을 옅게 태운다 — 카드가 어떤
+                        // 밝기든 같은 만큼 떠 보이고, 서피스 색을 하나 더 정의할 필요도 없다.
+                        .background(.white.opacity(0.08), in: Circle())
+                        .overlay { Circle().stroke(.white.opacity(0.18), lineWidth: 1) }
                     if !hasReactions {
                         Text("Be the first to react")
                             .font(.system(size: 12))
-                            .foregroundStyle(DSColor.textTertiary)
+                            .foregroundStyle(.white.opacity(0.4))
                     }
                 }
             }
@@ -434,7 +455,7 @@ private struct PickCard: View {
                         Text(emoji).font(.system(size: 13))
                         Text(verbatim: "\(pick.reactions[emoji] ?? 0)")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(mine ? .white : DSColor.textSecondary)
+                            .foregroundStyle(mine ? DSColor.pickBackground : .white.opacity(0.75))
                             .lineLimit(1)
                     }
                     // 5종이 다 달리면 행이 빠듯하다. 압축을 허용하면 SwiftUI가 칩을 눌러
@@ -444,8 +465,8 @@ private struct PickCard: View {
                     .padding(.horizontal, 8)
                     .frame(height: 30)
                     // 내가 누른 칩만 브랜드로 채워 한눈에 갈린다(테두리 대비보다 강하다).
-                    .background(mine ? DSColor.brand : DSColor.background, in: Capsule())
-                    .overlay { Capsule().stroke(mine ? .clear : DSColor.border, lineWidth: 1) }
+                    .background(mine ? DSColor.pickAccent : .white.opacity(0.08), in: Capsule())
+                    .overlay { Capsule().stroke(mine ? .clear : .white.opacity(0.18), lineWidth: 1) }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(PickReaction.label(emoji))
@@ -468,7 +489,7 @@ private struct PickCard: View {
                     Text(emoji)
                         .font(.system(size: 22))
                         .frame(width: 44, height: 44)
-                        .background(pick.myReaction == emoji ? DSColor.brandLight : .clear, in: Circle())
+                        .background(pick.myReaction == emoji ? DSColor.pickAccent.opacity(0.3) : .clear, in: Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(PickReaction.label(emoji))
@@ -477,6 +498,8 @@ private struct PickCard: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .presentationCompactAdaptation(.popover)
+        // 팝오버 배경은 시스템이 그린다 — 지면만 어둡게 하면 여기만 흰 말풍선으로 튄다.
+        .preferredColorScheme(.dark)
     }
 
     private var overflowMenu: some View {
@@ -530,7 +553,9 @@ struct PickThumbnailStack: View {
                 AsyncImage(url: url.itunesArtworkURL(size: 400)) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    DSColor.borderLight
+                    // 이 스택은 다크(목록)와 라이트(만들기 시트) 양쪽에 쓰인다.
+                    // 중립 회색이라야 어느 배경에서도 자리를 잡아준다.
+                    Color.gray.opacity(0.25)
                 }
                 .frame(width: side, height: side)
                 .clipShape(RoundedRectangle(cornerRadius: DSRadius.large, style: .continuous))
@@ -584,12 +609,12 @@ private struct PickSkeletonCard: View {
             }
         }
         .padding(16)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
     }
 
     private func bar(width: CGFloat, height: CGFloat, radius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
-            .fill(DSColor.borderLight)
+            .fill(.white.opacity(0.08))
             .frame(width: width, height: height)
     }
 }
