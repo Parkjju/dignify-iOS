@@ -29,6 +29,8 @@ struct PickComposeView: View {
     @State private var titleText = ""
     @State private var isPosting = false
     @State private var errorMessage: String?
+    /// 제목 단계 미리보기의 `@닉네임`용. 없으면 그 줄만 빠진다(요청 실패가 화면을 막지 않는다).
+    @State private var myNickname = ""
 
     private let maxTracks = 30
 
@@ -100,12 +102,12 @@ struct PickComposeView: View {
                         Image(systemName: "chevron.left").font(.system(size: 10, weight: .bold))
                         Text("Your crate").font(.system(size: 13, weight: .semibold))
                         if !selected.isEmpty {
-                            Text(verbatim: "\(selected.count)")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 1)
-                                .background(DSColor.brand, in: Capsule())
+                            Text("\(selected.count) selected")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(DSColor.brand)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .background(DSColor.brandLight, in: Capsule())
                         }
                     }
                     .foregroundStyle(DSColor.brand)
@@ -168,24 +170,24 @@ struct PickComposeView: View {
                 DSColor.surface
             }
             .aspectRatio(1, contentMode: .fill)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(alignment: .topTrailing) { badge(number) }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            // 선택은 테두리가 아니라 아트워크를 브랜드로 덮어 알린다. 3열 그리드에선
+            // 얇은 테두리가 잘 안 보이고, 덮으면 고른 것/안 고른 것이 멀리서도 갈린다.
             .overlay {
                 if number != nil {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(DSColor.brand, lineWidth: 2.5)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(DSColor.brand.opacity(0.55))
                 }
             }
-            // 선택된 셀만 살짝 밀어 넣어 눌린 느낌을 준다.
-            .scaleEffect(number == nil ? 1 : 0.96)
-            .animation(.easeOut(duration: 0.15), value: number)
+            .overlay(alignment: .topTrailing) { badge(number) }
+            .animation(.easeOut(duration: 0.12), value: number)
 
             Text(track.trackName)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(DSColor.textPrimary)
                 .lineLimit(1)
             Text(track.artistName)
-                .font(.system(size: 10))
+                .font(.system(size: 10.5))
                 .foregroundStyle(DSColor.textTertiary)
                 .lineLimit(1)
         }
@@ -195,20 +197,24 @@ struct PickComposeView: View {
         .accessibilityAddTraits(number != nil ? .isSelected : [])
     }
 
+    /// 미선택 셀에도 빈 원을 띄운다 — 여기가 고를 수 있는 자리라는 걸 먼저 알려야 한다.
     @ViewBuilder
     private func badge(_ number: Int?) -> some View {
-        ZStack {
-            Circle()
-                .fill(number == nil ? Color.black.opacity(0.28) : DSColor.brand)
-                .overlay { Circle().stroke(.white, lineWidth: 2) }
+        Group {
             if let number {
                 Text(verbatim: "\(number)")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.white)
+                    .frame(width: 22, height: 22)
+                    .background(DSColor.brand, in: Circle())
+                    .transition(.scale)
+            } else {
+                Circle()
+                    .stroke(.white.opacity(0.7), lineWidth: 2)
+                    .frame(width: 22, height: 22)
             }
         }
-        .frame(width: 24, height: 24)
-        .padding(6)
+        .padding(8)
     }
 
     private var bottomBar: some View {
@@ -219,16 +225,18 @@ struct PickComposeView: View {
                     .foregroundStyle(DSColor.destructive)
             }
             HStack(spacing: 14) {
-                Text("\(selected.count) selected")
-                    .font(.system(size: 14, weight: .semibold))
+                // 0곡일 땐 개수가 아니라 무엇을 하라는 말이 필요하다.
+                Text(selected.isEmpty ? "Select tracks to continue" : "\(selected.count) selected")
+                    .font(.system(size: 14))
                     .foregroundStyle(selected.isEmpty ? DSColor.textTertiary : DSColor.textPrimary)
                 Spacer(minLength: 0)
                 Button("Next") { errorMessage = nil; showTitleStep = true }
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 28)
-                    .frame(height: 48)
-                    .background(selected.isEmpty ? DSColor.border : DSColor.brand, in: Capsule())
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(selected.isEmpty ? DSColor.textTertiary : .white)
+                    .padding(.horizontal, 20)
+                    .frame(height: 40)
+                    .background(selected.isEmpty ? DSColor.borderLight : DSColor.brand,
+                                in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
                     .disabled(selected.isEmpty)
                     .animation(.easeOut(duration: 0.15), value: selected.isEmpty)
             }
@@ -243,69 +251,159 @@ struct PickComposeView: View {
     // MARK: - Title step
 
     private var titleStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            cardPreview
-            titleField
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(DSTypography.caption)
-                    .foregroundStyle(DSColor.destructive)
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    sectionLabel("Preview")
+                    cardPreview
+                    HStack {
+                        Text("Title")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DSColor.textSecondary)
+                        Spacer()
+                        Text(verbatim: "\(titleText.count) / \(PickTitle.maxLength)")
+                            .font(.system(size: 12))
+                            .foregroundStyle(titleText.count >= PickTitle.maxLength
+                                             ? DSColor.destructive : DSColor.textTertiary)
+                            .monospacedDigit()
+                    }
+                    .padding(.top, 24)
+                    .padding(.bottom, 8)
+                    titleField
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(DSTypography.caption)
+                            .foregroundStyle(DSColor.destructive)
+                            .padding(.top, 8)
+                    }
+                    sectionLabel("\(selected.count) tracks").padding(.top, 24)
+                    trackList
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
             }
-            Spacer()
             Button { post() } label: {
                 Text(isPosting ? "Posting…" : "Post")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(DSColor.brand, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
             }
-            .buttonStyle(DSPrimaryButtonStyle())
+            .buttonStyle(.plain)
             .disabled(isPosting)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(DSColor.background)
+            .overlay(alignment: .top) { Divider().opacity(0.6) }
         }
-        .padding(20)
         .background(DSColor.background)
         .navigationTitle("Title")
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    private func sectionLabel(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold))
+            .tracking(0.6)
+            .textCase(.uppercase)
+            .foregroundStyle(DSColor.textTertiary)
+            .padding(.bottom, 10)
+    }
+
+    /// 재생 순서를 번호로 확인하는 자리. 그리드에선 번호 배지가 아트워크에 얹혀 있어
+    /// 순서를 한눈에 훑기 어렵다.
+    private var trackList: some View {
+        VStack(spacing: 10) {
+            ForEach(Array(selected.enumerated()), id: \.element.trackId) { index, track in
+                HStack(spacing: 12) {
+                    Text(verbatim: "\(index + 1)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(DSColor.border)
+                        .frame(width: 16)
+                    AsyncImage(url: track.artworkUrl.itunesArtworkURL(size: 200)) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        DSColor.surface
+                    }
+                    .frame(width: 36, height: 36)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(track.trackName)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DSColor.textPrimary)
+                            .lineLimit(1)
+                        Text(track.artistName)
+                            .font(.system(size: 12))
+                            .foregroundStyle(DSColor.textTertiary)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+    }
+
     /// 목록에 실제로 깔릴 모습을 그대로 보여준다 — 제목을 비우면 폴백이 뜬다는 걸
     /// 설명하는 대신 눈으로 보게 하는 게 짧다.
     private var cardPreview: some View {
-        HStack(alignment: .top, spacing: 14) {
-            PickThumbnailStack(urls: selected.prefix(3).map(\.artworkUrl), trackCount: selected.count)
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 14) {
+            // 목록 카드와 같은 세로 구성. 미리보기가 실제와 다르면 미리보기가 아니다.
+            VStack(alignment: .leading, spacing: 0) {
+                PickThumbnailStack(urls: selected.prefix(3).map(\.artworkUrl), trackCount: selected.count)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 16)
                 Text(titleText.isEmpty ? placeholderTitle : titleText)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(DSColor.textPrimary)
+                    .lineSpacing(2)
                     .lineLimit(2)
-                Text("\(selected.count) tracks")
-                    .font(.system(size: 12))
-                    .foregroundStyle(DSColor.textTertiary)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if !myNickname.isEmpty {
+                        Text(verbatim: "@\(myNickname)")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DSColor.brand)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                    Text("\(selected.count) tracks · \(Date.now.formatted(.relative(presentation: .named)))")
+                        .font(.system(size: 12))
+                        .foregroundStyle(DSColor.textTertiary)
+                        .lineLimit(1)
+                }
+                .padding(.top, 8)
             }
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // 반응 0인 카드의 모습 그대로. 행은 비어도 남는다.
+            Image(systemName: "plus")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(DSColor.textTertiary)
+                .frame(width: 30, height: 30)
+                .background(DSColor.background, in: Circle())
+                .overlay { Circle().stroke(DSColor.borderLight, lineWidth: 1) }
+                .frame(height: 30)
         }
-        .padding(14)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .padding(16)
+        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
     }
 
     private var titleField: some View {
-        HStack(spacing: 10) {
-            // 플레이스홀더 = 비웠을 때 실제로 나올 제목. 그래서 별도 안내 문구가 필요 없다.
-            TextField(placeholderTitle, text: $titleText)
-                .font(DSTypography.body)
-                .foregroundStyle(DSColor.textPrimary)
-                .onChange(of: titleText) { _, text in
-                    // Swift는 grapheme, Postgres varchar는 code point로 세므로 길이 합의는 포기하고
-                    // 클라가 자르고 서버는 컬럼 상한만 지킨다.
-                    if text.count > PickTitle.maxLength {
-                        titleText = String(text.prefix(PickTitle.maxLength))
-                    }
+        // 플레이스홀더 = 비웠을 때 실제로 나올 제목. 그래서 별도 안내 문구가 필요 없다.
+        TextField(placeholderTitle, text: $titleText)
+            .font(.system(size: 15))
+            .foregroundStyle(DSColor.textPrimary)
+            .tint(DSColor.brand)
+            .onChange(of: titleText) { _, text in
+                // Swift는 grapheme, Postgres varchar는 code point로 세므로 길이 합의는 포기하고
+                // 클라가 자르고 서버는 컬럼 상한만 지킨다.
+                if text.count > PickTitle.maxLength {
+                    titleText = String(text.prefix(PickTitle.maxLength))
                 }
-            Text(verbatim: "\(titleText.count)/\(PickTitle.maxLength)")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(titleText.count >= PickTitle.maxLength ? DSColor.brand : DSColor.textTertiary)
-                .monospacedDigit()
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 52)
-        .background(DSColor.background, in: Capsule())
-        .overlay { Capsule().stroke(DSColor.borderLight, lineWidth: 1.5) }
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 48)
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
     }
 
     /// 선택한 곡들로 조립한 폴백 제목. 서버엔 저장하지 않는다.
@@ -341,7 +439,10 @@ struct PickComposeView: View {
             return
         }
         guard !crateLoaded else { return }
+        // 미리보기 닉네임은 크레이트와 같이 받아온다 — 나란히 쏴서 대기가 겹치게.
+        async let profile = try? session.api.send(.myProfile, as: API.UserProfile.self)
         let res = try? await session.api.send(.myHypes(), as: API.HypeListResponse.self)
+        myNickname = await profile?.nickname ?? ""
         crate = res?.items.map(PickTrack.init) ?? []
         crateCursor = res?.nextCursor
         crateLoaded = true

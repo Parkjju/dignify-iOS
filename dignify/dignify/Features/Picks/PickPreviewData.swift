@@ -37,6 +37,13 @@ enum PickPreview {
                  firstArtistName: "Joey DeFrancesco", firstTrackName: "In Times of Reflection",
                  thumbnails: Array(artwork.dropFirst(3).prefix(3)),
                  reactions: ["🪩": 3], myReaction: nil),
+        // 2곡 — 스택이 두 장만 겹치는 경우
+        API.Pick(pickId: 5, title: "둘이서 듣기 좋은", nickname: "sunset_kim", isMine: false,
+                 createdAt: .now.addingTimeInterval(-3600 * 7),
+                 trackCount: 2, distinctArtistCount: 2,
+                 firstArtistName: "Evan Johnson", firstTrackName: "Without You",
+                 thumbnails: Array(artwork.dropFirst(2).prefix(2)),
+                 reactions: ["🫶": 8, "🥲": 2], myReaction: nil),
         // 내 픽(메뉴가 삭제로 갈림) + 1곡(스택 아닌 한 장) + 아주 긴 제목(2줄 말줄임)
         API.Pick(pickId: 4, title: "여름 끝자락에 계속 돌려 듣게 되는 곡 하나", nickname: "me", isMine: true,
                  createdAt: .now.addingTimeInterval(-60 * 5),
@@ -44,6 +51,36 @@ enum PickPreview {
                  firstArtistName: "Privaledge", firstTrackName: "Savage",
                  thumbnails: [artwork[5]],
                  reactions: ["🥲": 2], myReaction: "🥲"),
+    ]
+
+    /// 한계값만 모은 세트. 닉네임은 서버 정규식 상한(`^[a-zA-Z0-9_가-힣]{1,20}$`)인 20자,
+    /// 곡 수는 픽 상한인 30곡, 제목은 입력 상한인 30 grapheme, 시간은 상대표기가 가장 길어지는 구간.
+    /// 한글 20자가 라틴 20자보다 훨씬 넓어서 ko가 더 가혹한 케이스다.
+    static let edgeCases: [API.Pick] = [
+        // 한글 닉네임 20자 + 30곡 + 제목 30자(2줄 꽉)
+        API.Pick(pickId: 101, title: "새벽 세 시에 혼자 듣고 싶어지는 노래들만 골라 담았어",
+                 nickname: "디깅하는사람이십년째그냥계속듣는중입니다",
+                 isMine: false, createdAt: .now.addingTimeInterval(-3600 * 24 * 340),
+                 trackCount: 30, distinctArtistCount: 24,
+                 firstArtistName: "Margaret Cho", firstTrackName: "Yer Dihh",
+                 thumbnails: Array(artwork.prefix(3)),
+                 reactions: ["🔥": 128, "🫶": 64, "🥲": 32, "🪩": 16, "👀": 8], myReaction: "🪩"),
+        // 라틴 닉네임 20자(_ 포함) + 30곡 + 폴백 제목(아티스트명이 긴 경우)
+        API.Pick(pickId: 102, title: nil,
+                 nickname: "digging_all_night_00",
+                 isMine: false, createdAt: .now.addingTimeInterval(-60 * 11),
+                 trackCount: 30, distinctArtistCount: 1,
+                 firstArtistName: "Teddy Wilson, Teddy Wilson Jr & Lionel Hampton",
+                 firstTrackName: "Limehouse Blues (Slowed + Reverb)",
+                 thumbnails: Array(artwork.dropFirst(2).prefix(3)),
+                 reactions: [:], myReaction: nil),
+        // 반대 극단 — 최소값. 1곡·짧은 닉네임·짧은 제목
+        API.Pick(pickId: 103, title: "여름", nickname: "kj",
+                 isMine: true, createdAt: .now,
+                 trackCount: 1, distinctArtistCount: 1,
+                 firstArtistName: "Privaledge", firstTrackName: "Savage",
+                 thumbnails: [artwork[5]],
+                 reactions: ["👀": 1], myReaction: nil),
     ]
 
     /// 만들기 화면 그리드용(크레이트 목업).

@@ -17,6 +17,8 @@ struct PickListView: View {
     @State private var reportTarget: API.Pick?
     @State private var blockTarget: API.Pick?
     @State private var toast: String?
+    /// 카드 아트워크 → 재생 화면 확대 전환용. iOS 18+에서만 실제로 쓰인다.
+    @Namespace private var zoomNamespace
 
     /// 차단·신고 숨김은 로컬 전용(§8). 서버는 차단을 모르고, 신고는 쌓기만 한다.
     @AppStorage(LocalModeration.blockedKey) private var blockedRaw = ""
@@ -51,6 +53,7 @@ struct PickListView: View {
             }
             .fullScreenCover(item: $playing) { pick in
                 FeedView(mode: .pick(id: pick.pickId, nickname: pick.nickname))
+                    .pickZoomTransition(id: pick.pickId, in: zoomNamespace)
             }
             .overlay(alignment: .top) { toastView }
             .confirmationDialog("Report this pick?", isPresented: reportBinding, presenting: reportTarget) { pick in
@@ -70,7 +73,15 @@ struct PickListView: View {
     @ViewBuilder
     private var content: some View {
         if isLoading && picks.isEmpty {
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 스피너 대신 카드 골격. 도착 순간 레이아웃이 안 바뀌어 화면이 덜 튄다.
+            VStack(spacing: 12) {
+                ForEach(0..<3, id: \.self) { _ in PickSkeletonCard() }
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+        } else if loadFailed && visiblePicks.isEmpty {
+            errorView
         } else if visiblePicks.isEmpty {
             emptyView
         } else {
@@ -84,6 +95,7 @@ struct PickListView: View {
                 ForEach(Array(visiblePicks.enumerated()), id: \.element.pickId) { index, pick in
                     PickCard(
                         pick: pick,
+                        zoomNamespace: zoomNamespace,
                         onPlay: { open(pick, at: index) },
                         onReact: { react(pick, emoji: $0) },
                         onReport: { reportTarget = pick },
@@ -96,40 +108,70 @@ struct PickListView: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 4)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
             // 떠 있는 만들기 버튼이 마지막 카드를 가리지 않게.
             .padding(.bottom, 88)
         }
     }
 
     private var emptyView: some View {
-        VStack(spacing: 10) {
-            Image(systemName: loadFailed ? "exclamationmark.triangle.fill" : "square.stack.fill")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(DSColor.brand)
-                .frame(width: 64, height: 64)
-                .background(DSColor.brandLight, in: Circle())
-                .padding(.bottom, 6)
-            Text(loadFailed ? "Couldn't load" : "No picks yet")
-                .font(DSTypography.title2)
+        VStack(spacing: 0) {
+            Text(verbatim: "🎵")
+                .font(.system(size: 32))
+                .frame(width: 72, height: 72)
+                .background(DSColor.brandLight, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .padding(.bottom, 20)
+            Text("No picks yet")
+                .font(.system(size: 17, weight: .bold))
                 .foregroundStyle(DSColor.textPrimary)
-            if loadFailed {
-                Button("Try again") { Task { await load(force: true) } }
-                    .font(DSTypography.bodyMedium)
-                    .foregroundStyle(DSColor.brand)
-            } else {
-                Text("Put a few tracks together and send them out.")
-                    .font(DSTypography.body)
-                    .foregroundStyle(DSColor.textSecondary)
-                Button("Make a pick") { if requireAccount() { showCompose = true } }
-                    .buttonStyle(DSPrimaryButtonStyle())
-                    .padding(.horizontal, 40)
-                    .padding(.top, 14)
-            }
+            Text("Put a few tracks together and send them out.")
+                .font(.system(size: 14))
+                .foregroundStyle(DSColor.textSecondary)
+                .lineSpacing(3)
+                .padding(.top, 8)
+            Button("Make a pick") { if requireAccount() { showCompose = true } }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 24)
+                .frame(height: 48)
+                .background(DSColor.brand, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+                .padding(.top, 24)
         }
         .multilineTextAlignment(.center)
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 32)
+        .padding(.bottom, 64)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var errorView: some View {
+        VStack(spacing: 0) {
+            Image(systemName: "exclamationmark.circle")
+                .font(.system(size: 40, weight: .light))
+                .foregroundStyle(DSColor.border)
+                .padding(.bottom, 16)
+            Text("Couldn't load")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(DSColor.textPrimary)
+            Text("Please try again in a moment.")
+                .font(.system(size: 14))
+                .foregroundStyle(DSColor.textTertiary)
+                .padding(.top, 4)
+            Button { Task { await load(force: true) } } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.clockwise").font(.system(size: 13, weight: .semibold))
+                    Text("Try again").font(.system(size: 14))
+                }
+                .foregroundStyle(DSColor.textSecondary)
+                .padding(.horizontal, 20)
+                .frame(height: 40)
+                .overlay { Capsule().stroke(DSColor.border, lineWidth: 1) }
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 20)
+        }
+        .multilineTextAlignment(.center)
+        .padding(.bottom, 64)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -182,7 +224,9 @@ struct PickListView: View {
             #if DEBUG
             // 백엔드에 /picks가 아직 없어서, 시뮬레이터에서 화면을 실제로 굴려보려면 목업이 필요하다.
             // 서버가 나오면 이 블록만 지운다(그때까지 DEBUG에선 loadFailed 상태를 볼 수 없다).
-            picks = PickPreview.picks
+            // 한계값 카드까지 붙여야 실기기에서 닉네임 20자·30곡·반응 5종을 눈으로 본다
+            // (#Preview는 캔버스 전용이라 기기엔 안 뜬다).
+            picks = PickPreview.picks + PickPreview.edgeCases
             print("[Picks] 목록 요청 실패 → 목업으로 대체: \(error)")
             #else
             loadFailed = true
@@ -297,47 +341,64 @@ struct PickListView: View {
 /// 카드 전체를 Button으로 감싸면 반응 칩·Menu가 중첩돼 어느 쪽이 먹는지가 갈린다.
 private struct PickCard: View {
     let pick: API.Pick
+    let zoomNamespace: Namespace.ID
     let onPlay: () -> Void
     let onReact: (String) -> Void
     let onReport: () -> Void
     let onBlock: () -> Void
     let onDelete: () -> Void
 
+    @State private var showPicker = false
+
+    private var hasReactions: Bool { pick.reactions.values.contains { $0 > 0 } }
     private var title: String { pick.title ?? PickTitle.fallback(for: pick) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 16) {
+            // 세로 구성 — 아트워크가 위, 글이 아래. 글이 아트워크 옆에 없으니 제목이 몇 줄이든
+            // 위 요소가 밀리지 않는다. 제목 길이로 컬럼 높이를 맞출 이유 자체가 사라진다.
+            VStack(alignment: .leading, spacing: 0) {
                 PickThumbnailStack(urls: pick.thumbnails, trackCount: pick.trackCount)
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(title)
-                        .font(.system(size: 19, weight: .bold))
-                        .foregroundStyle(DSColor.textPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .padding(.trailing, 24)   // 우상단 ··· 자리를 비워둔다.
-                    // 닉네임·곡 수·시간을 한 줄로 묶어 카드가 덜 장황해진다. 닉네임만 무게를 준다.
-                    HStack(spacing: 5) {
-                        Text(verbatim: "@\(pick.nickname)")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(DSColor.brand)
-                        Text(verbatim: "·").foregroundStyle(DSColor.border)
-                        Text("\(pick.trackCount) tracks · \(pick.createdAt.formatted(.relative(presentation: .named)))")
-                            .font(.system(size: 13))
-                            .foregroundStyle(DSColor.textTertiary)
-                    }
-                    .lineLimit(1)
+                    // 곡 수에 따라 스택 폭이 달라진다(1곡 150 / 3곡 294). 왼쪽에 붙이면
+                    // 1곡짜리 카드만 오른쪽이 휑해 보여서 가운데에 둔다.
+                    .frame(maxWidth: .infinity)
+                    .pickZoomSource(id: pick.pickId, in: zoomNamespace)
+                    .padding(.bottom, 16)
+                Text(title)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(DSColor.textPrimary)
+                    .lineSpacing(2)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                // 닉네임은 왼쪽, 곡수·시간은 오른쪽 끝. 둘을 왼쪽에 몰아두면 카드 폭의
+                // 절반이 남아 카드가 비어 보인다.
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    // 닉네임은 20자까지 올 수 있고 한글이면 훨씬 넓다. 줄이 넘치면
+                    // 곡수·시간(짧고 사실 정보)을 지키고 닉네임을 자른다.
+                    Text(verbatim: "@\(pick.nickname)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DSColor.brand)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 8)
+                    Text("\(pick.trackCount) tracks · \(pick.createdAt.formatted(.relative(presentation: .named)))")
+                        .font(.system(size: 12))
+                        .foregroundStyle(DSColor.textTertiary)
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
-                Spacer(minLength: 0)
+                .padding(.top, 8)
             }
-            // 없으면 썸네일과 제목 사이 여백·제목 오른쪽 빈 공간 탭이 죽는다.
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // 없으면 아트워크 오른쪽 여백이나 제목 옆 빈 공간 탭이 죽는다.
             .contentShape(Rectangle())
             .onTapGesture(perform: onPlay)
 
             reactionRow
         }
         .padding(16)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
         .overlay(alignment: .topTrailing) { overflowMenu }
     }
 
@@ -345,42 +406,77 @@ private struct PickCard: View {
     /// placeholder를 **왼쪽 끝에 상시 노출**해서 카드마다 버튼 위치가 같다(슬랙은 뒤에 붙어 밀린다).
     private var reactionRow: some View {
         HStack(spacing: 6) {
-            Menu {
-                ForEach(PickReaction.all, id: \.self) { emoji in
-                    Button { onReact(emoji) } label: {
-                        Text("\(emoji)  ") + Text(PickReaction.label(emoji))
+            // 반응이 하나도 없으면 원 하나만 덩그러니 남아 행이 비어 보인다.
+            // 그 자리에 할 말을 붙이면 빈 줄이 아니라 유도 문구가 된다(반응이 달리면 사라진다).
+            Button { showPicker = true } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DSColor.textSecondary)
+                        .frame(width: 30, height: 30)
+                        .background(DSColor.background, in: Circle())
+                        .overlay { Circle().stroke(DSColor.border, lineWidth: 1) }
+                    if !hasReactions {
+                        Text("Be the first to react")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DSColor.textTertiary)
                     }
                 }
-            } label: {
-                Image(systemName: "face.smiling")
-                    .font(.system(size: 13))
-                    .foregroundStyle(DSColor.textTertiary)
-                    .frame(width: 26, height: 26)
-                    .background(DSColor.background, in: Circle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Add reaction")
+            .popover(isPresented: $showPicker) { emojiPicker }
 
             ForEach(PickReaction.all.filter { (pick.reactions[$0] ?? 0) > 0 }, id: \.self) { emoji in
                 let mine = pick.myReaction == emoji
                 Button { onReact(emoji) } label: {
                     HStack(spacing: 4) {
-                        Text(emoji).font(.system(size: 11))
+                        Text(emoji).font(.system(size: 13))
                         Text(verbatim: "\(pick.reactions[emoji] ?? 0)")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(mine ? .white : DSColor.textSecondary)
+                            .lineLimit(1)
                     }
-                    .padding(.horizontal, 9)
-                    .frame(height: 26)
+                    // 5종이 다 달리면 행이 빠듯하다. 압축을 허용하면 SwiftUI가 칩을 눌러
+                    // 두 자리 숫자를 위아래로 쪼갠다 — 잘리는 게 낫지 접히면 못 읽는다.
+                    // ponytail: 세 자리(100+)가 흔해지면 그때 가로 스크롤이나 상위 3종만.
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 8)
+                    .frame(height: 30)
                     // 내가 누른 칩만 브랜드로 채워 한눈에 갈린다(테두리 대비보다 강하다).
                     .background(mine ? DSColor.brand : DSColor.background, in: Capsule())
+                    .overlay { Capsule().stroke(mine ? .clear : DSColor.border, lineWidth: 1) }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(PickReaction.label(emoji))
             }
             Spacer(minLength: 0)
         }
-        // 반응은 카드의 주인공이 아니다 — 높이는 고정하되 시각 비중은 제목·아트워크 아래로 내린다.
-        .frame(height: 26)
+        // 반응 0이어도 행은 남는다 — 없애면 카드마다 높이가 달라지고 첫 반응에 카드가 밀린다.
+        .frame(height: 30)
+    }
+
+    /// 5개를 한 번에 펼치는 팝오버. 아이폰에선 popover가 기본적으로 시트로 바뀌므로
+    /// 말풍선으로 고정한다(StatBox의 안내 팝오버와 같은 처리).
+    private var emojiPicker: some View {
+        HStack(spacing: 2) {
+            ForEach(PickReaction.all, id: \.self) { emoji in
+                Button {
+                    showPicker = false
+                    onReact(emoji)
+                } label: {
+                    Text(emoji)
+                        .font(.system(size: 22))
+                        .frame(width: 44, height: 44)
+                        .background(pick.myReaction == emoji ? DSColor.brandLight : .clear, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(PickReaction.label(emoji))
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .presentationCompactAdaptation(.popover)
     }
 
     private var overflowMenu: some View {
@@ -394,70 +490,141 @@ private struct PickCard: View {
                 }
             }
         } label: {
+            // 세로 구성에선 이 자리가 아트워크 위다. 반투명 알약을 깔아야 커버가 밝든 어둡든 보인다.
+            // 오버레이는 카드 패딩 바깥에 얹히므로 간격도 여기서 직접 준다.
             Image(systemName: "ellipsis")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(DSColor.textTertiary)
-                .frame(width: 32, height: 24)
-                .contentShape(Rectangle())
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(.black.opacity(0.4), in: Circle())
+                .contentShape(Circle())
+                .padding(14)
         }
         .accessibilityLabel("More")
     }
 }
 
-/// 겹친 스택 썸네일. z-order 앞이 1번 곡이고, 뒤로 갈수록 작고 어둡다.
-/// 4곡 이상이면 앞 3장 + `+N`.
+/// 겹친 스택 썸네일. 1번 곡이 맨 앞·정위치고, 뒤 장은 오른쪽 아래로 밀리며 조금씩 눕는다.
+/// 4곡 이상이면 앞 3장 + 맨 앞 장 위에 `+N`.
 struct PickThumbnailStack: View {
     let urls: [String]
     let trackCount: Int
 
-    private let side: CGFloat = 96
-    private let step: CGFloat = 9
+    /// 세로 카드에선 아트워크가 주인공이라 크게 잡고, 대신 겹침을 줄여 옆으로 넓게 편다.
+    /// 3장이면 폭 230 — 카드 좌우에 여백이 남아 가운데 정렬이 눈에 보인다.
+    private let side: CGFloat = 150
+    private let shiftX: CGFloat = 40
+    private let shiftY: CGFloat = 0
+    /// 판이 커진 만큼 각도는 줄인다. 큰 커버가 많이 기울면 촌스럽다.
+    private let tilt: Double = 4
 
     var body: some View {
         let shown = Array(urls.prefix(3))
         let extra = trackCount - shown.count
-        ZStack(alignment: .leading) {
+        ZStack(alignment: .topLeading) {
             // 뒤 장부터 그려야 1번 곡이 맨 위에 온다.
             ForEach(Array(shown.enumerated()).reversed(), id: \.offset) { index, url in
-                // 아트워크 원본이 100×100이라 96pt@3x(288px)에선 뭉갠다 → 400으로 올려 받는다.
+                // 진행도 0…1. 장이 2장이면 뒤 한 장이 끝까지 눕고, 3장이면 절반씩 나눠 눕는다.
+                let t = shown.count > 1 ? CGFloat(index) / CGFloat(shown.count - 1) : 0
+                // 아트워크 원본이 100×100이라 100pt@3x(300px)에선 뭉갠다 → 400으로 올려 받는다.
                 AsyncImage(url: url.itunesArtworkURL(size: 400)) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    DSColor.surface
+                    DSColor.borderLight
                 }
                 .frame(width: side, height: side)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                // 겹친 장끼리 경계가 안 보이면 그냥 어두운 사각형 하나로 읽힌다.
+                .clipShape(RoundedRectangle(cornerRadius: DSRadius.large, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(.white, lineWidth: index == 0 ? 0 : 2)
+                    // 남은 곡 수는 맨 앞 장 한가운데. 스택 전체가 "몇 곡짜리 묶음"이라는
+                    // 하나의 오브젝트로 읽힌다.
+                    if index == 0, extra > 0 {
+                        ZStack {
+                            Color.black.opacity(0.5)
+                            Text(verbatim: "+\(extra)")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: DSRadius.large, style: .continuous))
+                    }
                 }
-                .brightness(index == 0 ? 0 : -0.12)
-                .scaleEffect(pow(0.94, CGFloat(index)))
-                .offset(x: step * CGFloat(index))
+                // 그림자가 깊이를 만든다 — 앞 장이 더 떠 보인다.
+                .shadow(color: .black.opacity(index == 0 ? 0.18 : 0.09),
+                        radius: index == 0 ? 9 : 4, y: index == 0 ? 6 : 2)
+                .rotationEffect(.degrees(t * tilt))
+                .offset(x: t * shiftX, y: t * shiftY)
             }
         }
-        .frame(width: side + step * 2, height: side, alignment: .leading)
-        .overlay(alignment: .bottomTrailing) {
-            if extra > 0 {
-                Text(verbatim: "+\(extra)")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(DSColor.brand, in: Capsule())
-                    .overlay { Capsule().stroke(DSColor.surface, lineWidth: 2) }
-                    .offset(x: 4, y: 4)
+        .frame(width: side + shiftX * CGFloat(max(0, shown.count - 1)),
+               height: side + 10,
+               alignment: .leading)
+    }
+}
+
+/// 로딩 골격. 카드와 같은 치수라 데이터가 도착해도 레이아웃이 안 튄다.
+private struct PickSkeletonCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                bar(width: 294, height: 150, radius: DSRadius.large)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 16)
+                bar(width: 190, height: 18, radius: 6)
+                HStack {
+                    bar(width: 80, height: 13, radius: 6)
+                    Spacer(minLength: 0)
+                    bar(width: 110, height: 12, radius: 6)
+                }
+                .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 8) {
+                bar(width: 30, height: 30, radius: 15)
+                bar(width: 64, height: 30, radius: 15)
+                Spacer(minLength: 0)
             }
         }
+        .padding(16)
+        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+    }
+
+    private func bar(width: CGFloat, height: CGFloat, radius: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+            .fill(DSColor.borderLight)
+            .frame(width: width, height: height)
     }
 }
 
 #if DEBUG
+/// 일반 케이스 4장 + 한계값 3장을 한 캔버스에 이어 붙인다. 프리뷰를 나눠두면
+/// 캔버스에서 한 번에 하나만 렌더돼 한계 케이스를 안 보고 지나친다.
 #Preview("List") {
     NavigationStack {
-        PickListView(previewPicks: PickPreview.picks)
+        PickListView(previewPicks: PickPreview.picks + PickPreview.edgeCases)
     }
     .environment(AppSession())
 }
 #endif
+
+// MARK: - Zoom transition (iOS 18+)
+
+/// 카드 아트워크가 커지면서 재생 화면으로 이어지는 전환. 재생 화면은 검은 풀스크린이라
+/// "확대 + 뒤가 어두워짐"이 전환 하나로 만들어진다. 17에선 기본 전환으로 조용히 폴백한다.
+private extension View {
+    @ViewBuilder
+    func pickZoomSource(id: Int, in namespace: Namespace.ID) -> some View {
+        if #available(iOS 18.0, *) {
+            matchedTransitionSource(id: id, in: namespace)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func pickZoomTransition(id: Int, in namespace: Namespace.ID) -> some View {
+        if #available(iOS 18.0, *) {
+            navigationTransition(.zoom(sourceID: id, in: namespace))
+        } else {
+            self
+        }
+    }
+}
