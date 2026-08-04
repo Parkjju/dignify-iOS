@@ -14,6 +14,9 @@ private nonisolated struct NicknameBody: Encodable { let nickname: String }
 private nonisolated struct GenreIdsBody: Encodable { let genreIds: [Int] }
 private nonisolated struct ArtistRequestBody: Encodable { let artistName: String }
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
+private nonisolated struct PickBody: Encodable { let title: String?; let trackIds: [Int] }
+private nonisolated struct ReactionBody: Encodable { let emoji: String }
+private nonisolated struct ReportBody: Encodable { let pickId: Int; let reason: String }
 
 /// openapi.yaml 14개 엔드포인트 팩토리. 호출부: `client.send(.feed(cursor: c), as: API.FeedResponse.self)`
 nonisolated extension Endpoint {
@@ -87,6 +90,38 @@ nonisolated extension Endpoint {
         Endpoint(method: .delete, path: "/artist-requests/\(id)")
     }
 
+    // MARK: Picks
+
+    static func picks(cursor: String? = nil) -> Endpoint {
+        Endpoint(method: .get, path: "/picks", query: cursor.queryItems(name: "cursor"))
+    }
+
+    /// title은 trim 후 빈 값이면 nil로 넘긴다 — 빈 문자열과 null이 둘 다 "제목 없음"이면
+    /// 폴백 판정이 두 갈래로 갈린다.
+    static func createPick(title: String?, trackIds: [Int]) -> Endpoint {
+        Endpoint(method: .post, path: "/picks", body: PickBody(title: title, trackIds: trackIds))
+    }
+
+    static func pickDetail(id: Int) -> Endpoint {
+        Endpoint(method: .get, path: "/picks/\(id)")
+    }
+
+    static func deletePick(id: Int) -> Endpoint {
+        Endpoint(method: .delete, path: "/picks/\(id)")
+    }
+
+    static func reactPick(id: Int, emoji: String) -> Endpoint {
+        Endpoint(method: .put, path: "/picks/\(id)/reaction", body: ReactionBody(emoji: emoji))
+    }
+
+    static func unreactPick(id: Int) -> Endpoint {
+        Endpoint(method: .delete, path: "/picks/\(id)/reaction")
+    }
+
+    static func reportPick(id: Int, reason: String) -> Endpoint {
+        Endpoint(method: .post, path: "/reports", body: ReportBody(pickId: id, reason: reason))
+    }
+
     // MARK: Users
 
     static var myProfile: Endpoint { Endpoint(method: .get, path: "/users/me") }
@@ -120,7 +155,9 @@ nonisolated extension Endpoint {
     }
 }
 
-private extension Optional where Wrapped == String {
+// 호출부(Endpoint 팩토리)가 전부 nonisolated라 이쪽도 격리 밖이어야 한다
+// — 이 모듈은 "Main Actor by default"라 안 붙이면 MainActor로 딸려 들어간다.
+private nonisolated extension Optional where Wrapped == String {
     /// nil이면 빈 배열, 값이 있으면 단일 쿼리 아이템. 커서 옵셔널 처리 중복 제거.
     func queryItems(name: String) -> [URLQueryItem] {
         map { [URLQueryItem(name: name, value: $0)] } ?? []

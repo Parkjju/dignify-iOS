@@ -68,7 +68,7 @@ private struct GuestSignInPromptView: View {
             Text("Build your own taste")
                 .font(DSTypography.title2)
                 .foregroundStyle(DSColor.textPrimary)
-            Text("Sign in to hype tracks, personalize your feed, and track your picks.")
+            Text("Sign in to hype tracks, personalize your feed, and build your crate.")
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
                 .multilineTextAlignment(.center)

@@ -1,9 +1,21 @@
 import SwiftUI
 import PostHog
 
+/// 피드가 무엇을 재생하는가. 재생·하입·상세·공유·청취 계측이 전부 여기 있어서
+/// 픽 재생도 두 번째 플레이어를 만들지 않고 이 화면을 모드로 갈라 쓴다.
+enum FeedMode: Equatable {
+    case normal
+    /// 픽 탭에서 fullScreenCover로 덮는다. 목록 스크롤이 살아있고 닫기가 공짜다.
+    case pick(id: Int, nickname: String)
+}
+
 struct FeedView: View {
+    /// .pick이면 검색바·큐레이션 세트·커서 영속화·페이지네이션이 전부 꺼진다.
+    var mode: FeedMode = .normal
+
     @Environment(AppSession.self) private var session
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
     @State private var audio = FeedAudioController()
     @State private var feedList: [Feed] = []
     @State private var isLoading = true
@@ -66,6 +78,10 @@ struct FeedView: View {
     /// 같은 순서로 이어진다. cursor=nil이면 새 시드라 처음부터 다시 나온다.
     private func loadInitialFeed(force: Bool = false) async {
         guard force || feedList.isEmpty else { return }
+        if case .pick(let id, _) = mode {
+            await loadPick(id: id)
+            return
+        }
         isLoading = true
         loadFailed = false
         genreExhaustedShown = false   // 새 피드 세션이므로 소진 토스트 다시 허용.
@@ -85,13 +101,40 @@ struct FeedView: View {
             // 소진 토스트는 스크롤로 실제 소진(페이징)했을 때만. 첫 로드/장르 교체 직후엔 안 띄운다.
             // 피드 탭일 때만 오디오를 갱신한다 — 다른 탭에서 장르 변경으로 재fetch된 경우
             // 여기서 재생하면 안 되고, 탭 복귀 시 onChange(selectedTab)가 새 리스트로 세팅한다.
-            if session.selectedTab == .feed {
+            if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
             }
         } catch {
             loadFailed = true
         }
         isLoading = false
+    }
+
+    /// 픽 재생. 30곡 상한 덕에 한 응답에 다 오므로 커서도 페이지네이션도 없다.
+    /// items가 피드와 같은 스키마라 매핑 없이 그대로 꽂는다.
+    private func loadPick(id: Int) async {
+        isLoading = true
+        loadFailed = false
+        do {
+            let res = try await session.api.send(.pickDetail(id: id), as: API.PickDetail.self)
+            feedList = res.items.map(Feed.init)
+            currentIndex = 0
+            nextCursor = nil
+            prefetchArtwork(feedList)
+            // currentIndex가 0 그대로면 .onChange(of:currentIndex)가 안 터진다. 직접 갱신하지 않으면
+            // 이전 화면의 player가 남아 그게 재생된다(loadSearch가 같은 함정을 기록해뒀다).
+            audio.updateWindow(feeds: feedList, current: currentIndex)
+        } catch {
+            loadFailed = true
+        }
+        isLoading = false
+    }
+
+    /// 이 뷰가 지금 화면을 갖고 있는가. 픽 모드는 fullScreenCover라 떠 있는 동안 항상 참이고,
+    /// 그동안 selectedTab은 .picks라 밑에 깔린 일반 피드는 알아서 멈춰 있다.
+    private var isOnScreen: Bool {
+        if case .pick = mode { return true }
+        return session.selectedTab == .feed
     }
 
     /// 이번 주 큐레이션 세트를 일반 피드 앞에 붙인다. 세트가 끝나면 그대로 일반 피드로
@@ -210,7 +253,7 @@ struct FeedView: View {
             // 새 시드로 다시 받아 교체한다. FeedView가 이미 떠 있는 게스트→signedIn만 해당
             // (정상 로그인 진입은 마운트 전 전환이라 여기 안 걸리고 .task가 처리).
             .onChange(of: session.authState) { _, newState in
-                guard newState == .signedIn else { return }
+                guard mode == .normal, newState == .signedIn else { return }
                 activeQuery = ""
                 savedFeed = nil
                 savedFeedCursor = ""
@@ -219,13 +262,14 @@ struct FeedView: View {
             // 앱이 떠 있는 채로 큐레이션 푸시를 탭한 경우. .task는 이미 끝났으므로
             // 여기서 다시 받아야 세트가 앞으로 온다(플래그는 curationPrefix가 내린다).
             .onChange(of: session.pendingCurationOpen) { _, pending in
-                guard pending else { return }
+                guard mode == .normal, pending else { return }
                 activeQuery = ""
                 savedFeed = nil
                 Task { await loadInitialFeed(force: true) }
             }
             // 마이페이지에서 장르를 바꾸면(다른 탭이라 FeedView는 떠 있음) 새 장르로 다시 받는다.
             .onChange(of: session.genreVersion) { _, _ in
+                guard mode == .normal else { return }
                 activeQuery = ""
                 savedFeed = nil
                 savedFeedCursor = ""
@@ -330,20 +374,7 @@ struct FeedView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, safeInsets.top + 8)
 
-                // 세트를 통째로 받았다는 감각은 이 배지와 곡 수만으로 낸다 —
-                // 리스트 화면을 만들면 "뭘 누를까" 결정 비용이 생겨 스와이프 경험과 충돌한다.
-                if !isSearching, curationCount > 0, currentIndex < curationCount {
-                    Text("This week's set \(currentIndex + 1)/\(curationCount)")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 7)
-                        .background(.black.opacity(0.55), in: Capsule())
-                        .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
-                        .padding(.top, safeInsets.top + 56)
-                        .allowsHitTesting(false)
-                        .transition(.opacity)
-                }
+                contextBadge
 
                 if audio.isPaused && !isSearching {   // 검색 패널 아래에 가리도록 검색 중엔 숨김
                     Image(systemName: "play.fill")
@@ -382,7 +413,7 @@ struct FeedView: View {
         .onAppear {
             resolveSafeInsets()
             audio.onListen = { trackId in recordListen(trackId: trackId) }
-            if session.selectedTab == .feed {
+            if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
                 logTrackViewed()   // 첫 트랙(index 0)은 onChange가 안 터지므로 여기서.
             }
@@ -391,6 +422,7 @@ struct FeedView: View {
         // 탭 전환을 결정적으로 처리 — onAppear/onDisappear는 TabView에서 신뢰 불가.
         // 피드로 오면 현재 리스트로 재생 세팅, 떠나면 정지.
         .onChange(of: session.selectedTab) { _, tab in
+            guard mode == .normal else { return }   // 픽 재생은 커버라 탭 전환과 무관하다.
             if tab == .feed {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
             } else {
@@ -474,7 +506,54 @@ struct FeedView: View {
     /// 접힌 상태(40pt 돋보기 버튼) → 탭하면 우측 기준으로 풀폭까지 펼쳐지며 포커스.
     /// 키보드가 내려가면(포커스 해제) 다시 버튼으로 축소. DSSearchBar를 그대로 재사용하고
     /// 프레임 폭만 애니메이션하며, 접힘 상태는 clip으로 돋보기 아이콘만 노출.
+    /// 지금 무엇을 보고 있는지 알려주는 배지. 세트를 통째로 받았다는 감각은 이 배지와 곡 수만으로
+    /// 낸다 — 리스트 화면을 만들면 "뭘 누를까" 결정 비용이 생겨 스와이프 경험과 충돌한다.
+    /// 픽도 같은 자리를 쓴다(배지는 나가는 문이 아니라서 닫기 버튼은 따로 둔다).
+    @ViewBuilder
+    private var contextBadge: some View {
+        switch mode {
+        case .normal:
+            if !isSearching, curationCount > 0, currentIndex < curationCount {
+                badgePill("This week's set \(currentIndex + 1)/\(curationCount)")
+            }
+        case .pick(_, let nickname):
+            badgePill("@\(nickname)'s pick \(currentIndex + 1)/\(feedList.count)")
+        }
+    }
+
+    private func badgePill(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(.black.opacity(0.55), in: Capsule())
+            .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
+            .padding(.top, safeInsets.top + 56)
+            .allowsHitTesting(false)
+            .transition(.opacity)
+    }
+
+    /// 일반 피드는 검색, 픽 재생은 닫기. 호출부(feed)는 그대로 두려고 여기서 가른다 —
+    /// 그쪽 표현식은 이미 타입체커 한계에 걸려 있다.
+    @ViewBuilder
     private func searchOverlay(fullWidth: CGFloat) -> some View {
+        if mode == .normal {
+            searchControls(fullWidth: fullWidth)
+        } else {
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func searchControls(fullWidth: CGFloat) -> some View {
         VStack(alignment: .trailing, spacing: 8) {
             HStack {
                 Spacer(minLength: 0)   // 접힘 시 버튼을 우측에 붙이고, 펼치면 풀폭으로 채운다.

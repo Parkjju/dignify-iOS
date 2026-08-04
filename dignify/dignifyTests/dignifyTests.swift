@@ -5,6 +5,7 @@
 //  Created by 박경준 on 5/14/26.
 //
 
+import Foundation   // Locale — import는 전이되지 않아서 @testable import만으론 안 온다.
 import Testing
 @testable import dignify
 
@@ -114,6 +115,28 @@ struct dignifyTests {
             #expect(share > 0, "\(genre): 어떤 답 조합으로도 추천되지 않는다")
             #expect(share < 0.55, "\(genre): 결과의 \(Int(share * 100))%를 먹는다 — 문항이 무의미해짐")
         }
+    }
+
+    /// 픽 폴백 제목은 서버에 저장하지 않고 매번 클라가 조립하므로, 분기가 어긋나면
+    /// 목록 전체의 제목이 한 번에 틀어진다. 3분기 × ko/en을 못박아 둔다.
+    /// (ko 어순이 반대라 xcstrings에 위치 인자 `%2$@`가 들어가 있다 — 그게 깨져도 여기서 잡힌다.)
+    @Test func pickFallbackTitleBranches() {
+        func title(tracks: Int, artists: Int, _ language: String) -> String {
+            PickTitle.fallback(firstTrack: "Ivy", firstArtist: "Frank Ocean",
+                               trackCount: tracks, distinctArtistCount: artists,
+                               locale: Locale(identifier: language))
+        }
+        #expect(title(tracks: 1, artists: 1, "en") == "Ivy by Frank Ocean")
+        #expect(title(tracks: 7, artists: 1, "en") == "Ivy by Frank Ocean and 6 more")
+        // 아티스트가 여럿이면 곡 수가 아니라 아티스트 수로 센다.
+        #expect(title(tracks: 7, artists: 4, "en") == "Frank Ocean and 3 others")
+        #expect(title(tracks: 1, artists: 1, "ko") == "Frank Ocean의 Ivy")
+        #expect(title(tracks: 7, artists: 1, "ko") == "Frank Ocean의 Ivy 외 6곡")
+        #expect(title(tracks: 7, artists: 4, "ko") == "Frank Ocean 외 3명")
+
+        // 공백만 남은 제목은 nil로 보낸다 — 빈 문자열과 null이 둘 다 "제목 없음"이면 판정이 갈린다.
+        #expect(PickTitle.normalized("   ") == nil)
+        #expect(PickTitle.normalized("   여름밤 ") == "여름밤")
     }
 
     /// 두 축이 어떻게 나오든 유형이 하나로 정해지고, 행동 기반 판정과 같은 규칙을 쓴다.

@@ -166,6 +166,8 @@ struct MyPageView: View {
         VStack(spacing: 0) {
             NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
+            // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
+            NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
             Button { showTutorial = true } label: { settingsRow("How to Use") }
             Button { showWhatsNew = true } label: { settingsRow("What's New") }
             // Link는 유니버설 링크라 인스타 앱이 있으면 앱으로, 없으면 사파리로 알아서 간다.

@@ -144,6 +144,42 @@ nonisolated enum API {
         }
     }
 
+    // MARK: Picks
+
+    /// 픽 목록 카드 1장. `title`이 nil이면 클라가 폴백 제목을 조립한다(`PickTitle`) —
+    /// 서버에 저장하면 게시 시점 로케일로 굳어 영어 유저가 한국어를 본다.
+    /// `reactions`는 카운트 0인 이모지 키가 아예 없다.
+    struct Pick: Decodable, Identifiable {
+        let pickId: Int
+        let title: String?
+        let nickname: String
+        let isMine: Bool
+        let createdAt: Date
+        let trackCount: Int
+        let distinctArtistCount: Int
+        let firstArtistName: String
+        let firstTrackName: String
+        /// position 오름차순 최대 3장. 100x100 원본이라 표시 전 `itunesArtworkURL(size:)`로 키운다.
+        let thumbnails: [String]
+        /// 낙관적 업데이트로 화면에서 바로 고친다.
+        var reactions: [String: Int]
+        var myReaction: String?
+
+        var id: Int { pickId }
+    }
+
+    struct PickListResponse: Decodable {
+        let items: [Pick]
+        let nextCursor: String?
+        let hasMore: Bool
+    }
+
+    /// 재생용 상세. items가 피드와 같은 스키마라 `feedList`에 그대로 꽂는다(매핑 0).
+    /// 30곡 상한이 있어 커서가 없다.
+    struct PickDetail: Decodable {
+        let items: [FeedItem]
+    }
+
     /// 아티스트 요청 처리 상태. 서버가 새 값을 추가해도 깨지지 않게 미지 값은 pending으로 폴백.
     enum RequestStatus: String, Decodable {
         case pending = "PENDING", added = "ADDED", canceled = "CANCELED"
