@@ -2,7 +2,9 @@ import Foundation
 import Observation
 import PostHog
 import UIKit
-import UserNotifications
+// UNUserNotificationCenter 콜백이 non-Sendable 타입을 넘겨줘 Swift 6 검사에 걸린다.
+// 우리 쪽에서 고칠 수 있는 게 아니라(프레임워크가 아직 Sendable 표기가 없다) 경고만 끈다.
+@preconcurrency import UserNotifications
 
 @MainActor
 @Observable
@@ -36,7 +38,8 @@ final class AppSession {
     let api: APIClient
 
     // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
-    private static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
+    // 기본 인자는 nonisolated 문맥에서 평가되므로 이 상수도 격리 밖에 둔다.
+    private nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
 
     init(api: APIClient = APIClient(baseURL: AppSession.baseURL)) {
         self.api = api
@@ -118,8 +121,10 @@ final class AppSession {
         // refresh까지 실패하면(토큰 만료·무효) 로그아웃 상태로 되돌린다.
         // 단 게스트는 잃을 세션이 없으므로 signedOut으로 끌어내리지 않는다
         // (게스트가 인증 엔드포인트를 건드려 401이 나도 게스트 브라우징을 유지).
+        // 안쪽 Task도 자기 캡처 목록을 갖는다 — 바깥 weak self를 그대로 참조하면
+        // 동시 실행 클로저가 캡처된 var를 읽는 게 돼 Swift 6에선 에러다.
         await api.setOnAuthFailure { [weak self] in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self, self.authState != .guest else { return }
                 self.authState = .signedOut
             }
