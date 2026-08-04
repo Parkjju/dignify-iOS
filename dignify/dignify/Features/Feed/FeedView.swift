@@ -891,10 +891,6 @@ struct FeedView: View {
         session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
         if target {
             PostHogSDK.shared.capture("track_hyped", properties: ["track_id": trackId])
-            // iOS 알림 권한은 평생 한 번만 물을 수 있다. 하입 = 유저가 곡을 저장한 직후라
-            // 맥락이 가장 좋은 순간이고, requireAccount() 뒤라 로그인도 보장돼 토큰 등록까지 이어진다.
-            // (이미 답한 상태면 내부에서 no-op이라 매번 불러도 안전.)
-            session.requestPushAuthorization(source: "hype")
         }
         Task {
             do {
