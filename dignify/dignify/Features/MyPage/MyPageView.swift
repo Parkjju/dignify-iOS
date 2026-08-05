@@ -22,7 +22,7 @@ struct MyPageView: View {
             VStack(spacing: 0) {
                 profileHeader
                 diggingProfileEntry
-                Divider().padding(.horizontal, 20).padding(.vertical, 4)
+                groupDivider
                 settingsList
                 Text(verbatim: "v" + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""))
                     .font(DSTypography.caption)
@@ -162,18 +162,33 @@ struct MyPageView: View {
 
     // MARK: - Settings
 
+    /// 설정 · 안내 · 약관 · 계정 네 묶음. 행이 열 개가 넘어가면서 무엇이 설정을 바꾸는 행이고
+    /// 무엇이 읽기만 하는 행인지가 안 읽혔다. 묶음 사이에만 구분선을 둔다.
     private var settingsList: some View {
         VStack(spacing: 0) {
+            // 1. 기능 — 실제로 무언가를 바꾸는 행들.
             NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
+
+            groupDivider
+
+            // 2. 안내 — 읽기만 하는 행들. 인스타도 "우리를 더 보는" 자리라 여기 묶인다.
             Button { showTutorial = true } label: { settingsRow("How to Use") }
             Button { showWhatsNew = true } label: { settingsRow("What's New") }
             // Link는 유니버설 링크라 인스타 앱이 있으면 앱으로, 없으면 사파리로 알아서 간다.
             Link(destination: instagramURL) { settingsRow("dignify on Instagram") }
+
+            groupDivider
+
+            // 3. 약관
             Button { legalDoc = .terms } label: { settingsRow("Terms of Service") }
             Button { legalDoc = .privacy } label: { settingsRow("Privacy Policy") }
+
+            groupDivider
+
+            // 4. 계정 — 되돌리기 어려운 것들만 마지막에 모은다.
             Button { logout() } label: { settingsRow("Log Out") }
             Button { showWithdrawAlert = true } label: { settingsRow("Delete Account", destructive: true) }
         }
@@ -201,6 +216,10 @@ struct MyPageView: View {
         let ko = Locale.current.language.languageCode?.identifier == "ko"
         return URL(string: ko ? "https://instagram.com/dignify_music.kr"
                               : "https://instagram.com/dignify_music")!
+    }
+
+    private var groupDivider: some View {
+        Divider().padding(.horizontal, 20).padding(.vertical, 8)
     }
 
     private func settingsRow(_ label: LocalizedStringKey, destructive: Bool = false) -> some View {
