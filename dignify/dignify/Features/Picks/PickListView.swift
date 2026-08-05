@@ -129,8 +129,15 @@ struct PickListView: View {
                         zoomNamespace: zoomNamespace,
                         onPlay: { open(pick, at: index) },
                         onReact: { react(pick, emoji: $0) },
+                        // 게스트는 메뉴 안의 셋(신고·차단·삭제)을 하나도 끝까지 못 한다 —
+                        // 신고는 401로 조용히 죽고, 차단은 해제 경로(마이페이지)가 게스트에 막혀 있다.
+                        // 열어놓고 실패시키느니 여기서 로그인으로 보낸다. 읽기 항목은 메뉴에 없다.
                         // 항상 1뎁스부터. 안 되돌리면 지난번 신고 사유 화면이 그대로 뜬다.
-                        onMenu: { menuStage = .actions; menuTarget = pick }
+                        onMenu: {
+                            guard requireAccount() else { return }
+                            menuStage = .actions
+                            menuTarget = pick
+                        }
                     )
                     .onAppear {
                         guard pick.pickId == visiblePicks.last?.pickId else { return }
