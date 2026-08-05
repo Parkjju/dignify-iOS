@@ -44,19 +44,14 @@ enum PickTitle {
     }
 }
 
-/// 픽 반응 이모지. 서버 화이트리스트와 같은 5개여야 한다(다르면 PUT이 400).
-/// 부정 이모지는 넣지 않는다. 🕺 대신 🪩 — 성별·피부색 변형이 없다.
+/// 픽 반응 이모지. 시딩 단계엔 **한 종류만** 쓴다 — 5종을 깔면 얼마 안 되는 반응이
+/// 잘게 쪼개져 카드마다 0이 도배되고, 그게 "아무도 안 쓰는 앱"으로 읽힌다.
+/// 서버 화이트리스트는 5종 그대로 두므로 늘릴 땐 클라만 고치면 된다.
 enum PickReaction {
-    static let all = ["🔥", "🫶", "🥲", "🪩", "👀"]
+    /// 서버로 보내는 값이자 화면에 그리는 글리프. 카드에선 알약(버블) 안에 들어간다 —
+    /// 배경 없는 아이콘 행에 혼자 놓으면 tint가 안 먹는 이모지가 겉돈다.
+    static let primary = "🔥"
 
     /// VoiceOver 라벨. 이모지만 두면 스크린리더가 유니코드 이름을 읽는다.
-    static func label(_ emoji: String) -> LocalizedStringKey {
-        switch emoji {
-        case "🔥": return "Fire"
-        case "🫶": return "Love"
-        case "🥲": return "Emotional"
-        case "🪩": return "Dance"
-        default: return "New to me"
-        }
-    }
+    static let label: LocalizedStringKey = "Fire"
 }

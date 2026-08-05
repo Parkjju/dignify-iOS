@@ -14,8 +14,13 @@ struct PickListView: View {
     @State private var showCompose = false
     /// 재생 대상. fullScreenCover로 FeedView(.pick)를 덮어 목록 스크롤을 살려둔다.
     @State private var playing: API.Pick?
-    @State private var reportTarget: API.Pick?
+    @State private var menuTarget: API.Pick?
+    @State private var menuStage: PickMenuSheet.Stage = .actions
+    /// 시트에서 고른 동작. **시트가 닫힌 뒤에** 실행한다(`onDismiss`).
+    @State private var pendingAction: PickMenuAction?
     @State private var blockTarget: API.Pick?
+    /// 차단 확인창이 **닉네임 신고에서 이어진 것인지**. 문구가 갈린다.
+    @State private var blockFromReport = false
     @State private var toast: String?
     /// 카드 아트워크 → 재생 화면 확대 전환용. iOS 18+에서만 실제로 쓰인다.
     @Namespace private var zoomNamespace
@@ -62,17 +67,23 @@ struct PickListView: View {
                     .pickZoomTransition(id: pick.pickId, in: zoomNamespace)
             }
             .overlay(alignment: .top) { toastView }
-            .confirmationDialog("Report this pick?", isPresented: reportBinding, presenting: reportTarget) { pick in
-                Button("Inappropriate nickname") { report(pick, reason: "NICKNAME") }
-                Button("Spam or promotion") { report(pick, reason: "SPAM") }
-                Button("Something else") { report(pick, reason: "OTHER") }
-                Button("Cancel", role: .cancel) {}
+            // 1뎁스든 2뎁스든 **같은 시트 하나**를 닫았다 다시 연다(`menuStage`만 갈아끼운다).
+            // `.sheet`을 두 개 달면 동시에 뜨지 않아도 서로를 잡아먹는다(2026-07-21에 밟음).
+            // 고른 것은 `pendingAction`에 담아두고 **`onDismiss`에서** 실행한다 —
+            // 닫힘이 끝난 뒤라 다음 시트도 alert도 안전하게 뜬다. 타이머로 때우지 않는다.
+            .sheet(item: $menuTarget, onDismiss: runPendingAction) { pick in
+                PickMenuSheet(pick: pick, stage: menuStage) { action in
+                    pendingAction = action
+                    menuTarget = nil
+                }
             }
-            .alert("Block @\(blockTarget?.nickname ?? "")", isPresented: blockBinding, presenting: blockTarget) { pick in
+            // 메뉴에서 온 차단과 닉네임 신고 뒤 이어지는 제안은 **문구가 다르다.**
+            // 후자는 유저가 차단을 고른 적이 없어서, 왜 이게 떴는지부터 설명해야 한다.
+            .alert(blockAlertTitle, isPresented: blockBinding, presenting: blockTarget) { pick in
                 Button("Block", role: .destructive) { block(pick) }
                 Button("Cancel", role: .cancel) {}
             } message: { _ in
-                Text("You won't see their picks anymore. Undo it from My Page.")
+                Text(blockAlertMessage)
             }
     }
 
@@ -82,6 +93,8 @@ struct PickListView: View {
             .font(.system(size: 34, weight: .bold))
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, alignment: .leading)
+            // 카드가 좌우 여백을 직접 갖는 구조라 제목도 같은 16pt를 직접 챙긴다.
+            .padding(.horizontal, 16)
             .padding(.bottom, 12)
     }
 
@@ -90,12 +103,11 @@ struct PickListView: View {
         if isLoading && picks.isEmpty {
             // 스피너 대신 카드 골격. 도착 순간 레이아웃이 안 바뀌어 화면이 덜 튄다.
             // 제목까지 같이 그려야 로딩→목록 전환에 제목이 뒤늦게 나타나지 않는다.
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 titleHeader
                 ForEach(0..<3, id: \.self) { _ in PickSkeletonCard() }
                 Spacer()
             }
-            .padding(.horizontal, 16)
             .padding(.top, 12)
         } else if loadFailed && visiblePicks.isEmpty {
             errorView
@@ -108,7 +120,8 @@ struct PickListView: View {
 
     private var list: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            // 카드가 좌우 여백을 직접 갖는다(카드마다 배경이 있어 여기서 주면 배경이 잘린다).
+            LazyVStack(spacing: 14) {
                 titleHeader
                 ForEach(Array(visiblePicks.enumerated()), id: \.element.pickId) { index, pick in
                     PickCard(
@@ -116,9 +129,8 @@ struct PickListView: View {
                         zoomNamespace: zoomNamespace,
                         onPlay: { open(pick, at: index) },
                         onReact: { react(pick, emoji: $0) },
-                        onReport: { reportTarget = pick },
-                        onBlock: { blockTarget = pick },
-                        onDelete: { delete(pick) }
+                        // 항상 1뎁스부터. 안 되돌리면 지난번 신고 사유 화면이 그대로 뜬다.
+                        onMenu: { menuStage = .actions; menuTarget = pick }
                     )
                     .onAppear {
                         guard pick.pickId == visiblePicks.last?.pickId else { return }
@@ -126,7 +138,6 @@ struct PickListView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
             .padding(.top, 12)
             // 떠 있는 만들기 버튼이 마지막 카드를 가리지 않게.
             .padding(.bottom, 88)
@@ -268,11 +279,17 @@ struct PickListView: View {
     // MARK: - Actions
 
     private func open(_ pick: API.Pick, at index: Int) {
-        PostHogSDK.shared.capture("pick_opened", properties: ["position": index])
+        // `is_official`이 "시드를 깔아둔 게 실제로 재생되나"를 답하는 유일한 축이다.
+        // 서버가 필드를 안 내려주면 false로 접는다 — 세 번째 값(null)이 생기면 집계가 갈린다.
+        PostHogSDK.shared.capture("pick_opened", properties: [
+            "position": index, "is_official": pick.isOfficial == true,
+        ])
         playing = pick
     }
 
     /// 같은 이모지 재탭 = 해제, 다른 이모지 = 교체(서버 uq_pick_user가 1인 1개를 못박는다).
+    /// 클라는 지금 🔥 하나만 보내지만 교체 경로는 남겨둔다 — 서버 화이트리스트가 5종이라
+    /// 이전 버전에서 다른 이모지를 누른 유저의 `myReaction`이 그대로 내려온다.
     /// 낙관적 반영 후 실패하면 그 카드만 되돌린다.
     private func react(_ pick: API.Pick, emoji: String) {
         guard requireAccount() else { return }
@@ -308,11 +325,44 @@ struct PickListView: View {
 
     /// 신고한 카드는 즉시 로컬에서 숨긴다 — 운영자가 SQL로 처리하기 전 갭을 메우고,
     /// 안 사라지면 유저가 안 눌린 줄 안다.
-    private func report(_ pick: API.Pick, reason: String) {
-        PostHogSDK.shared.capture("pick_reported", properties: ["reason": reason])
+    private func report(_ pick: API.Pick, reason: String, detail: String? = nil) {
+        // 본문은 안 보낸다 — 자유 텍스트가 이벤트 속성에 들어가면 분석 도구에 개인정보가 샌다.
+        PostHogSDK.shared.capture("pick_reported", properties: [
+            "reason": reason, "has_detail": detail != nil,
+        ])
         hiddenRaw = LocalModeration.adding(String(pick.pickId), to: hiddenRaw)
         showToast(String(localized: "Thanks — we'll take a look."))
-        Task { try? await session.api.send(.reportPick(id: pick.pickId, reason: reason)) }
+        Task { try? await session.api.send(.reportPick(id: pick.pickId, reason: reason, detail: detail)) }
+
+        // 닉네임 신고만 차단을 이어서 묻는다. 신고한 게 게시물이 아니라 **닉네임**인데
+        // 카드 하나만 숨기면 그 닉네임은 그 사람의 다른 픽마다 계속 뜬다.
+        // 자동으로 차단하진 않는다 — 신고 한 번에 그 사람 픽이 전부 사라지는 건 예상 밖 결과다.
+        if reason == "NICKNAME" {
+            blockFromReport = true
+            blockTarget = pick
+        }
+    }
+
+    /// 시트가 완전히 닫힌 뒤 호출된다. 여기서 alert를 띄워야 겹치지 않는다.
+    private func runPendingAction() {
+        guard let action = pendingAction else { return }
+        pendingAction = nil
+        switch action {
+        case .reasons(let pick):
+            // 같은 시트를 2뎁스로 다시 연다. 여기서 열어야 1뎁스 닫힘 애니메이션이 끝나 있다.
+            menuStage = .reasons
+            menuTarget = pick
+        case .report(let pick, let reason, let detail):
+            report(pick, reason: reason, detail: detail)
+        case .block(let pick):
+            blockFromReport = false
+            blockTarget = pick
+        case .delete(let pick): delete(pick)
+        case .detail(let pick):
+            menuStage = .detail
+            menuTarget = pick
+        case .cancel: break
+        }
     }
 
     private func block(_ pick: API.Pick) {
@@ -344,185 +394,424 @@ struct PickListView: View {
         return true
     }
 
-    private var reportBinding: Binding<Bool> {
-        Binding(get: { reportTarget != nil }, set: { if !$0 { reportTarget = nil } })
-    }
     private var blockBinding: Binding<Bool> {
         Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } })
+    }
+
+    private var blockAlertTitle: LocalizedStringKey {
+        let nickname = blockTarget?.nickname ?? ""
+        return blockFromReport ? "Block @\(nickname) too?" : "Block @\(nickname)"
+    }
+
+    private var blockAlertMessage: LocalizedStringKey {
+        blockFromReport
+            ? "You reported their nickname. Blocking hides every pick from them, and you can undo it from My Page."
+            : "You won't see their picks anymore. Undo it from My Page."
+    }
+}
+
+// MARK: - Menu sheet
+
+enum PickMenuAction {
+    /// 1뎁스에서 "신고"를 고른 것. 실제 신고가 아니라 **2뎁스를 열라는 뜻**이다.
+    case reasons(API.Pick)
+    /// 취소 버튼. 닫기만 하면 되지만 케이스로 둬야 `onDismiss`가 분기 없이 한 길로 흐른다.
+    case cancel
+    /// "기타"를 고른 것. 사유를 직접 받아야 해서 3뎁스(입력 폼)를 연다.
+    case detail(API.Pick)
+    /// 마지막 인자는 유저가 직접 쓴 사유. `OTHER`에서만 채워진다.
+    case report(API.Pick, String, String?)
+    case block(API.Pick)
+    case delete(API.Pick)
+}
+
+/// `···` 메뉴. **`Menu`(팝오버)가 아니라 시트다** — 팝오버 앵커가 `LazyVStack` 안에서
+/// 옛 좌표에 묶여 스크롤한 뒤 엉뚱한 자리에 떴다. 시트는 애초에 앵커가 없다.
+///
+/// 1뎁스(동작)와 2뎁스(신고 사유)는 **같은 시트를 닫았다 다시 여는** 방식이다.
+/// 한 시트 안에서 내용만 갈아끼우면 높이가 툭 바뀌면서 어디서 온 화면인지가 안 읽힌다.
+/// 전환 안전성은 `.sheet(onDismiss:)`가 보장한다 — 닫힘이 끝난 뒤에만 다음 것을 연다.
+private struct PickMenuSheet: View {
+    enum Stage { case actions, reasons, detail }
+
+    let pick: API.Pick
+    let stage: Stage
+    let choose: (PickMenuAction) -> Void
+
+    /// 3뎁스(기타 사유) 입력. 서버 `detail VARCHAR(200)`과 맞춘 상한.
+    @State private var detailText = ""
+    @FocusState private var focused: Bool
+    private let maxLength = 200
+
+    private var rowCount: Int {
+        switch stage {
+        case .reasons: 3
+        case .actions: pick.isMine ? 1 : 2
+        case .detail: 0
+        }
+    }
+
+    /// **실측하지 않는다.** `GeometryReader`로 재면 시트 높이가 콘텐츠 제안에 다시 영향을 줘서
+    /// 값이 안 잡히는 순간 `.large`로 눌러앉는다(실제로 그렇게 떴다). 행이 1~3개뿐이라 셈이 더 싸다.
+    /// 상수를 고치면 높이도 같이 맞아야 하므로 `Metrics` 한자리에 모아둔다.
+    private var sheetHeight: CGFloat {
+        // 입력 폼은 행 구조가 아니다. `ArtistRequestSheet`의 280에서 입력창이 2줄이라
+        // 한 줄분(+22)만 더 준다 — 그 시트와 같아 보이게 하는 게 목적이다.
+        if stage == .detail { return 302 }
+        return Metrics.top + CGFloat(rowCount) * Metrics.row
+            + Metrics.gap + Metrics.cancel + Metrics.bottom
+    }
+
+    private enum Metrics {
+        /// 드래그 인디케이터가 쓰는 위쪽 여백.
+        static let top: CGFloat = 24
+        static let row: CGFloat = 60
+        static let gap: CGFloat = 16
+        static let cancel: CGFloat = 56
+        /// 홈 인디케이터에 취소 버튼이 닿지 않게.
+        static let bottom: CGFloat = 24
+        /// 라벨은 32, 구분선·취소 버튼은 16. 글이 선보다 안쪽에 들어가야 행으로 읽힌다.
+        static let labelInset: CGFloat = 32
+        static let edgeInset: CGFloat = 16
+    }
+
+    var body: some View {
+        Group {
+            if stage == .detail {
+                // 여백은 `ArtistRequestSheet`와 똑같이 사방 24 한 번으로 준다.
+                // 바깥에서 top/bottom을 또 주면 그 시트와 수치가 어긋난다.
+                detailForm.padding(24)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    rows
+                    Spacer(minLength: Metrics.gap)
+                    cancelButton
+                }
+                .padding(.top, Metrics.top)
+                .padding(.bottom, Metrics.bottom)
+            }
+        }
+        // 위로 붙인다. 안 주면 짧은 콘텐츠가 시트 한가운데에 떠서 위아래가 휑해진다.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .presentationDetents([.height(sheetHeight)])
+        // 입력 폼엔 안 띄운다 — `ArtistRequestSheet`에도 없고, 인디케이터가 차지하는
+        // 위 20pt 때문에 제목 시작 높이가 그 시트와 어긋난다.
+        .presentationDragIndicator(stage == .detail ? .hidden : .visible)
+        // 지면·카드보다 한 단 밝게. 카드와 같은 색이면 시트가 지면에 눌어붙어 보인다.
+        .presentationBackground(DSColor.pickElevated)
+        .presentationCornerRadius(28)
+        .preferredColorScheme(.dark)
+    }
+
+    /// 기타 사유 입력. `ArtistRequestSheet`와 같은 구성(제목 → 설명 → 입력 → 전송)이고
+    /// 색만 다크로 바꿨다. 다른 폼을 새로 발명할 이유가 없다.
+    private var detailForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("What happened?")
+                .font(DSTypography.title2)
+                .foregroundStyle(.white)
+            Text("Tell us what's wrong. We read every report.")
+                .font(DSTypography.body)
+                .foregroundStyle(.white.opacity(0.5))
+                .fixedSize(horizontal: false, vertical: true)
+
+            // 아티스트 이름은 한 줄이면 되지만 신고 사유는 서술이라 2줄을 미리 비워둔다.
+            // 높이는 `frame`으로 못 박는다 — 줄 수에 따라 폼이 자라면 고정 detent와 어긋난다.
+            TextField("", text: $detailText, prompt: detailPrompt, axis: .vertical)
+                .font(DSTypography.body)
+                .foregroundStyle(.white)
+                .focused($focused)
+                .lineLimit(2, reservesSpace: true)
+                .onChange(of: detailText) { _, new in
+                    if new.count > maxLength { detailText = String(new.prefix(maxLength)) }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .frame(height: 68, alignment: .top)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+
+            Button {
+                let trimmed = detailText.trimmingCharacters(in: .whitespacesAndNewlines)
+                choose(.report(pick, "OTHER", trimmed.isEmpty ? nil : trimmed))
+            } label: {
+                Text("Send")
+                    .font(DSTypography.bodyMedium)
+                    // 밝은 보라 위엔 흰 글씨가 안 읽힌다. 지면색을 글자로 되돌려 쓴다.
+                    .foregroundStyle(DSColor.pickBackground)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(DSColor.pickAccent.opacity(canSend ? 1 : 0.35),
+                                in: RoundedRectangle(cornerRadius: 12))
+            }
+            .disabled(!canSend)
+        }
+        // 여백은 호출부의 `.padding(24)` 하나뿐이다. 여기서 또 주면 좌우만 48이 된다.
+        .onAppear { focused = true }
+    }
+
+    /// 플레이스홀더는 흰색이 아니라 옅게. `prompt:`로 넘겨야 색을 줄 수 있다.
+    private var detailPrompt: Text {
+        Text("Tell us what's wrong").foregroundColor(.white.opacity(0.35))
+    }
+
+    /// **비워서 보낼 수 없다.** 기타는 사유가 본문에만 있어서, 빈 채로 오면 운영자가 볼 게 없다.
+    private var canSend: Bool {
+        !detailText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    @ViewBuilder
+    private var rows: some View {
+        switch stage {
+        case .reasons:
+            row("Inappropriate nickname") { choose(.report(pick, "NICKNAME", nil)) }
+            divider
+            row("Inappropriate content") { choose(.report(pick, "CONTENT", nil)) }
+            divider
+            // 사유를 직접 받는다 — 이것만 한 단계 더 간다.
+            row("Something else") { choose(.detail(pick)) }
+        case .actions:
+            if pick.isMine {
+                row("Delete", destructive: true) { choose(.delete(pick)) }
+            } else {
+                row("Report") { choose(.reasons(pick)) }
+                divider
+                // 닉네임이 20자까지 온다. 끝을 자르면 ko에서 "차단"이, 앞을 자르면 en에서
+                // "Block"이 통째로 날아간다 — 가운데를 잘라야 동사가 양쪽 다 살아남는다.
+                row("Block @\(pick.nickname)", destructive: true, truncation: .middle) {
+                    choose(.block(pick))
+                }
+            }
+        case .detail:
+            // 입력 폼은 `detailForm`이 그린다. 여기까지 오지 않는다.
+            EmptyView()
+        }
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(.white.opacity(0.08))
+            .frame(height: 1)
+            .padding(.horizontal, Metrics.edgeInset)
+    }
+
+    /// 아무것도 안 고르고 닫기. 아래로 쓸어도 닫히지만, **파괴적 항목만 있는 시트에서
+    /// 빠져나갈 길이 제스처뿐이면 유저가 갇힌 것처럼 느낀다.**
+    private var cancelButton: some View {
+        Button { choose(.cancel) } label: {
+            Text("Cancel")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: Metrics.cancel)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, Metrics.edgeInset)
+    }
+
+    /// 라벨은 `LocalizedStringKey`로 받는다 — `String`이면 현지화가 조용히 죽는다.
+    private func row(_ text: LocalizedStringKey,
+                     destructive: Bool = false,
+                     truncation: Text.TruncationMode = .tail,
+                     action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(destructive ? DSColor.destructive : .white)
+                .lineLimit(1)
+                .truncationMode(truncation)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Metrics.labelInset)
+                .frame(height: Metrics.row)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
 // MARK: - Card
 
-/// 한 카드 안에 재생(카드 탭)·반응(버튼)·오버플로 메뉴 세 인터랙션이 겹친다.
-/// 제스처 우선순위로 풀지 않고 **구조로 가른다** — 재생 영역만 탭 제스처를 갖고,
-/// 반응 행은 형제 노드, `···`는 오버레이라 애초에 겹치지 않는다.
-/// 카드 전체를 Button으로 감싸면 반응 칩·Menu가 중첩돼 어느 쪽이 먹는지가 갈린다.
+/// 뉴스 피드형 카드: **헤더(누가·언제·`···`) → 제목 → 미디어 → 버블 행.**
+/// 라운드 24pt 카드로 돌아왔지만 이전 상자와는 다르다 — 안쪽 요소가 카드 폭을 꽉 쓰고,
+/// 반응은 억지로 낀 아이콘이 아니라 **버블(알약 칩)** 안에 들어가 배경을 갖는다.
+/// 인터랙션은 **구조로 가른다**: 미디어만 탭 제스처를 갖고, 버블·`···`는 형제 노드다.
 private struct PickCard: View {
     let pick: API.Pick
     let zoomNamespace: Namespace.ID
     let onPlay: () -> Void
     let onReact: (String) -> Void
-    let onReport: () -> Void
-    let onBlock: () -> Void
-    let onDelete: () -> Void
+    let onMenu: () -> Void
 
-    @State private var showPicker = false
-
-    private var hasReactions: Bool { pick.reactions.values.contains { $0 > 0 } }
     private var title: String { pick.title ?? PickTitle.fallback(for: pick) }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // 세로 구성 — 아트워크가 위, 글이 아래. 글이 아트워크 옆에 없으니 제목이 몇 줄이든
-            // 위 요소가 밀리지 않는다. 제목 길이로 컬럼 높이를 맞출 이유 자체가 사라진다.
-            VStack(alignment: .leading, spacing: 0) {
-                PickThumbnailStack(urls: pick.thumbnails, trackCount: pick.trackCount)
-                    // 곡 수에 따라 스택 폭이 달라진다(1곡 150 / 3곡 294). 왼쪽에 붙이면
-                    // 1곡짜리 카드만 오른쪽이 휑해 보여서 가운데에 둔다.
-                    .frame(maxWidth: .infinity)
-                    .pickZoomSource(id: pick.pickId, in: zoomNamespace)
-                    .padding(.bottom, 16)
-                Text(title)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineSpacing(2)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                // 닉네임은 왼쪽, 곡수·시간은 오른쪽 끝. 둘을 왼쪽에 몰아두면 카드 폭의
-                // 절반이 남아 카드가 비어 보인다.
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    // 닉네임은 20자까지 올 수 있고 한글이면 훨씬 넓다. 줄이 넘치면
-                    // 곡수·시간(짧고 사실 정보)을 지키고 닉네임을 자른다.
-                    Text(verbatim: "@\(pick.nickname)")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(DSColor.pickAccent)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 8)
-                    Text("\(pick.trackCount) tracks · \(pick.createdAt.formatted(.relative(presentation: .named)))")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.white.opacity(0.45))
-                        .lineLimit(1)
-                        .layoutPriority(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
-                .padding(.top, 8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // 없으면 아트워크 오른쪽 여백이나 제목 옆 빈 공간 탭이 죽는다.
-            .contentShape(Rectangle())
-            .onTapGesture(perform: onPlay)
-
-            reactionRow
-        }
-        .padding(16)
-        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
-        .overlay(alignment: .topTrailing) { overflowMenu }
+    /// 공유 문구. 픽 전용 웹 페이지도 딥링크도 아직 없어서 **텍스트만** 보낸다.
+    /// ponytail: `dignify-web`에 픽 페이지가 생기면 URL을 같이 넘긴다.
+    private var shareText: String {
+        String(localized: "dignify pick by @\(pick.nickname): \(title)",
+               comment: "공유 시트로 나가는 문구")
     }
 
-    /// 높이 고정. 반응 0인 카드만 짧아지면 목록이 들쭉날쭉하고 첫 반응에 카드가 밀린다.
-    /// placeholder를 **왼쪽 끝에 상시 노출**해서 카드마다 버튼 위치가 같다(슬랙은 뒤에 붙어 밀린다).
-    private var reactionRow: some View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            header
+            // 제목이 미디어 **위**에 온다 — 커버를 보기 전에 무슨 묶음인지 읽힌다.
+            // 줄 수 제한 없음: 입력이 30 grapheme으로 잘리고 폴백 제목도 길어야 두어 줄이라
+            // 카드 높이가 들쭉날쭉해질 여지가 작다. 말줄임보다 다 보여주는 쪽이 낫다.
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(.white)
+                .lineSpacing(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            media
+            bubbleRow
+        }
+        .padding(14)
+        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 16)
+    }
+
+    /// 작성자가 맨 위 한 줄. `···`는 원형 버튼으로 오른쪽 끝 — 아트워크 위에 얹지 않는다.
+    private var header: some View {
         HStack(spacing: 6) {
-            // 반응이 하나도 없으면 원 하나만 덩그러니 남아 행이 비어 보인다.
-            // 그 자리에 할 말을 붙이면 빈 줄이 아니라 유도 문구가 된다(반응이 달리면 사라진다).
-            Button { showPicker = true } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .frame(width: 30, height: 30)
-                        // 다크 카드 위에선 색을 얹는 대신 흰색을 옅게 태운다 — 카드가 어떤
-                        // 밝기든 같은 만큼 떠 보이고, 서피스 색을 하나 더 정의할 필요도 없다.
-                        .background(.white.opacity(0.08), in: Circle())
-                        .overlay { Circle().stroke(.white.opacity(0.18), lineWidth: 1) }
-                    if !hasReactions {
-                        Text("Be the first to react")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.4))
+            // 아바타(닉네임 첫 글자 원)는 뺐다. 대부분이 `digger_` 프리픽스 자동 닉네임이라
+            // 모든 카드에 같은 `D`가 찍혀 **구분이 아니라 반복**만 만들어냈다.
+            // 원을 없앤 자리는 두 줄을 한 줄로 합쳐 메운다 — 두 줄짜리 텍스트 블록은
+            // 애초에 42pt 원의 높이를 맞추려고 있던 것이라, 원이 빠지면 같이 빠져야 한다.
+            Text(verbatim: "@\(pick.nickname)")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            // 운영자 표시. 닉네임을 못 밀어내게 `layoutPriority`는 안 준다 — 닉네임이 길면
+            // 닉네임이 잘리고 씰은 남는다(씰은 폭이 고정이라 잘릴 수가 없다).
+            if pick.isOfficial == true {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(DSColor.pickAccent)
+                    .accessibilityLabel("Official")
+            }
+            Text(verbatim: "·")
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.3))
+            Text(pick.createdAt.formatted(.relative(presentation: .named)))
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.45))
+                .lineLimit(1)
+                // 닉네임이 20자까지 오므로, 줄이 넘치면 짧고 사실인 쪽(시간)을 지킨다.
+                .layoutPriority(1)
+                .fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 8)
+            overflowMenu
+        }
+    }
+
+    /// 카드 폭을 꽉 채우는 220pt 미디어. 배경은 1번 곡 커버를 크게 흐린 것 —
+    /// 픽마다 색이 달라 그 픽의 것으로 읽히고, 단색 블록처럼 비어 보이지 않는다.
+    private var media: some View {
+        ZStack {
+            // 옵셔널 체이닝이면 `URL??`가 돼 AsyncImage에 안 들어간다.
+            AsyncImage(url: pick.thumbnails.first.flatMap { $0.itunesArtworkURL(size: 400) }) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                DSColor.pickBackground
+            }
+            .blur(radius: 28)
+            // 흐린 커버가 밝으면 위에 얹은 커버 스택과 대비가 죽는다.
+            .overlay(Color.black.opacity(0.45))
+            PickThumbnailStack(urls: pick.thumbnails, trackCount: pick.trackCount)
+                .pickZoomSource(id: pick.pickId, in: zoomNamespace)
+        }
+        // 높이는 비율이 아니라 고정값이다. `aspectRatio(.fit)`는 세로 제안이 없는 ScrollView
+        // 안에서 자식 이상 크기를 물고 폭이 줄어들 수 있다.
+        // `maxWidth`와 `height`는 한 호출에 못 섞으므로 min/max를 같은 값으로 묶는다.
+        .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 220)
+        // blur는 프레임 밖으로 번진다 — 자르는 김에 모서리도 여기서 깎는다.
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onPlay)
+    }
+
+    /// 버블 행 — 반응·곡 수는 왼쪽, 공유는 오른쪽 끝.
+    /// 반응만 버튼이고 곡 수는 표시다. 버블이 배경을 갖는 덕에 이모지가 지면에 겉돌지 않는다.
+    private var bubbleRow: some View {
+        let count = pick.reactions[PickReaction.primary] ?? 0
+        let mine = pick.myReaction == PickReaction.primary
+        return HStack(spacing: 8) {
+            Button { onReact(PickReaction.primary) } label: {
+                bubble(tinted: mine) {
+                    Text(verbatim: PickReaction.primary).font(.system(size: 15))
+                    // 카운트 0이면 숫자를 안 그린다 — "0"은 비어 있다는 사실을 굳이 읽어주는 숫자다.
+                    if count > 0 {
+                        Text(verbatim: "\(count)")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(mine ? DSColor.brand : .white.opacity(0.8))
+                            .lineLimit(1)
                     }
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Add reaction")
-            .popover(isPresented: $showPicker) { emojiPicker }
+            .animation(.easeOut(duration: 0.15), value: mine)
+            .accessibilityLabel(PickReaction.label)
+            .accessibilityValue(Text(verbatim: "\(count)"))
+            .accessibilityAddTraits(mine ? .isSelected : [])
 
-            ForEach(PickReaction.all.filter { (pick.reactions[$0] ?? 0) > 0 }, id: \.self) { emoji in
-                let mine = pick.myReaction == emoji
-                Button { onReact(emoji) } label: {
-                    HStack(spacing: 4) {
-                        Text(emoji).font(.system(size: 13))
-                        Text(verbatim: "\(pick.reactions[emoji] ?? 0)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(mine ? DSColor.pickBackground : .white.opacity(0.75))
-                            .lineLimit(1)
-                    }
-                    // 5종이 다 달리면 행이 빠듯하다. 압축을 허용하면 SwiftUI가 칩을 눌러
-                    // 두 자리 숫자를 위아래로 쪼갠다 — 잘리는 게 낫지 접히면 못 읽는다.
-                    // ponytail: 세 자리(100+)가 흔해지면 그때 가로 스크롤이나 상위 3종만.
-                    .fixedSize(horizontal: true, vertical: false)
-                    .padding(.horizontal, 8)
-                    .frame(height: 30)
-                    // 내가 누른 칩만 브랜드로 채워 한눈에 갈린다(테두리 대비보다 강하다).
-                    .background(mine ? DSColor.pickAccent : .white.opacity(0.08), in: Capsule())
-                    .overlay { Capsule().stroke(mine ? .clear : .white.opacity(0.18), lineWidth: 1) }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(PickReaction.label(emoji))
+            // 곡 수는 표시 전용이라 **알약을 안 씌운다.** 같은 버블을 두르면 누르면 뭔가
+            // 일어날 것처럼 보인다 — 이 행에서 배경 있는 것만 버튼이라는 규칙을 만든다.
+            HStack(spacing: 5) {
+                Image(systemName: "music.note").font(.system(size: 12, weight: .semibold))
+                // 단위까지 붙여야 숫자가 뭘 세는지가 아이콘 해석에 안 기댄다.
+                Text("\(pick.trackCount) tracks")
+                    .font(.system(size: 13, weight: .medium))
             }
+            .foregroundStyle(.white.opacity(0.45))
+            .padding(.leading, 4)
+
             Spacer(minLength: 0)
-        }
-        // 반응 0이어도 행은 남는다 — 없애면 카드마다 높이가 달라지고 첫 반응에 카드가 밀린다.
-        .frame(height: 30)
-    }
 
-    /// 5개를 한 번에 펼치는 팝오버. 아이폰에선 popover가 기본적으로 시트로 바뀌므로
-    /// 말풍선으로 고정한다(StatBox의 안내 팝오버와 같은 처리).
-    private var emojiPicker: some View {
-        HStack(spacing: 2) {
-            ForEach(PickReaction.all, id: \.self) { emoji in
-                Button {
-                    showPicker = false
-                    onReact(emoji)
-                } label: {
-                    Text(emoji)
-                        .font(.system(size: 22))
-                        .frame(width: 44, height: 44)
-                        .background(pick.myReaction == emoji ? DSColor.pickAccent.opacity(0.3) : .clear, in: Circle())
+            // 시스템 공유 시트. 픽 URL이 없어 텍스트만 나간다.
+            ShareLink(item: shareText) {
+                bubble {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 15, weight: .semibold))
+                        // 심볼 무게중심이 아래로 처져 보여서 1pt 올린다.
+                        .offset(y: -1)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(PickReaction.label(emoji))
+                .foregroundStyle(.white.opacity(0.8))
             }
+            // ShareLink엔 완료 콜백이 없다 — 시트를 연 순간만 잡는다(실제 전송 여부는 모름).
+            .simultaneousGesture(TapGesture().onEnded {
+                PostHogSDK.shared.capture("pick_shared")
+            })
+            .accessibilityLabel("Share")
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .presentationCompactAdaptation(.popover)
-        // 팝오버 배경은 시스템이 그린다 — 지면만 어둡게 하면 여기만 흰 말풍선으로 튄다.
-        .preferredColorScheme(.dark)
     }
 
+    /// 버블 하나. 알약 배경이 있으니 이모지도 "얹힌 스티커"가 아니라 칩 내용물로 읽힌다.
+    private func bubble<Content: View>(tinted: Bool = false,
+                                       @ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 6, content: content)
+            .padding(.horizontal, 14)
+            .frame(height: 36)
+            .background(tinted ? DSColor.brand.opacity(0.18) : .white.opacity(0.07), in: Capsule())
+            .contentShape(Capsule())
+    }
+
+    /// `Menu`가 아니라 그냥 버튼이다. **`Menu`의 팝업은 스크롤한 뒤 엉뚱한 자리에 떴다** —
+    /// `LazyVStack` 안에서 앵커가 옛 좌표에 묶인다. 항목을 목록 밖(화면 아래 고정)에서
+    /// 띄우면 앵커라는 개념 자체가 없어져 문제가 사라진다.
     private var overflowMenu: some View {
-        Menu {
-            if pick.isMine {
-                Button(role: .destructive, action: onDelete) { Label("Delete", systemImage: "trash") }
-            } else {
-                Button(action: onReport) { Label("Report", systemImage: "flag") }
-                Button(role: .destructive, action: onBlock) {
-                    Label("Block @\(pick.nickname)", systemImage: "hand.raised")
-                }
-            }
-        } label: {
-            // 세로 구성에선 이 자리가 아트워크 위다. 반투명 알약을 깔아야 커버가 밝든 어둡든 보인다.
-            // 오버레이는 카드 패딩 바깥에 얹히므로 간격도 여기서 직접 준다.
+        Button(action: onMenu) {
+            // 원형 배경을 없앴다. 36pt 원이 헤더 행 높이를 혼자 결정해서 닉네임 위아래로
+            // 빈 9pt씩이 생겼고, 그게 아바타를 뺀 뒤 "허전한" 간격의 정체였다.
+            // ponytail: 28pt는 44pt 권장보다 작다. 빈도 낮은 보조 메뉴라 감수 — 오탭이 보고되면 32로.
             Image(systemName: "ellipsis")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(.black.opacity(0.4), in: Circle())
-                .contentShape(Circle())
-                .padding(14)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.55))
+                .frame(width: 34, height: 28, alignment: .trailing)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("More")
     }
 }
@@ -588,28 +877,30 @@ struct PickThumbnailStack: View {
 /// 로딩 골격. 카드와 같은 치수라 데이터가 도착해도 레이아웃이 안 튄다.
 private struct PickSkeletonCard: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 0) {
-                bar(width: 294, height: 150, radius: DSRadius.large)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                bar(width: 190, height: 18, radius: 6)
-                HStack {
-                    bar(width: 80, height: 13, radius: 6)
-                    Spacer(minLength: 0)
-                    bar(width: 110, height: 12, radius: 6)
-                }
-                .padding(.top, 8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 10) {
+            // 헤더 — 실제 카드와 같은 한 줄(아바타 없음) + 오른쪽 `···`.
             HStack(spacing: 8) {
-                bar(width: 30, height: 30, radius: 15)
-                bar(width: 64, height: 30, radius: 15)
+                bar(width: 110, height: 14, radius: 6)
+                bar(width: 52, height: 12, radius: 6)
                 Spacer(minLength: 0)
+                bar(width: 18, height: 4, radius: 2)
+            }
+            .frame(height: 28)
+            bar(width: 210, height: 16, radius: 6)
+            // 미디어 — 실제 카드와 같은 220pt여야 도착 순간 목록이 안 튄다.
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.white.opacity(0.06))
+                .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 220)
+            HStack(spacing: 12) {
+                bar(width: 64, height: 36, radius: 18)
+                bar(width: 34, height: 13, radius: 6)
+                Spacer(minLength: 0)
+                bar(width: 52, height: 36, radius: 18)
             }
         }
-        .padding(16)
-        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+        .padding(14)
+        .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 16)
     }
 
     private func bar(width: CGFloat, height: CGFloat, radius: CGFloat) -> some View {

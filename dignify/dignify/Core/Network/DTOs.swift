@@ -154,6 +154,10 @@ nonisolated enum API {
         let title: String?
         let nickname: String
         let isMine: Bool
+        /// 시딩(운영자) 픽. 렌더에도 쓰지만 존재 이유의 절반은 계측이다 —
+        /// 이게 없으면 `pick_opened`에 시드/유저 구분이 안 붙어 시딩이 먹혔는지를 못 본다.
+        /// 서버가 아직 안 내려주던 시절 응답도 디코드돼야 하므로 optional.
+        var isOfficial: Bool? = nil
         let createdAt: Date
         let trackCount: Int
         let distinctArtistCount: Int

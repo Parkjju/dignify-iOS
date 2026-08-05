@@ -940,6 +940,13 @@ struct FeedView: View {
     
     private func goingNext(height: CGFloat) {
         if currentIndex == feedList.count - 1 {
+            // 픽은 곡 수가 정해져 있다. 마지막 곡에서 더 넘기려는 손짓은 "다 들었다"는 뜻이라
+            // 첫 곡에서 위로 당길 때와 같이 닫는다(일반 피드는 무한이라 스냅백이 맞다).
+            if case .pick = mode {
+                audio.stop()
+                dismiss()
+                return
+            }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 offset = 0
             }

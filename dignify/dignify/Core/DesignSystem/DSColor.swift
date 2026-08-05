@@ -20,6 +20,8 @@ enum DSColor {
     // 카드 탭 → 검은 재생 화면 전환도 톤이 끊기지 않는다.
     static let pickBackground = Color(hex: 0x141420)
     static let pickSurface = Color(hex: 0x1E1E2A)
+    /// 카드 위에 뜨는 것(메뉴 시트)용. 카드와 같은 색이면 시트가 지면에 눌어붙어 보인다.
+    static let pickElevated = Color(hex: 0x282836)
     /// 다크 위에서 `brand`(#4B3FD8)는 배경에 묻힌다. 같은 색상각을 밝기만 올려 쓴다.
     static let pickAccent = Color(hex: 0x8F86FF)
 }

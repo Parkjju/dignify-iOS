@@ -16,7 +16,13 @@ private nonisolated struct ArtistRequestBody: Encodable { let artistName: String
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
 private nonisolated struct PickBody: Encodable { let title: String?; let trackIds: [Int] }
 private nonisolated struct ReactionBody: Encodable { let emoji: String }
-private nonisolated struct ReportBody: Encodable { let pickId: Int; let reason: String }
+/// `detail`은 `OTHER`일 때만 채워진다(유저가 직접 쓴 사유). 빈 문자열은 넘기지 않는다 —
+/// 빈 값과 null이 둘 다 "안 씀"이면 서버에서 판정이 두 갈래로 갈린다.
+private nonisolated struct ReportBody: Encodable {
+    let pickId: Int
+    let reason: String
+    let detail: String?
+}
 
 /// openapi.yaml 14개 엔드포인트 팩토리. 호출부: `client.send(.feed(cursor: c), as: API.FeedResponse.self)`
 nonisolated extension Endpoint {
@@ -118,8 +124,9 @@ nonisolated extension Endpoint {
         Endpoint(method: .delete, path: "/picks/\(id)/reaction")
     }
 
-    static func reportPick(id: Int, reason: String) -> Endpoint {
-        Endpoint(method: .post, path: "/reports", body: ReportBody(pickId: id, reason: reason))
+    static func reportPick(id: Int, reason: String, detail: String? = nil) -> Endpoint {
+        Endpoint(method: .post, path: "/reports",
+                 body: ReportBody(pickId: id, reason: reason, detail: detail))
     }
 
     // MARK: Users

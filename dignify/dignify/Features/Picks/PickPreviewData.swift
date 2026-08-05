@@ -16,14 +16,14 @@ enum PickPreview {
 
     /// 카드가 갈리는 축을 전부 한 화면에 깐다: 제목 유무·폴백 3분기·곡 수(1/3/4+)·반응 0/있음·내 픽.
     static let picks: [API.Pick] = [
-        // 제목 있음 + 반응 여러 개 + 내가 누른 것 + 4곡 이상(+N 배지)
+        // 제목 있음 + 내가 누른 반응 + 4곡 이상(+N 배지)
         API.Pick(pickId: 1, title: "새벽 세 시에 듣는 것들", nickname: "parkjju", isMine: false,
                  createdAt: .now.addingTimeInterval(-3600 * 3),
                  trackCount: 7, distinctArtistCount: 5,
                  firstArtistName: "Margaret Cho", firstTrackName: "Yer Dihh",
                  thumbnails: Array(artwork.prefix(3)),
-                 reactions: ["🔥": 12, "🫶": 5, "👀": 1], myReaction: "🔥"),
-        // 제목 없음 + 아티스트 여러 명 폴백 + 반응 0 (행 높이 고정 확인)
+                 reactions: ["🔥": 12], myReaction: "🔥"),
+        // 제목 없음 + 아티스트 여러 명 폴백 + 반응 0 (카운트 숨김 확인)
         API.Pick(pickId: 2, title: nil, nickname: "digger_kim", isMine: false,
                  createdAt: .now.addingTimeInterval(-3600 * 26),
                  trackCount: 4, distinctArtistCount: 4,
@@ -36,21 +36,30 @@ enum PickPreview {
                  trackCount: 3, distinctArtistCount: 1,
                  firstArtistName: "Joey DeFrancesco", firstTrackName: "In Times of Reflection",
                  thumbnails: Array(artwork.dropFirst(3).prefix(3)),
-                 reactions: ["🪩": 3], myReaction: nil),
+                 reactions: ["🔥": 3], myReaction: nil),
         // 2곡 — 스택이 두 장만 겹치는 경우
         API.Pick(pickId: 5, title: "둘이서 듣기 좋은", nickname: "sunset_kim", isMine: false,
                  createdAt: .now.addingTimeInterval(-3600 * 7),
                  trackCount: 2, distinctArtistCount: 2,
                  firstArtistName: "Evan Johnson", firstTrackName: "Without You",
                  thumbnails: Array(artwork.dropFirst(2).prefix(2)),
-                 reactions: ["🫶": 8, "🥲": 2], myReaction: nil),
+                 reactions: ["🔥": 8], myReaction: nil),
         // 내 픽(메뉴가 삭제로 갈림) + 1곡(스택 아닌 한 장) + 아주 긴 제목(2줄 말줄임)
         API.Pick(pickId: 4, title: "여름 끝자락에 계속 돌려 듣게 되는 곡 하나", nickname: "me", isMine: true,
                  createdAt: .now.addingTimeInterval(-60 * 5),
                  trackCount: 1, distinctArtistCount: 1,
                  firstArtistName: "Privaledge", firstTrackName: "Savage",
                  thumbnails: [artwork[5]],
-                 reactions: ["🥲": 2], myReaction: "🥲"),
+                 reactions: ["🔥": 2], myReaction: "🔥"),
+        // 시딩 픽 — 목록 맨 아래다. 서버가 유저 픽을 먼저 주고 시드를 뒤에 붙이므로
+        // 목업도 같은 순서여야 "시드가 위에 뜬다"를 눈으로 못 보고 지나치지 않는다.
+        API.Pick(pickId: 6, title: "여름밤 드라이브", nickname: "dignify", isMine: false,
+                 isOfficial: true,
+                 createdAt: .now.addingTimeInterval(-3600 * 50),
+                 trackCount: 5, distinctArtistCount: 5,
+                 firstArtistName: "The Fixx", firstTrackName: "Stand or Fall",
+                 thumbnails: Array(artwork.prefix(3)),
+                 reactions: ["🔥": 24], myReaction: nil),
     ]
 
     /// 한계값만 모은 세트. 닉네임은 서버 정규식 상한(`^[a-zA-Z0-9_가-힣]{1,20}$`)인 20자,
@@ -64,7 +73,7 @@ enum PickPreview {
                  trackCount: 30, distinctArtistCount: 24,
                  firstArtistName: "Margaret Cho", firstTrackName: "Yer Dihh",
                  thumbnails: Array(artwork.prefix(3)),
-                 reactions: ["🔥": 128, "🫶": 64, "🥲": 32, "🪩": 16, "👀": 8], myReaction: "🪩"),
+                 reactions: ["🔥": 128], myReaction: "🔥"),
         // 라틴 닉네임 20자(_ 포함) + 30곡 + 폴백 제목(아티스트명이 긴 경우)
         API.Pick(pickId: 102, title: nil,
                  nickname: "digging_all_night_00",
@@ -80,7 +89,7 @@ enum PickPreview {
                  trackCount: 1, distinctArtistCount: 1,
                  firstArtistName: "Privaledge", firstTrackName: "Savage",
                  thumbnails: [artwork[5]],
-                 reactions: ["👀": 1], myReaction: nil),
+                 reactions: ["🔥": 1], myReaction: nil),
     ]
 
     /// 만들기 화면 그리드용(크레이트 목업).
