@@ -45,6 +45,32 @@ struct dignifyTests {
         #expect(fired == [1, 2])
     }
 
+    @MainActor
+    @Test func dwellAccumulatesAcrossLoops() {
+        let audio = FeedAudioController()
+        var fired: [(Int, Double)] = []
+        audio.onDwell = { fired.append(($0, $1)) }
+
+        // currentTrackId가 없으면(피드 밖) 발사하지 않는다.
+        audio.advanceDwell(to: 3)
+        audio.flushDwell()
+        #expect(fired.isEmpty)
+
+        audio.togglePreview(trackId: 7, url: URL(string: "https://example.com/a.m4a")!)
+        audio.advanceDwell(to: 4)
+        audio.advanceDwell(to: 29)
+        audio.advanceDwell(to: 0.2)     // 루프 — 직전 위치가 누적으로 넘어간다.
+        audio.advanceDwell(to: 6)
+        audio.flushDwell()
+        #expect(fired.count == 1)
+        #expect(abs(fired[0].1 - 35) < 0.0001)
+        #expect(fired[0].0 == 7)
+
+        // flush 후엔 카운터가 비어 재발사되지 않는다.
+        audio.flushDwell()
+        #expect(fired.count == 1)
+    }
+
     @Test func whatsNewShowsOnlyOnUpdate() {
         let current = Changelog.releases.first!.version
         func show(_ lastSeen: String, returning: Bool = false) -> Bool {

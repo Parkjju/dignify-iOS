@@ -17,8 +17,16 @@ final class FeedAudioController {
     /// (설정하지 않으면 아무것도 발사되지 않는다: 마이페이지 미리듣기는 집계 대상이 아님.)
     var onListen: ((Int) -> Void)?
 
+    /// 트랙을 떠날 때 실제 재생된 시간(초)을 알린다. 루프 재생분 누적, 일시정지 구간 제외.
+    /// listenThreshold가 실측 체류 분포 한가운데 있어 청취율이 스와이프 속도에 흔들린다 —
+    /// 임계값을 어디로 옮길지 보려면 원시 체류 시간이 필요하다. 계측 전용, 서버 기록 없음.
+    var onDwell: ((Int, Double) -> Void)?
+
     /// onListen을 이미 보낸 트랙 — 루프·재진입으로 중복 발사하지 않게 한다.
     private var listenedTrackIds: Set<Int> = []
+
+    private var dwellLoops: Double = 0        // 루프로 0에 되돌아간 만큼의 누적
+    private var dwellPosition: Double = 0     // 현재 루프에서의 재생 위치
 
     // ponytail: 훑고 지나간 스와이프와 실제 청취를 가르는 값 하나.
     // 실데이터 보고 조정. 프리뷰가 30초라 상한은 그쪽.
@@ -144,6 +152,7 @@ final class FeedAudioController {
                 player.volume = Float(Self.fadeVolume(
                     at: time.seconds, duration: duration, fadeIn: self.fadeIn, fadeOut: self.fadeOut))
                 self.recordListenIfNeeded(trackId: trackId, playedFor: time.seconds)
+                self.advanceDwell(to: time.seconds)
             }
         }
     }
@@ -155,6 +164,22 @@ final class FeedAudioController {
         guard seconds >= listenThreshold, !listenedTrackIds.contains(trackId) else { return }
         listenedTrackIds.insert(trackId)
         onListen?(trackId)
+    }
+
+    /// 재생 위치로 체류 시간을 누적한다. 루프로 위치가 되돌아가면 직전 위치를 더한다.
+    func advanceDwell(to seconds: Double) {
+        if seconds < dwellPosition { dwellLoops += dwellPosition }
+        dwellPosition = seconds
+    }
+
+    /// 현재 트랙의 누적 체류를 발사하고 카운터를 리셋한다. 트랙 전환·정지에서만 호출.
+    /// ponytail: 앱이 강제 종료되면 마지막 트랙 체류는 유실된다. 표본이 아쉬우면 백그라운드 진입에서도 flush.
+    func flushDwell() {
+        let total = dwellLoops + dwellPosition
+        dwellLoops = 0
+        dwellPosition = 0
+        guard let id = currentTrackId, total > 0 else { return }
+        onDwell?(id, total)
     }
 
     /// 종료 fadeOut초 전부터 1→0, 시작 fadeIn초 동안 0→1. 그 외 1.0.
@@ -227,7 +252,9 @@ final class FeedAudioController {
         players[id] = nil
     }
 
+    /// 트랙 전환·정지·해제가 전부 이 지점을 지나므로 체류 flush도 여기서 한다.
     private func removeTimeObserver() {
+        flushDwell()
         if let obs = timeObserver, let p = timeObserverPlayer {
             p.removeTimeObserver(obs)
         }

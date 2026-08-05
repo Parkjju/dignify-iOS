@@ -427,6 +427,7 @@ struct FeedView: View {
         .onAppear {
             resolveSafeInsets()
             audio.onListen = { trackId in recordListen(trackId: trackId) }
+            audio.onDwell = { trackId, seconds in logDwell(trackId: trackId, seconds: seconds) }
             if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
                 logTrackViewed()   // 첫 트랙(index 0)은 onChange가 안 터지므로 여기서.
@@ -873,6 +874,14 @@ struct FeedView: View {
         PostHogSDK.shared.capture("track_listened", properties: ["track_id": trackId])
         guard session.authState == .signedIn else { return }
         Task { try? await session.api.send(.listen(trackId: trackId)) }
+    }
+
+    /// 트랙을 떠날 때 실제 재생 시간을 남긴다. 청취 임계값(5초) 튜닝용 원시 분포 —
+    /// track_listened는 임계값 통과 여부만 알려줘서 임계선을 어디로 옮길지 못 본다.
+    private func logDwell(trackId: Int, seconds: Double) {
+        PostHogSDK.shared.capture("track_dwell", properties: [
+            "track_id": trackId, "seconds": (seconds * 10).rounded() / 10,
+        ])
     }
 
     private func toggleHype(for feed: Feed) {
