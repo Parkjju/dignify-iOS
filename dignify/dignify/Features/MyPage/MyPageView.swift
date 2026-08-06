@@ -207,7 +207,9 @@ struct MyPageView: View {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) { withdraw() }
         } message: {
-            Text("All your data, including hypes and genres, will be deleted permanently.")
+            // 픽을 빠뜨리면 안 된다 — FK가 ON DELETE CASCADE라 내가 만든 픽과 거기 붙은 반응까지
+            // 실제로 사라진다. 남의 지면에 올린 게 없어지는 건 하입이 없어지는 것과 무게가 다르다.
+            Text("All your data, including your picks, hypes, and genres, will be deleted permanently.")
         }
     }
 

@@ -42,6 +42,8 @@ struct DiggingProfileView: View {
                 } else {
                     ProgressView().frame(maxWidth: .infinity).padding(.vertical, 80)
                 }
+                // 만든 것 → 모은 것 순. 픽이 없으면 이 뷰가 스스로 아무것도 안 그린다.
+                MyPicksSection()
                 crateSection
                 if let stats, stats.isUnlocked { shareButton(stats) }
             }
@@ -312,6 +314,9 @@ struct DiggingProfileView: View {
     @ViewBuilder
     private var crateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // 통계 → 만든 픽 → 담은 곡이 한 스크롤에 이어 붙어 어디까지가 뭔지 안 읽혔다.
+            // 각 섹션이 자기 위의 구분선을 갖는다(`MyPicksSection`도 같은 규칙).
+            Divider().padding(.horizontal, 20)
             Text("Your crate")
                 .font(DSTypography.title2)
                 .foregroundStyle(DSColor.textPrimary)

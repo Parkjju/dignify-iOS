@@ -78,6 +78,17 @@
         }
       }
     },
+    "%@ picks": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "픽 %@개"
+          }
+        }
+      }
+    },
     "%lld tracks": {
       "extractionState": "manual",
       "localizations": {
@@ -230,12 +241,12 @@
         }
       }
     },
-    "All your data, including hypes and genres, will be deleted permanently.": {
+    "All your data, including your picks, hypes, and genres, will be deleted permanently.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
+            "value": "내가 만든 픽·하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
           }
         }
       }
@@ -590,6 +601,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "계정을 삭제할까요?"
+          }
+        }
+      }
+    },
+    "Delete this pick?": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 픽을 삭제할까요?"
           }
         }
       }
@@ -2357,6 +2378,16 @@
         }
       }
     },
+    "This can't be undone, and the reactions on it go too.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "되돌릴 수 없고, 붙은 반응도 같이 사라져요."
+          }
+        }
+      }
+    },
     "This nickname is already in use.": {
       "localizations": {
         "ko": {
@@ -2797,6 +2828,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "담은 곡"
+          }
+        }
+      }
+    },
+    "Your picks": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내가 만든 픽"
           }
         }
       }

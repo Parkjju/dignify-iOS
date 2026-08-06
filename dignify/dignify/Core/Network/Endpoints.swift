@@ -98,8 +98,13 @@ nonisolated extension Endpoint {
 
     // MARK: Picks
 
-    static func picks(cursor: String? = nil) -> Endpoint {
-        Endpoint(method: .get, path: "/picks", query: cursor.queryItems(name: "cursor"))
+    /// `mine`은 생략 가능하고 기본값이 false다 — 픽 탭은 아예 안 보낸다.
+    /// **커서 요청에도 같이 실어야 한다.** 서버는 요청마다 이 값을 다시 보고 커서(`F_`/`T_`)엔
+    /// mine이 안 들어 있어서, 2페이지부터 빠뜨리면 남의 픽이 조용히 섞여 들어온다.
+    static func picks(cursor: String? = nil, mine: Bool = false) -> Endpoint {
+        Endpoint(method: .get, path: "/picks",
+                 query: cursor.queryItems(name: "cursor")
+                     + (mine ? [URLQueryItem(name: "mine", value: "true")] : []))
     }
 
     /// title은 trim 후 빈 값이면 nil로 넘긴다 — 빈 문자열과 null이 둘 다 "제목 없음"이면

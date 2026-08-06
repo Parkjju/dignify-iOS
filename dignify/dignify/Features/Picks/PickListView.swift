@@ -289,7 +289,7 @@ struct PickListView: View {
         // `is_official`이 "시드를 깔아둔 게 실제로 재생되나"를 답하는 유일한 축이다.
         // 서버가 필드를 안 내려주면 false로 접는다 — 세 번째 값(null)이 생기면 집계가 갈린다.
         PostHogSDK.shared.capture("pick_opened", properties: [
-            "position": index, "is_official": pick.isOfficial == true,
+            "position": index, "is_official": pick.isOfficial == true, "source": "picks",
         ])
         playing = pick
     }
@@ -378,6 +378,7 @@ struct PickListView: View {
 
     private func delete(_ pick: API.Pick) {
         picks.removeAll { $0.pickId == pick.pickId }
+        PostHogSDK.shared.capture("pick_deleted", properties: ["source": "picks"])
         Task {
             do { try await session.api.send(.deletePick(id: pick.pickId)) }
             catch { await load(force: true) }
@@ -642,11 +643,12 @@ private struct PickMenuSheet: View {
 /// 라운드 24pt 카드로 돌아왔지만 이전 상자와는 다르다 — 안쪽 요소가 카드 폭을 꽉 쓰고,
 /// 반응은 억지로 낀 아이콘이 아니라 **버블(알약 칩)** 안에 들어가 배경을 갖는다.
 /// 인터랙션은 **구조로 가른다**: 미디어만 탭 제스처를 갖고, 버블·`···`는 형제 노드다.
-private struct PickCard: View {
+struct PickCard: View {
     let pick: API.Pick
     let zoomNamespace: Namespace.ID
     let onPlay: () -> Void
-    let onReact: (String) -> Void
+    /// nil이면 반응 버블이 **표시 전용**이 된다(프로필의 내 픽 섹션 — 할 수 있는 건 조회와 삭제뿐).
+    let onReact: ((String) -> Void)?
     let onMenu: () -> Void
 
     private var title: String { pick.title ?? PickTitle.fallback(for: pick) }
@@ -745,19 +747,16 @@ private struct PickCard: View {
         let count = pick.reactions[PickReaction.primary] ?? 0
         let mine = pick.myReaction == PickReaction.primary
         return HStack(spacing: 8) {
-            Button { onReact(PickReaction.primary) } label: {
-                bubble(tinted: mine) {
-                    Text(verbatim: PickReaction.primary).font(.system(size: 15))
-                    // 카운트 0이면 숫자를 안 그린다 — "0"은 비어 있다는 사실을 굳이 읽어주는 숫자다.
-                    if count > 0 {
-                        Text(verbatim: "\(count)")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(mine ? DSColor.brand : .white.opacity(0.8))
-                            .lineLimit(1)
+            Group {
+                if let onReact {
+                    Button { onReact(PickReaction.primary) } label: {
+                        reactionBubble(count: count, mine: mine)
                     }
+                    .buttonStyle(.plain)
+                } else {
+                    reactionBubble(count: count, mine: mine)
                 }
             }
-            .buttonStyle(.plain)
             .animation(.easeOut(duration: 0.15), value: mine)
             .accessibilityLabel(PickReaction.label)
             .accessibilityValue(Text(verbatim: "\(count)"))
@@ -791,6 +790,19 @@ private struct PickCard: View {
                 PostHogSDK.shared.capture("pick_shared")
             })
             .accessibilityLabel("Share")
+        }
+    }
+
+    private func reactionBubble(count: Int, mine: Bool) -> some View {
+        bubble(tinted: mine) {
+            Text(verbatim: PickReaction.primary).font(.system(size: 15))
+            // 카운트 0이면 숫자를 안 그린다 — "0"은 비어 있다는 사실을 굳이 읽어주는 숫자다.
+            if count > 0 {
+                Text(verbatim: "\(count)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(mine ? DSColor.brand : .white.opacity(0.8))
+                    .lineLimit(1)
+            }
         }
     }
 
@@ -932,7 +944,7 @@ private struct PickSkeletonCard: View {
 
 /// 카드 아트워크가 커지면서 재생 화면으로 이어지는 전환. 재생 화면은 검은 풀스크린이라
 /// "확대 + 뒤가 어두워짐"이 전환 하나로 만들어진다. 17에선 기본 전환으로 조용히 폴백한다.
-private extension View {
+extension View {
     @ViewBuilder
     func pickZoomSource(id: Int, in namespace: Namespace.ID) -> some View {
         if #available(iOS 18.0, *) {
