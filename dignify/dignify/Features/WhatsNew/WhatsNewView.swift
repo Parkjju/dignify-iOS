@@ -13,6 +13,8 @@ enum Changelog {
         Release(version: "1.0.8", notes: [
             "Picks: put a few tracks together and send them out.",
             "React to other people's picks with an emoji.",
+            "Share a pick as a card for Instagram or anywhere else.",
+            "Rename a pick after you post it.",
             "Find dignify on Instagram from My Page.",
         ]),
         Release(version: "1.0.7", notes: [

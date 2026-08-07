@@ -131,6 +131,11 @@ private struct TutorialPage: Identifiable {
             body: "Tap any track in My Page to play its preview right there."
         ),
         TutorialPage(
+            icon: symbol("square.stack.fill"),
+            title: "Make a pick",
+            body: "Put a few tracks together in the Picks tab. Other people can play it and react with 🔥."
+        ),
+        TutorialPage(
             icon: symbol("person.crop.circle.badge.plus"),
             title: "Missing an artist?",
             body: "Search for them and tap Request — or add one from Artist Requests in My Page."
