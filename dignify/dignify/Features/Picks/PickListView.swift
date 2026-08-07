@@ -36,13 +36,8 @@ struct PickListView: View {
     @State private var justCreatedPick = false
 
     /// 픽 코치마크를 이미 봤는지. 1회성이라 로컬에만 둔다.
-    /// **DEBUG에선 메모리에만 둔다** — `@AppStorage`면 한 번 보고 나서 다시 보려면 앱을 지워야 한다.
-    /// 다시 켜면 초기화되므로 재빌드만으로 계속 확인할 수 있다.
-#if DEBUG
-    @State private var seenPicksCoach = false
-#else
+    /// 다시 보려면 앱을 지우고 깔면 된다.
     @AppStorage("seenPicksCoach") private var seenPicksCoach = false
-#endif
 
     /// 코치마크는 **가리킬 게 실제로 있을 때만** 뜬다. 카드가 없으면 뚫을 자리가 없고,
     /// 시트·재생 화면이 떠 있으면 그 위에 그려봐야 엉뚱한 자리를 가리킨다.
