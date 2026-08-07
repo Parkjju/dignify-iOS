@@ -2668,6 +2668,16 @@
         }
       }
     },
+    "That nickname can't be used. Try another one." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용할 수 없는 닉네임이에요. 다른 이름을 써주세요."
+          }
+        }
+      }
+    },
     "The beat and the synths" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -96,6 +96,10 @@ struct MyPageView: View {
             } catch APIError.server(_, _, let status) where status == 409 {
                 reopenNickEdit(previous: previous, attempted: new,
                                error: String(localized: "This nickname is already in use."))
+            } catch APIError.server("USER_NICKNAME_INVALID", _, _) {
+                // 서버 메시지는 한국어로 고정돼 있어 그대로 못 쓴다 — 코드로만 분기하고 문구는 여기서 낸다.
+                reopenNickEdit(previous: previous, attempted: new,
+                               error: String(localized: "That nickname can't be used. Try another one."))
             } catch {
                 reopenNickEdit(previous: previous, attempted: new,
                                error: String(localized: "Couldn't update. Please try again."))
