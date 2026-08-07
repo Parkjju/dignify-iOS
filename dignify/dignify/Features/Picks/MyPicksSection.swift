@@ -11,7 +11,8 @@ import PostHog
 ///
 /// **할 수 있는 건 조회와 삭제 두 개뿐이다**(`13_mypage_ia_after_picks.md` §3).
 /// 곡 구성 수정은 삭제 후 재게시고(반응이 붙은 픽의 곡이 사후에 바뀌면 그 반응이 무엇에
-/// 대한 것이었는지가 무너진다), 제목 수정은 서버에만 있고 진입점을 아직 안 만들었다.
+/// 대한 것이었는지가 무너진다), 제목 수정 진입점은 픽 탭의 `···` 한 곳에만 둔다 —
+/// 같은 동작을 두 화면에 깔면 낙관적 갱신과 롤백을 두 벌 관리하게 된다.
 struct MyPicksSection: View {
     @Environment(AppSession.self) private var session
 
@@ -23,11 +24,16 @@ struct MyPicksSection: View {
     /// 한 번 받아오면 재진입해도 다시 안 받는다(크레이트와 같은 규칙).
     @State private var loaded = false
 
+    /// 픽 탭에서 지운 픽은 이 배열엔 아직 남아 있다. 요약 행과 개수가 어긋나지 않게 같이 거른다.
+    private var visible: [API.Pick] {
+        picks.filter { !session.deletedPickIds.contains($0.pickId) }
+    }
+
     var body: some View {
         // 픽이 없으면 섹션을 통째로 숨긴다 — 안 만드는 유저가 다수라 빈 껍데기를 상시 노출할
         // 이유가 없다. 로딩 스켈레톤도 같은 이유로 안 깐다(대부분에겐 결국 사라질 자리다).
         VStack(alignment: .leading, spacing: 12) {
-            if let latest = picks.first {
+            if let latest = visible.first {
                 // 구분선은 **섹션이 자기 위의 것을 갖는다.** 픽이 없어 이 블록이 통째로 빠지면
                 // 선도 같이 빠져서, 통계와 크레이트 사이에 선이 두 줄 남지 않는다.
                 Divider().padding(.horizontal, 20)
@@ -47,7 +53,7 @@ struct MyPicksSection: View {
     }
 
     private var countText: String {
-        nextCursor == nil ? "\(picks.count)" : "\(picks.count)+"
+        nextCursor == nil ? "\(visible.count)" : "\(visible.count)+"
     }
 
     /// 가장 최근 픽 한 장을 얼굴로 세운다. 개수만 있는 행은 무엇이 들어 있는지를 안 알려준다.
@@ -87,15 +93,7 @@ struct MyPicksSection: View {
     private func load() async {
         guard !loaded else { return }
         guard let res = try? await session.api.send(.picks(mine: true), as: API.PickListResponse.self)
-        else {
-            #if DEBUG
-            // 백엔드 `GET /picks`가 아직 안 나가서, 실패하면 화면이 통째로 숨겨져 눈으로 볼 방법이 없다.
-            // 픽 탭(`PickListView.load`)과 같은 폴백이고, 서버가 나오면 두 블록을 같이 지운다.
-            picks = (PickPreview.picks + PickPreview.edgeCases).filter(\.isMine)
-            loaded = true
-            #endif
-            return
-        }
+        else { return }
         picks = res.items
         nextCursor = res.hasMore ? res.nextCursor : nil
         loaded = true
@@ -109,6 +107,7 @@ struct MyPicksSection: View {
 /// 첫 페이지는 섹션이 이미 받아뒀으므로 여기서 다시 안 부른다(이어받기만 한다).
 private struct MyPicksView: View {
     @Environment(AppSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
 
     @Binding var picks: [API.Pick]
     @Binding var nextCursor: String?
@@ -118,10 +117,15 @@ private struct MyPicksView: View {
     @State private var deleteTarget: API.Pick?
     @Namespace private var zoomNamespace
 
+    /// 섹션과 같은 필터. 픽 탭에서 지운 픽이 이 목록에 남아 있으면 안 된다.
+    private var visible: [API.Pick] {
+        picks.filter { !session.deletedPickIds.contains($0.pickId) }
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 14) {
-                ForEach(picks) { pick in
+                ForEach(visible) { pick in
                     PickCard(
                         pick: pick,
                         zoomNamespace: zoomNamespace,
@@ -132,7 +136,7 @@ private struct MyPicksView: View {
                         onMenu: { deleteTarget = pick }
                     )
                     .onAppear {
-                        guard pick.pickId == picks.last?.pickId else { return }
+                        guard pick.pickId == visible.last?.pickId else { return }
                         Task { await loadMore() }
                     }
                 }
@@ -146,8 +150,11 @@ private struct MyPicksView: View {
             FeedView(mode: .pick(id: pick.pickId, nickname: pick.nickname))
                 .pickZoomTransition(id: pick.pickId, in: zoomNamespace)
         }
-        .confirmationDialog("Delete this pick?", isPresented: deleteBinding, presenting: deleteTarget) { pick in
+        // 액션시트가 아니라 알럿이다 — 되돌릴 수 없는 동작은 화면 가운데서 한 번 막아야
+        // 손가락이 지나가는 자리에서 끝나지 않는다. 차단 확인(`PickListView`)과 같은 모양.
+        .alert("Delete this pick?", isPresented: deleteBinding, presenting: deleteTarget) { pick in
             Button("Delete", role: .destructive) { delete(pick) }
+            Button("Cancel", role: .cancel) {}
         } message: { _ in
             Text("This can't be undone, and the reactions on it go too.")
         }
@@ -185,9 +192,17 @@ private struct MyPicksView: View {
         guard let index = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
         picks.remove(at: index)
         PostHogSDK.shared.capture("pick_deleted", properties: ["source": "profile"])
+        // 마지막 한 장을 지웠으면 이 화면엔 볼 게 없다. 빈 목록을 띄워두면 뒤로 가는 것 말고
+        // 할 게 없는 화면이 남는다 — 지운 결과(줄어든 요약 행)는 프로필에서 바로 보인다.
+        if visible.isEmpty { dismiss() }
         Task {
-            do { try await session.api.send(.deletePick(id: pick.pickId)) }
-            catch { picks.insert(pick, at: min(index, picks.count)) }
+            do {
+                try await session.api.send(.deletePick(id: pick.pickId))
+                // 픽 탭이 들고 있는 자기 목록에서도 빠지게 알린다. 서버 삭제가 끝난 뒤에만.
+                session.deletedPickIds.insert(pick.pickId)
+            } catch {
+                picks.insert(pick, at: min(index, picks.count))
+            }
         }
     }
 }

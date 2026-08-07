@@ -106,20 +106,32 @@ struct ShareCardView: View {
         }
     }
 
-    private var footer: some View {
+    private var footer: some View { ShareCardFooter() }
+}
+
+/// 공유 카드 하단 브랜드 블록. 트랙 카드·픽 카드가 같이 쓴다 —
+/// 카드마다 따로 그리면 폰트나 문구가 갈려서 같은 앱이 만든 것으로 안 읽힌다.
+struct ShareCardFooter: View {
+    var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
                 DSBrandMark(size: 22)
-                Text("dignify")
+                Text(verbatim: "dignify")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
             }
-            Text("dig deeper")
+            Text(verbatim: "dig deeper")
                 .font(.system(size: 13, weight: .medium))
                 .tracking(0.5)
                 .foregroundStyle(.white.opacity(0.65))
         }
     }
+}
+
+/// 공유 시트에 실을 렌더 완료 이미지. `.sheet(item:)`에 물리려고 id만 붙인 껍데기다.
+struct ShareImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
 }
 
 enum ShareCard {
@@ -134,7 +146,8 @@ enum ShareCard {
         return renderer.uiImage
     }
 
-    private static func loadImage(_ url: URL?) async -> UIImage? {
+    /// 픽 카드도 같은 로더를 쓴다(캐시 우선). internal인 이유가 그것뿐이다.
+    static func loadImage(_ url: URL?) async -> UIImage? {
         guard let url else { return nil }
         let request = URLRequest(url: url)
         if let cached = URLCache.shared.cachedResponse(for: request), let img = UIImage(data: cached.data) {

@@ -151,7 +151,8 @@ nonisolated enum API {
     /// `reactions`는 카운트 0인 이모지 키가 아예 없다.
     struct Pick: Decodable, Identifiable {
         let pickId: Int
-        let title: String?
+        /// 제목 수정(`PUT /picks/{id}/title`)이 낙관적으로 갈아끼운다. nil = 제목 없음(폴백).
+        var title: String?
         let nickname: String
         let isMine: Bool
         /// 시딩(운영자) 픽. 렌더에도 쓰지만 존재 이유의 절반은 계측이다 —

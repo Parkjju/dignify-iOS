@@ -1,9 +1,10 @@
 #if DEBUG
 import Foundation
 
-/// 프리뷰 전용 목업. 백엔드에 `picks`가 아직 없어서 화면을 눈으로 확인할 방법이 이것뿐이다.
+/// 프리뷰 전용 목업. 서버가 나온 뒤로 실행 중 폴백은 사라졌고, `#Preview` 캔버스에서만 쓴다 —
+/// 실데이터로는 한계값(닉네임 20자·30곡·긴 폴백 제목)을 만들어낼 방법이 없다.
 /// 아트워크는 실제 카탈로그 URL이라 스택 썸네일이 진짜 크기·비율로 보인다.
-/// ponytail: 릴리스 빌드엔 안 실린다. 서버가 나오면 통째로 지운다.
+/// ponytail: 릴리스 빌드엔 안 실린다.
 enum PickPreview {
     static let artwork = [
         "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b3/27/1f/b3271f8d-0091-aacf-e1df-a8e1b4b7981b/859735924583_cover.jpg/100x100bb.jpg",

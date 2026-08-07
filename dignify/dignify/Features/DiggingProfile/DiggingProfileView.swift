@@ -417,11 +417,6 @@ struct DiggingProfileView: View {
 }
 
 /// UIImage를 .sheet(item:)로 실어보내기 위한 Identifiable 래퍼.
-private struct ShareImage: Identifiable {
-    let id = UUID()
-    let image: UIImage
-}
-
 #Preview {
     NavigationStack { DiggingProfileView() }
         .environment(AppSession())

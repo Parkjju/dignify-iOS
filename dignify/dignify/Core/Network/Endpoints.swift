@@ -15,6 +15,7 @@ private nonisolated struct GenreIdsBody: Encodable { let genreIds: [Int] }
 private nonisolated struct ArtistRequestBody: Encodable { let artistName: String }
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
 private nonisolated struct PickBody: Encodable { let title: String?; let trackIds: [Int] }
+private nonisolated struct PickTitleBody: Encodable { let title: String? }
 private nonisolated struct ReactionBody: Encodable { let emoji: String }
 /// `detail`은 `OTHER`일 때만 채워진다(유저가 직접 쓴 사유). 빈 문자열은 넘기지 않는다 —
 /// 빈 값과 null이 둘 다 "안 씀"이면 서버에서 판정이 두 갈래로 갈린다.
@@ -115,6 +116,13 @@ nonisolated extension Endpoint {
 
     static func pickDetail(id: Int) -> Endpoint {
         Endpoint(method: .get, path: "/picks/\(id)")
+    }
+
+    /// 제목만 고친다. 곡 구성은 못 고친다 — 삭제 후 재게시가 `pick_id`를 바꿔 반응을 통째로 날린다.
+    /// `PATCH`가 아니라 단수 하위 자원의 `PUT`인 이유: 키 생략과 null이 갈리면 "제목 삭제"가 모호해진다.
+    /// nil이면 키가 빠지는데 서버가 null과 같게 받는다(둘 다 제목 삭제). 응답 204.
+    static func updatePickTitle(id: Int, title: String?) -> Endpoint {
+        Endpoint(method: .put, path: "/picks/\(id)/title", body: PickTitleBody(title: title))
     }
 
     static func deletePick(id: Int) -> Endpoint {

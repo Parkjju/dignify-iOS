@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 특집 세트 완주 직후 띄우는 푸시 권한 안내 팝업.
+/// 푸시 권한 안내 팝업. 특집 세트 완주 직후(피드)와 첫 픽 게시 직후(픽 탭)가 같이 쓴다 —
+/// 문구만 갈아끼우고 나머지 동작은 공유한다.
 ///
 /// iOS는 설치당 시스템 팝업을 한 번만 띄워준다. 맥락 없이 그 한 번을 쓰면 거부당했을 때
 /// 되돌릴 방법이 없으므로, 먼저 이 팝업에서 물어보고 "알림 받기"를 누른 사람에게만
@@ -12,6 +13,10 @@ import SwiftUI
 /// 바로 뒤에 진짜 시스템 팝업이 오는 구조라, 회색 룩을 흉내 내면 가짜 시스템 다이얼로그가
 /// 된다. 브랜드 컬러·우리 타이포로 명백히 우리 것임을 드러내는 게 그 선을 지키는 방법.
 struct PushOptInPopup: View {
+    /// 기본값은 특집 세트 맥락. 호출부가 자기 맥락 문구를 넘긴다 —
+    /// 알림이 무엇을 알리는지가 맥락마다 다른데 한 문구로 뭉치면 물어보는 이유가 사라진다.
+    var title: LocalizedStringKey = "This week's set, all done"
+    var message: LocalizedStringKey = "Those were dug up by us, by hand. We do it again every week — want a heads-up when the next one drops?"
     let onAccept: () -> Void
     let onDecline: () -> Void
 
@@ -37,12 +42,12 @@ struct PushOptInPopup: View {
             DSBrandMark(size: 44)
                 .padding(.bottom, 2)
 
-            Text("This week's set, all done")
+            Text(title)
                 .font(DSTypography.title2)
                 .foregroundStyle(DSColor.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text("Those were dug up by us, by hand. We do it again every week — want a heads-up when the next one drops?")
+            Text(message)
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
                 .multilineTextAlignment(.center)

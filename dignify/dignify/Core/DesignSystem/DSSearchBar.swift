@@ -60,6 +60,6 @@ struct DSSearchBar: View {
 #Preview {
     @Previewable @State var text = ""
 
-    DSSearchBar(text: $text, placeholder: "Search artists, tracks, genres")
+    DSSearchBar(text: $text, placeholder: "Search artists, tracks")
         .padding()
 }

@@ -28,6 +28,30 @@ struct PickListView: View {
     /// 차단·신고 숨김은 로컬 전용(§8). 서버는 차단을 모르고, 신고는 쌓기만 한다.
     @AppStorage(LocalModeration.blockedKey) private var blockedRaw = ""
     @AppStorage(LocalModeration.hiddenPicksKey) private var hiddenRaw = ""
+    /// 푸시 소프트 프롬프트. **피드와 같은 플래그를 공유한다** — 한 유저에게 한 번이면 충분하고,
+    /// 이미 거절한 사람에게 맥락만 바꿔 또 묻는 건 스팸이다. 어느 쪽이 잘 먹는지는 `source`로 본다.
+    @AppStorage("didOfferPush") private var didOfferPush = false
+    @State private var showPushOffer = false
+    /// 방금 픽을 올렸는가. 만들기 시트가 **완전히 닫힌 뒤** 물어보려고 잠깐 들고 있는다.
+    @State private var justCreatedPick = false
+
+    /// 픽 코치마크를 이미 봤는지. 1회성이라 로컬에만 둔다.
+    /// **DEBUG에선 메모리에만 둔다** — `@AppStorage`면 한 번 보고 나서 다시 보려면 앱을 지워야 한다.
+    /// 다시 켜면 초기화되므로 재빌드만으로 계속 확인할 수 있다.
+#if DEBUG
+    @State private var seenPicksCoach = false
+#else
+    @AppStorage("seenPicksCoach") private var seenPicksCoach = false
+#endif
+
+    /// 코치마크는 **가리킬 게 실제로 있을 때만** 뜬다. 카드가 없으면 뚫을 자리가 없고,
+    /// 시트·재생 화면이 떠 있으면 그 위에 그려봐야 엉뚱한 자리를 가리킨다.
+    /// 조건이 안 맞으면 본 것으로 치지 않고 다음 진입에 다시 시도한다.
+    private var showsCoach: Bool {
+        !seenPicksCoach && !visiblePicks.isEmpty && !isLoading
+            && playing == nil && menuTarget == nil && blockTarget == nil && !showCompose
+            && !showPushOffer
+    }
 
 #if DEBUG
     init() {}
@@ -42,7 +66,13 @@ struct PickListView: View {
     private var visiblePicks: [API.Pick] {
         let blocked = Set(LocalModeration.items(blockedRaw))
         let hidden = Set(LocalModeration.items(hiddenRaw))
-        return picks.filter { !blocked.contains($0.nickname) && !hidden.contains(String($0.pickId)) }
+        // 프로필에서 지운 픽은 여기 배열엔 아직 남아 있다. 목록을 다시 받지 않고 걸러낸다 —
+        // 재요청하면 스크롤 위치와 이미 받아둔 페이지가 통째로 날아간다.
+        return picks.filter {
+            !blocked.contains($0.nickname)
+                && !hidden.contains(String($0.pickId))
+                && !session.deletedPickIds.contains($0.pickId)
+        }
     }
 
     var body: some View {
@@ -51,22 +81,56 @@ struct PickListView: View {
         // (`toolbarColorScheme`은 좁아진 제목만 바꾼다), UIKit appearance는 navigationItem·
         // navigationBar 어디에 박아도 NavigationStack이 곧바로 자기 것으로 되돌린다
         // (전역 프록시·async 재적용까지 전부 밀렸다).
-        content
+        // **`content`를 그대로 두고 `.task`를 붙이면 안 된다.** 조건 분기라 스켈레톤→목록처럼
+        // 분기가 바뀔 때마다 뷰 정체성이 갈리고, SwiftUI가 옛 분기의 `.task`를 취소한다 —
+        // 진행 중이던 요청이 같이 죽어서 로그에 `/picks transport: 취소됨`만 남는다.
+        // ZStack 하나로 정체성을 고정하면 분기가 바뀌어도 요청이 살아남는다.
+        ZStack { content }
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DSColor.pickBackground)
             .toolbar(.hidden, for: .navigationBar)
             // 목록이 있을 때만. 빈 화면엔 이미 큰 CTA가 있어 두 개가 겹친다.
             .overlay(alignment: .bottom) { if !visiblePicks.isEmpty { composeButton } }
-            .task { await load() }
+            // 탭에 **도달한** 사람 수. 이게 없으면 `pick_opened`가 낮을 때 "와서 안 듣는 것"과
+            // "탭에 아예 안 오는 것"을 못 가른다 — 콜드스타트에선 대응이 정반대다.
+            // `.task`는 뷰 수명당 한 번이라 앱 실행당 첫 진입에서만 찍힌다.
+            .task {
+                PostHogSDK.shared.capture("pick_list_viewed")
+                await load()
+            }
             .refreshable { await load(force: true) }
-            .sheet(isPresented: $showCompose) {
-                PickComposeView { await load(force: true) }
+            // 게시 직후가 아니라 **시트가 닫힌 뒤**에 물어본다. 시트 위에 팝업을 띄우면
+            // 시트가 내려가면서 같이 사라진다(2026-07-21 중첩 제시 함정과 같은 부류).
+            .sheet(isPresented: $showCompose, onDismiss: offerPushIfNeeded) {
+                PickComposeView {
+                    justCreatedPick = true
+                    await load(force: true)
+                }
             }
             .fullScreenCover(item: $playing) { pick in
                 FeedView(mode: .pick(id: pick.pickId, nickname: pick.nickname))
                     .pickZoomTransition(id: pick.pickId, in: zoomNamespace)
             }
             .overlay(alignment: .top) { toastView }
+            .overlay {
+                if showPushOffer {
+                    PushOptInPopup(
+                        title: "Your pick is up",
+                        message: "We'll let you know when someone drops a 🔥 on it.",
+                        onAccept: {
+                            PostHogSDK.shared.capture("push_optin_accepted",
+                                                      properties: ["source": "pick_created"])
+                            session.requestPushAuthorization(source: "pick_created")
+                            withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                        },
+                        onDecline: {
+                            PostHogSDK.shared.capture("push_optin_declined",
+                                                      properties: ["source": "pick_created"])
+                            withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                        }
+                    )
+                }
+            }
             // 1뎁스든 2뎁스든 **같은 시트 하나**를 닫았다 다시 연다(`menuStage`만 갈아끼운다).
             // `.sheet`을 두 개 달면 동시에 뜨지 않아도 서로를 잡아먹는다(2026-07-21에 밟음).
             // 고른 것은 `pendingAction`에 담아두고 **`onDismiss`에서** 실행한다 —
@@ -84,6 +148,23 @@ struct PickListView: View {
                 Button("Cancel", role: .cancel) {}
             } message: { _ in
                 Text(blockAlertMessage)
+            }
+            // 코치마크는 **맨 바깥**에 올린다. 여기까지 와야 떠 있는 만들기 버튼(`.overlay`)의
+            // 앵커도 같이 읽히고, 오버레이가 그 버튼 위에 덮인다.
+            // 좌표는 한 줄도 안 적는다 — 대상 뷰가 올린 `Anchor<CGRect>`를 여기 `GeometryProxy`가
+            // 자기 좌표계로 풀어주므로 기기 크기·Dynamic Type이 달라져도 구멍이 따라간다.
+            .overlayPreferenceValue(CoachAnchorKey.self) { anchors in
+                GeometryReader { proxy in
+                    if showsCoach {
+                        CoachMarkOverlay(steps: PicksCoach.steps,
+                                         anchors: anchors,
+                                         proxy: proxy) { seenPicksCoach = true }
+                    }
+                }
+                // **`GeometryReader`에 걸어야** 어둠이 화면 끝까지 가면서 `proxy` 좌표계도
+                // 같이 넓어진다. 안쪽 오버레이에만 걸면 좌표계가 안 따라와 구멍과 카드가
+                // 상단 인셋만큼 위로 밀린다.
+                .ignoresSafeArea()
             }
     }
 
@@ -110,12 +191,23 @@ struct PickListView: View {
             }
             .padding(.top, 12)
         } else if loadFailed && visiblePicks.isEmpty {
-            errorView
+            pullable { errorView }
         } else if visiblePicks.isEmpty {
-            emptyView
+            pullable { emptyView }
         } else {
             list
         }
+    }
+
+    /// 당겨서 새로고침은 **스크롤 뷰가 있어야** 생긴다. 빈 화면과 오류 화면엔 스크롤할 게 없어서
+    /// `.refreshable`이 통째로 죽어 있었다 — 정작 다시 받아봐야 하는 상태가 이 둘이다.
+    /// `scrollBounceBehavior(.always)`가 내용이 짧아도 당겨지게 하고,
+    /// `containerRelativeFrame`이 화면 높이를 채워 가운데 정렬을 그대로 남긴다.
+    private func pullable<V: View>(@ViewBuilder _ view: () -> V) -> some View {
+        ScrollView {
+            view().containerRelativeFrame(.vertical)
+        }
+        .scrollBounceBehavior(.always)
     }
 
     private var list: some View {
@@ -137,7 +229,8 @@ struct PickListView: View {
                             guard requireAccount() else { return }
                             menuStage = .actions
                             menuTarget = pick
-                        }
+                        },
+                        coachAnchors: index == 0
                     )
                     .onAppear {
                         guard pick.pickId == visiblePicks.last?.pickId else { return }
@@ -227,6 +320,7 @@ struct PickListView: View {
             .frame(height: 48)
             .background(DSColor.brand, in: Capsule())
             .shadow(color: DSColor.brand.opacity(0.35), radius: 12, y: 6)
+            .coachAnchor(.compose)
         }
         .buttonStyle(.plain)
         .padding(.bottom, 16)
@@ -251,23 +345,33 @@ struct PickListView: View {
 
     private func load(force: Bool = false) async {
         guard force || picks.isEmpty else { return }
-        isLoading = true
+        // 스켈레톤은 첫 로드에만 켠다. 당겨서 새로고침 중에 켜면 지금 당기고 있는 스크롤 뷰가
+        // 스켈레톤 분기로 교체돼 새로고침 인디케이터가 손안에서 사라진다(시스템 스피너로 충분하다).
+        if !force { isLoading = true }
         loadFailed = false
         do {
             let res = try await session.api.send(.picks(), as: API.PickListResponse.self)
             picks = res.items
             nextCursor = res.hasMore ? res.nextCursor : nil
-        } catch {
             #if DEBUG
-            // 백엔드에 /picks가 아직 없어서, 시뮬레이터에서 화면을 실제로 굴려보려면 목업이 필요하다.
-            // 서버가 나오면 이 블록만 지운다(그때까지 DEBUG에선 loadFailed 상태를 볼 수 없다).
-            // 한계값 카드까지 붙여야 실기기에서 닉네임 20자·30곡·반응 5종을 눈으로 본다
-            // (#Preview는 캔버스 전용이라 기기엔 안 뜬다).
-            picks = PickPreview.picks + PickPreview.edgeCases
-            print("[Picks] 목록 요청 실패 → 목업으로 대체: \(error)")
-            #else
-            loadFailed = true
+            // 로컬 숨김·차단은 화면에서 조용히 지워버려서, 서버가 준 걸 못 받은 것처럼 보인다.
+            // 실제로 한 번 밟았다 — DEBUG 목업 픽이 쓰던 id(1~6)를 신고해두면 같은 id의
+            // 진짜 픽이 계속 숨겨진다. 가려진 장수를 찍어야 응답 문제와 구분된다.
+            let hiddenCount = picks.count - visiblePicks.count
+            if hiddenCount > 0 { print("[Picks] 로컬 숨김/차단으로 \(hiddenCount)장 가려짐") }
             #endif
+        } catch {
+            // 취소는 실패가 아니다. 탭을 옮기거나 화면을 덮으면 `.task`가 요청을 취소하는데,
+            // 그걸 오류로 접으면 돌아왔을 때 "Couldn't load"가 그대로 남는다 —
+            // `.task`는 뷰가 살아 있는 한 다시 안 돈다.
+            var cancelled = false
+            if let api = error as? APIError, case .transport(let underlying) = api {
+                cancelled = (underlying as? URLError)?.code == .cancelled
+            }
+            // **보여줄 게 남아 있으면 실패 표시를 세우지 않는다.** 실패해도 이전 목록은 그대로
+            // 두는데, 플래그만 켜두면 나중에 유저가 마지막 픽을 지워 목록이 빌 때
+            // 그 지난 실패가 "불러오지 못했어요"로 튀어나온다(빈 화면이 맞다).
+            if !cancelled { loadFailed = picks.isEmpty }
         }
         isLoading = false
     }
@@ -325,7 +429,10 @@ struct PickListView: View {
             do { try await session.api.send(endpoint) }
             catch {
                 guard let i = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
-                picks[i] = previous
+                // **카드를 통째로 되돌리면 안 된다.** 그 사이 성공한 제목 수정까지 옛 값으로
+                // 덮어쓴다(`title`이 낙관적 갱신 때문에 `var`다). 되돌릴 건 반응 두 필드뿐이다.
+                picks[i].reactions = previous.reactions
+                picks[i].myReaction = previous.myReaction
             }
         }
     }
@@ -368,6 +475,11 @@ struct PickListView: View {
         case .detail(let pick):
             menuStage = .detail
             menuTarget = pick
+        case .rename(let pick):
+            menuStage = .rename
+            menuTarget = pick
+        case .renamed(let pick, let title):
+            rename(pick, to: title)
         case .cancel: break
         }
     }
@@ -376,12 +488,57 @@ struct PickListView: View {
         blockedRaw = LocalModeration.adding(pick.nickname, to: blockedRaw)
     }
 
+    /// 제목만 바꾼다(§3). 낙관적으로 카드부터 고치고, 실패하면 되돌린 뒤 이유를 말한다 —
+    /// 금칙어(400 `PICK_TITLE_BLOCKED`)는 서버가 로케일에 맞춰 문구를 내려주므로 그대로 띄운다.
+    /// 조용히 되돌리면 유저는 저장이 된 줄 알고 나갔다가 옛 제목을 다시 본다.
+    private func rename(_ pick: API.Pick, to title: String?) {
+        guard let index = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
+        let previous = picks[index].title
+        guard previous != title else { return }
+        picks[index].title = title
+
+        Task {
+            do { try await session.api.send(.updatePickTitle(id: pick.pickId, title: title)) }
+            catch {
+                guard let i = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
+                picks[i].title = previous
+                // `error`는 `any Error`라 enum 케이스 패턴이 바로 안 붙는다 — 먼저 캐스팅한다.
+                if let apiError = error as? APIError, case .server(_, let message, _) = apiError {
+                    showToast(message)
+                } else {
+                    showToast(String(localized: "Couldn't save. Try again."))
+                }
+            }
+        }
+    }
+
     private func delete(_ pick: API.Pick) {
         picks.removeAll { $0.pickId == pick.pickId }
         PostHogSDK.shared.capture("pick_deleted", properties: ["source": "picks"])
         Task {
-            do { try await session.api.send(.deletePick(id: pick.pickId)) }
-            catch { await load(force: true) }
+            do {
+                try await session.api.send(.deletePick(id: pick.pickId))
+                // 프로필의 내 픽 목록·요약 행에도 반영시킨다. 서버 삭제가 끝난 뒤에만.
+                session.deletedPickIds.insert(pick.pickId)
+            } catch {
+                await load(force: true)
+            }
+        }
+    }
+
+    /// 첫 픽을 올린 직후에만 묻는다. 반응 알림이 알릴 대상이 방금 생겼기 때문이고,
+    /// 그전엔 알림이 무엇을 알리는지 유저가 겪은 적이 없다(로그인 직후 요청을 기각한 근거와 같다).
+    /// 게스트는 애초에 게시를 못 하지만, 조건이 화면 밖 상태에 기대지 않게 여기서도 확인한다.
+    private func offerPushIfNeeded() {
+        guard justCreatedPick else { return }
+        justCreatedPick = false
+        guard !didOfferPush, session.authState == .signedIn else { return }
+        Task {
+            // 이미 답한 유저(.notDetermined 아님)에겐 물어봐야 소용이 없다.
+            guard await session.pushAuthorizationUndecided() else { return }
+            PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "pick_created"])
+            didOfferPush = true
+            withAnimation(.easeOut(duration: 0.2)) { showPushOffer = true }
         }
     }
 
@@ -427,6 +584,10 @@ enum PickMenuAction {
     case cancel
     /// "기타"를 고른 것. 사유를 직접 받아야 해서 3뎁스(입력 폼)를 연다.
     case detail(API.Pick)
+    /// 내 픽의 "제목 수정"을 고른 것. 실제 수정이 아니라 **입력 폼을 열라는 뜻**이다.
+    case rename(API.Pick)
+    /// 입력 폼에서 저장을 누른 것. 마지막 인자가 nil이면 제목을 지운다(폴백으로 돌아간다).
+    case renamed(API.Pick, String?)
     /// 마지막 인자는 유저가 직접 쓴 사유. `OTHER`에서만 채워진다.
     case report(API.Pick, String, String?)
     case block(API.Pick)
@@ -440,7 +601,7 @@ enum PickMenuAction {
 /// 한 시트 안에서 내용만 갈아끼우면 높이가 툭 바뀌면서 어디서 온 화면인지가 안 읽힌다.
 /// 전환 안전성은 `.sheet(onDismiss:)`가 보장한다 — 닫힘이 끝난 뒤에만 다음 것을 연다.
 private struct PickMenuSheet: View {
-    enum Stage { case actions, reasons, detail }
+    enum Stage { case actions, reasons, detail, rename }
 
     let pick: API.Pick
     let stage: Stage
@@ -448,14 +609,17 @@ private struct PickMenuSheet: View {
 
     /// 3뎁스(기타 사유) 입력. 서버 `detail VARCHAR(200)`과 맞춘 상한.
     @State private var detailText = ""
+    /// 제목 수정 입력. 상한은 작성 화면과 같은 `PickTitle.maxLength`(30 grapheme).
+    @State private var titleText = ""
     @FocusState private var focused: Bool
     private let maxLength = 200
 
     private var rowCount: Int {
         switch stage {
         case .reasons: 3
-        case .actions: pick.isMine ? 1 : 2
-        case .detail: 0
+        // 내 픽 = 제목 수정·삭제, 남의 픽 = 신고·차단. 양쪽 다 두 줄이라 분기가 필요 없다.
+        case .actions: 2
+        case .detail, .rename: 0
         }
     }
 
@@ -466,6 +630,8 @@ private struct PickMenuSheet: View {
         // 입력 폼은 행 구조가 아니다. `ArtistRequestSheet`의 280에서 입력창이 2줄이라
         // 한 줄분(+22)만 더 준다 — 그 시트와 같아 보이게 하는 게 목적이다.
         if stage == .detail { return 302 }
+        // 제목은 한 줄이라 입력창이 신고 사유(2줄)보다 낮다. 글자 수 표시 한 줄분(+20)만 더 준다.
+        if stage == .rename { return 272 }
         return Metrics.top + CGFloat(rowCount) * Metrics.row
             + Metrics.gap + Metrics.cancel + Metrics.bottom
     }
@@ -489,6 +655,8 @@ private struct PickMenuSheet: View {
                 // 여백은 `ArtistRequestSheet`와 똑같이 사방 24 한 번으로 준다.
                 // 바깥에서 top/bottom을 또 주면 그 시트와 수치가 어긋난다.
                 detailForm.padding(24)
+            } else if stage == .rename {
+                renameForm.padding(24)
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     rows
@@ -504,7 +672,7 @@ private struct PickMenuSheet: View {
         .presentationDetents([.height(sheetHeight)])
         // 입력 폼엔 안 띄운다 — `ArtistRequestSheet`에도 없고, 인디케이터가 차지하는
         // 위 20pt 때문에 제목 시작 높이가 그 시트와 어긋난다.
-        .presentationDragIndicator(stage == .detail ? .hidden : .visible)
+        .presentationDragIndicator(stage == .detail || stage == .rename ? .hidden : .visible)
         // 지면·카드보다 한 단 밝게. 카드와 같은 색이면 시트가 지면에 눌어붙어 보인다.
         .presentationBackground(DSColor.pickElevated)
         .presentationCornerRadius(28)
@@ -557,6 +725,62 @@ private struct PickMenuSheet: View {
         .onAppear { focused = true }
     }
 
+    /// 제목 수정. **곡 구성은 안 건드린다** — 삭제 후 재게시는 `pick_id`가 바뀌어 반응이 통째로 날아간다.
+    /// 폼 구성은 `detailForm`과 같고, 입력이 한 줄이라 글자 수 표시가 붙는다(작성 화면과 같은 규칙).
+    private var renameForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Edit title")
+                    .font(DSTypography.title2)
+                    .foregroundStyle(.white)
+                Spacer()
+                Text(verbatim: "\(titleText.count) / \(PickTitle.maxLength)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(titleText.count >= PickTitle.maxLength
+                                     ? DSColor.destructive : .white.opacity(0.35))
+                    .monospacedDigit()
+            }
+
+            // 플레이스홀더 = 비웠을 때 실제로 나올 제목. 작성 화면과 같은 규칙이라
+            // "비우면 이렇게 된다"를 따로 설명할 필요가 없다.
+            TextField("", text: $titleText, prompt: renamePrompt)
+                .font(DSTypography.body)
+                .foregroundStyle(.white)
+                .tint(DSColor.pickAccent)
+                .focused($focused)
+                .onChange(of: titleText) { _, new in
+                    // Swift는 grapheme, Postgres varchar는 code point로 센다 — 길이 합의는
+                    // 포기하고 클라가 30에서 자르고 서버는 컬럼 상한만 지킨다.
+                    if new.count > PickTitle.maxLength {
+                        titleText = String(new.prefix(PickTitle.maxLength))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 48)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+
+            Button {
+                choose(.renamed(pick, PickTitle.normalized(titleText)))
+            } label: {
+                Text("Save")
+                    .font(DSTypography.bodyMedium)
+                    .foregroundStyle(DSColor.pickBackground)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(DSColor.pickAccent, in: RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        // 비워서 저장할 수 있다 — 그건 실수가 아니라 "제목을 지우고 폴백으로 돌린다"는 뜻이다.
+        .onAppear {
+            titleText = pick.title ?? ""
+            focused = true
+        }
+    }
+
+    private var renamePrompt: Text {
+        Text(PickTitle.fallback(for: pick)).foregroundColor(.white.opacity(0.35))
+    }
+
     /// 플레이스홀더는 흰색이 아니라 옅게. `prompt:`로 넘겨야 색을 줄 수 있다.
     private var detailPrompt: Text {
         Text("Tell us what's wrong").foregroundColor(.white.opacity(0.35))
@@ -579,6 +803,10 @@ private struct PickMenuSheet: View {
             row("Something else") { choose(.detail(pick)) }
         case .actions:
             if pick.isMine {
+                // 곡 구성은 없다 — 제목만 고칠 수 있다(§3). 곡을 바꾸는 건 삭제 후 재게시고,
+                // 그러면 `pick_id`가 바뀌어 붙어 있던 반응이 통째로 날아간다.
+                row("Edit title") { choose(.rename(pick)) }
+                divider
                 row("Delete", destructive: true) { choose(.delete(pick)) }
             } else {
                 row("Report") { choose(.reasons(pick)) }
@@ -589,8 +817,8 @@ private struct PickMenuSheet: View {
                     choose(.block(pick))
                 }
             }
-        case .detail:
-            // 입력 폼은 `detailForm`이 그린다. 여기까지 오지 않는다.
+        case .detail, .rename:
+            // 입력 폼은 `detailForm`/`renameForm`이 그린다. 여기까지 오지 않는다.
             EmptyView()
         }
     }
@@ -650,14 +878,29 @@ struct PickCard: View {
     /// nil이면 반응 버블이 **표시 전용**이 된다(프로필의 내 픽 섹션 — 할 수 있는 건 조회와 삭제뿐).
     let onReact: ((String) -> Void)?
     let onMenu: () -> Void
+    /// 코치마크가 가리킬 카드인가. 목록 첫 장에만 켠다 — 여러 장이 앵커를 올리면
+    /// 어느 카드를 뚫을지가 스크롤 위치에 따라 흔들린다.
+    var coachAnchors: Bool = false
+
+    @Environment(AppSession.self) private var session
+    /// 렌더가 끝난 공유 카드. 시트는 카드마다 하나씩 붙지만 뜨는 건 누른 카드 하나뿐이다
+    /// (화면 루트에 몰면 이 파일의 `.sheet` 세 개와 서로 잡아먹는다).
+    @State private var shareImage: ShareImage?
+    @State private var isPreparingShare = false
 
     private var title: String { pick.title ?? PickTitle.fallback(for: pick) }
 
-    /// 공유 문구. 픽 전용 웹 페이지도 딥링크도 아직 없어서 **텍스트만** 보낸다.
-    /// ponytail: `dignify-web`에 픽 페이지가 생기면 URL을 같이 넘긴다.
-    private var shareText: String {
-        String(localized: "dignify pick by @\(pick.nickname): \(title)",
-               comment: "공유 시트로 나가는 문구")
+    /// 곡 목록은 목록 응답에 없어서 재생용 상세를 한 번 더 부른다. 실패하면 곡 줄 없이
+    /// 커버·제목만으로 렌더한다 — 공유가 통째로 막히는 것보다 낫다.
+    private func prepareShare() async {
+        guard !isPreparingShare else { return }
+        isPreparingShare = true
+        defer { isPreparingShare = false }
+        // 시트를 연 순간만 잡는다. 실제로 어디에 올렸는지는 시스템이 안 알려준다.
+        PostHogSDK.shared.capture("pick_shared")
+        let detail = try? await session.api.send(.pickDetail(id: pick.pickId), as: API.PickDetail.self)
+        guard let image = await PickShareCard.render(pick: pick, tracks: detail?.items ?? []) else { return }
+        shareImage = ShareImage(image: image)
     }
 
     var body: some View {
@@ -678,6 +921,7 @@ struct PickCard: View {
         .padding(14)
         .background(DSColor.pickSurface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .padding(.horizontal, 16)
+        .sheet(item: $shareImage) { ShareSheet(items: [ImageShareSource(image: $0.image)]) }
     }
 
     /// 작성자가 맨 위 한 줄. `···`는 원형 버튼으로 오른쪽 끝 — 아트워크 위에 얹지 않는다.
@@ -739,6 +983,7 @@ struct PickCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture(perform: onPlay)
+        .coachAnchor(coachAnchors ? .play : nil)
     }
 
     /// 버블 행 — 반응·곡 수는 왼쪽, 공유는 오른쪽 끝.
@@ -758,6 +1003,7 @@ struct PickCard: View {
                 }
             }
             .animation(.easeOut(duration: 0.15), value: mine)
+            .coachAnchor(coachAnchors ? .react : nil)
             .accessibilityLabel(PickReaction.label)
             .accessibilityValue(Text(verbatim: "\(count)"))
             .accessibilityAddTraits(mine ? .isSelected : [])
@@ -775,20 +1021,24 @@ struct PickCard: View {
 
             Spacer(minLength: 0)
 
-            // 시스템 공유 시트. 픽 URL이 없어 텍스트만 나간다.
-            ShareLink(item: shareText) {
+            // 9:16 이미지 카드로 내보낸다. 텍스트만 보내면 받는 쪽엔 곡이 하나도 안 보이고,
+            // 픽을 열어줄 웹 페이지가 없어서 링크로도 못 만든다(`PickShareCardView`).
+            Button { Task { await prepareShare() } } label: {
                 bubble {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 15, weight: .semibold))
-                        // 심볼 무게중심이 아래로 처져 보여서 1pt 올린다.
-                        .offset(y: -1)
+                    if isPreparingShare {
+                        ProgressView().controlSize(.small).tint(.white)
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .semibold))
+                            // 심볼 무게중심이 아래로 처져 보여서 1pt 올린다.
+                            .offset(y: -1)
+                    }
                 }
                 .foregroundStyle(.white.opacity(0.8))
             }
-            // ShareLink엔 완료 콜백이 없다 — 시트를 연 순간만 잡는다(실제 전송 여부는 모름).
-            .simultaneousGesture(TapGesture().onEnded {
-                PostHogSDK.shared.capture("pick_shared")
-            })
+            .buttonStyle(.plain)
+            .disabled(isPreparingShare)
+            .coachAnchor(coachAnchors ? .share : nil)
             .accessibilityLabel("Share")
         }
     }

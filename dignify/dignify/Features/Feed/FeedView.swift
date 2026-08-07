@@ -125,21 +125,7 @@ struct FeedView: View {
             // 이전 화면의 player가 남아 그게 재생된다(loadSearch가 같은 함정을 기록해뒀다).
             audio.updateWindow(feeds: feedList, current: currentIndex)
         } catch {
-            #if DEBUG
-            // 백엔드에 /picks/{id}가 아직 없다. 일반 피드 앞부분을 픽인 척 꽂아 재생·배지·닫기를
-            // 시뮬레이터에서 실제로 눌러볼 수 있게 한다. 서버가 나오면 이 블록만 지운다.
-            if let res = try? await session.api.send(.feed(), as: API.FeedResponse.self) {
-                feedList = res.items.prefix(5).map(Feed.init)
-                currentIndex = 0
-                nextCursor = nil
-                audio.updateWindow(feeds: feedList, current: currentIndex)
-                print("[Picks] 픽 상세 요청 실패 → 피드로 대체: \(error)")
-            } else {
-                loadFailed = true
-            }
-            #else
             loadFailed = true
-            #endif
         }
         isLoading = false
     }
@@ -498,12 +484,14 @@ struct FeedView: View {
         if showPushOffer {
             PushOptInPopup(
                 onAccept: {
-                    PostHogSDK.shared.capture("push_optin_accepted")
+                    PostHogSDK.shared.capture("push_optin_accepted",
+                                              properties: ["source": "curation_done"])
                     session.requestPushAuthorization(source: "curation_done")
                     withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
                 },
                 onDecline: {
-                    PostHogSDK.shared.capture("push_optin_declined")
+                    PostHogSDK.shared.capture("push_optin_declined",
+                                              properties: ["source": "curation_done"])
                     withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
                 }
             )
@@ -589,7 +577,7 @@ struct FeedView: View {
                     // 40pt로 축소된 서치바에 아이콘이 클립되던 문제를 피한다.
                     DSSearchBar(
                         text: $searchText,
-                        placeholder: "Search artists, tracks, genres",
+                        placeholder: "Search artists, tracks",
                         backgroundStyle: DSColor.surface,
                         borderStyle: DSColor.borderLight,
                         isFocused: $searchFocused,
@@ -863,7 +851,7 @@ struct FeedView: View {
         guard !didOfferPush, session.authState == .signedIn else { return }
         Task {
             guard await session.pushAuthorizationUndecided() else { return }
-            PostHogSDK.shared.capture("push_optin_shown")
+            PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "curation_done"])
             didOfferPush = true
             withAnimation(.easeOut(duration: 0.2)) { showPushOffer = true }
         }

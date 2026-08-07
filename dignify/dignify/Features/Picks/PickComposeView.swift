@@ -20,7 +20,10 @@ struct PickComposeView: View {
     /// 확정된 검색어. 비어 있으면 크레이트 그리드를 본다.
     @State private var activeQuery = ""
     @State private var results: [PickTrack] = []
+    /// 검색 결과도 크레이트와 똑같이 페이지가 있다(10개씩). nil이면 더 없음.
+    @State private var searchCursor: String?
     @State private var isSearching = false
+    @State private var isPagingSearch = false
     @State private var showRequestSheet = false
 
     /// 선택 순서가 곧 재생 순서라 Set이 아니라 배열.
@@ -29,8 +32,11 @@ struct PickComposeView: View {
     @State private var titleText = ""
     @State private var isPosting = false
     @State private var errorMessage: String?
-    /// 제목 단계 미리보기의 `@닉네임`용. 없으면 그 줄만 빠진다(요청 실패가 화면을 막지 않는다).
+    /// 제목 단계 미리보기의 `@닉네임`용. 요청이 실패해도 화면은 막지 않는다.
     @State private var myNickname = ""
+    /// 미리보기 카드가 `PickCard`를 그대로 쓰는데 zoom 전환 네임스페이스를 요구한다.
+    /// 여기선 전환이 없어서 쓰이지 않는다.
+    @Namespace private var previewNamespace
 
     private let maxTracks = 30
 
@@ -58,7 +64,7 @@ struct PickComposeView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 DSSearchBar(text: $searchText,
-                            placeholder: "Search artists, tracks, genres",
+                            placeholder: "Search artists, tracks",
                             onSubmit: { runSearch() })
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -77,7 +83,12 @@ struct PickComposeView: View {
             }
             .navigationDestination(isPresented: $showTitleStep) { titleStep }
             .sheet(isPresented: $showRequestSheet) { ArtistRequestSheet(prefill: activeQuery) }
-            .task { await loadCrate() }
+            // 만들기를 **연** 횟수. `pick_created`와 짝지어야 "만들다 말았다"가 보인다 —
+            // 콜드스타트에서 유저 픽이 안 늘 때 곡 고르기에서 막히는지 게시에서 막히는지가 갈린다.
+            .task {
+                PostHogSDK.shared.capture("pick_compose_opened")
+                await loadCrate()
+            }
             // 검색어를 지우면 확정 상태도 풀려 크레이트 그리드로 돌아온다.
             .onChange(of: searchText) { _, text in
                 if text.trimmingCharacters(in: .whitespaces).isEmpty { activeQuery = "" }
@@ -132,9 +143,11 @@ struct PickComposeView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 16) {
                     ForEach(gridItems) { track in
                         cell(track)
+                            // 마지막 셀이 보이면 다음 페이지. 두 소스가 같은 그리드를 쓰므로
+                            // 어느 쪽을 이어받을지는 `loadMore`가 검색어 상태로 가른다.
                             .onAppear {
-                                guard activeQuery.isEmpty, track.trackId == crateGrid.last?.trackId else { return }
-                                Task { await loadCrate(more: true) }
+                                guard track.trackId == gridItems.last?.trackId else { return }
+                                Task { await loadMore() }
                             }
                     }
                 }
@@ -345,47 +358,38 @@ struct PickComposeView: View {
         }
     }
 
-    /// 목록에 실제로 깔릴 모습을 그대로 보여준다 — 제목을 비우면 폴백이 뜬다는 걸
-    /// 설명하는 대신 눈으로 보게 하는 게 짧다.
+    /// 목록에 실제로 깔릴 모습. **목록 카드를 그대로 쓴다** — 손으로 다시 그리면 카드가
+    /// 바뀔 때마다 여기가 조용히 낡는다(반응이 🔥 알약이 된 뒤에도 옛 `+` 원이 남아 있었고,
+    /// 순서도 커버가 제목 위로 뒤집혀 있었다).
+    ///
+    /// **탭은 통째로 막는다** — 재생·반응·공유·`···`가 전부 여기선 뜻이 없다.
     private var cardPreview: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // 목록 카드와 같은 세로 구성. 미리보기가 실제와 다르면 미리보기가 아니다.
-            VStack(alignment: .leading, spacing: 0) {
-                PickThumbnailStack(urls: selected.prefix(3).map(\.artworkUrl), trackCount: selected.count)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                Text(titleText.isEmpty ? placeholderTitle : titleText)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(DSColor.textPrimary)
-                    .lineSpacing(2)
-                    .lineLimit(2)
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    if !myNickname.isEmpty {
-                        Text(verbatim: "@\(myNickname)")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(DSColor.brand)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
-                    Text("\(selected.count) tracks · \(Date.now.formatted(.relative(presentation: .named)))")
-                        .font(.system(size: 12))
-                        .foregroundStyle(DSColor.textTertiary)
-                        .lineLimit(1)
-                }
-                .padding(.top, 8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // 반응 0인 카드의 모습 그대로. 행은 비어도 남는다.
-            Image(systemName: "plus")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(DSColor.textTertiary)
-                .frame(width: 30, height: 30)
-                .background(DSColor.background, in: Circle())
-                .overlay { Circle().stroke(DSColor.borderLight, lineWidth: 1) }
-                .frame(height: 30)
-        }
-        .padding(16)
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+        PickCard(pick: previewPick,
+                 zoomNamespace: previewNamespace,
+                 onPlay: {},
+                 onReact: nil,
+                 onMenu: {})
+            .allowsHitTesting(false)
+            // 카드가 좌우 16을 스스로 갖는데 이 화면도 16을 준다 — 되돌려야 목록에서와 같은 폭이 된다.
+            .padding(.horizontal, -16)
+    }
+
+    /// 아직 서버에 없는 픽을 카드에 먹이기 위한 임시 값. `pickId`는 안 쓰인다(탭이 막혀 있다).
+    /// `title`을 `normalized`로 넘기므로 비우면 카드가 폴백을 조립한다 — 목록에서 볼 모습 그대로다.
+    private var previewPick: API.Pick {
+        API.Pick(pickId: 0,
+                 title: PickTitle.normalized(titleText),
+                 nickname: myNickname,
+                 isMine: true,
+                 isOfficial: false,
+                 createdAt: .now,
+                 trackCount: selected.count,
+                 distinctArtistCount: Set(selected.map(\.artistName)).count,
+                 firstArtistName: selected.first?.artistName ?? "",
+                 firstTrackName: selected.first?.trackName ?? "",
+                 thumbnails: selected.prefix(3).map(\.artworkUrl),
+                 reactions: [:],
+                 myReaction: nil)
     }
 
     private var titleField: some View {
@@ -455,9 +459,37 @@ struct PickComposeView: View {
         isSearching = true
         Task {
             let res = try? await session.api.send(.search(query: query), as: API.FeedResponse.self)
+            // 그 사이 다른 검색어가 확정됐으면 이건 지난 결과다 — 늦게 도착한 쪽이 새 결과를
+            // 덮어쓰면 검색창과 그리드가 어긋난다. 다음 페이지 쪽과 같은 판정.
+            guard query == activeQuery else { return }
             results = res?.items.map(PickTrack.init) ?? []
+            searchCursor = res?.hasMore == true ? res?.nextCursor : nil
             isSearching = false
         }
+    }
+
+    /// 그리드가 크레이트/검색 두 소스를 갈아끼우므로 다음 페이지 요청도 같이 갈린다.
+    private func loadMore() async {
+        if activeQuery.isEmpty {
+            await loadCrate(more: true)
+        } else {
+            await loadMoreSearch()
+        }
+    }
+
+    /// ponytail: 실패는 조용히 넘긴다 — 다음 스크롤에 다시 불린다(`loadCrate`와 같은 규칙).
+    private func loadMoreSearch() async {
+        guard let cursor = searchCursor, !isPagingSearch else { return }
+        let query = activeQuery
+        isPagingSearch = true
+        defer { isPagingSearch = false }
+        guard let res = try? await session.api.send(.search(query: query, cursor: cursor),
+                                                   as: API.FeedResponse.self)
+        else { return }
+        // 페이지가 도는 사이 검색어가 바뀌었으면 이건 남의 결과다. 이어붙이면 다른 검색 결과가 섞인다.
+        guard query == activeQuery else { return }
+        results.append(contentsOf: res.items.map(PickTrack.init))
+        searchCursor = res.hasMore ? res.nextCursor : nil
     }
 
     private func post() {
