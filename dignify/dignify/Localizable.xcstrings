@@ -1878,6 +1878,40 @@
         }
       }
     },
+    "push_pick_reaction_first_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first 🔥"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 반응이 왔어요"
+          }
+        }
+      }
+    },
+    "push_pick_reaction_milestone_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pick is catching on"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "반응이 쌓이고 있어요"
+          }
+        }
+      }
+    },
     "push_pick_reaction_first" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1890,7 +1924,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "@%@님이 회원님의 픽에 🔥를 눌렀어요"
+            "value" : "@%@님이 내 픽에 🔥를 눌렀어요"
           }
         }
       }
@@ -1907,7 +1941,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "회원님의 픽에 🔥 %@개가 모였어요"
+            "value" : "내 픽에 🔥 %@개가 모였어요"
           }
         }
       }
