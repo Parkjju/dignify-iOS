@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 /// 마이페이지 장르 설정 — 현재 선택을 프리로드하고 최대 3개까지 편집해 저장한다.
 /// 기본은 칩 목록(이미 앱을 쓰는 사람이라 빠른 재선택이 목적), 장르 이름만으론 헷갈릴 때
@@ -61,6 +62,8 @@ struct GenreSettingsView: View {
                     if !isLoading {
                         Button {
                             retakeType = nil
+                            PostHogSDK.shared.capture("onboarding_quiz_started",
+                                                      properties: ["source": "retake"])
                             isRetaking = true
                         } label: {
                             Text("Retake the taste test")
@@ -125,6 +128,14 @@ struct GenreSettingsView: View {
 
     private func showRetakeResult(_ answers: [Int]) {
         let result = TasteQuiz.result(answers: answers)
+        // 재검사 경로엔 이탈 이벤트만 있고 완료가 없었다 — 이탈률의 분모가 없는 셈이라
+        // "재검사를 끝까지 하는가"를 못 봤다. 온보딩과 같은 이벤트에 source로만 가른다.
+        PostHogSDK.shared.capture("onboarding_quiz_completed", properties: [
+            "type": result.type.rawValue,
+            "genres": result.genreNames,
+            "answers": answers,
+            "source": "retake",
+        ])
         retakeGenres = result.genreNames.compactMap { name in
             genres.first { ($0.nameEn ?? $0.name) == name }
         }

@@ -97,7 +97,10 @@ struct GenreSelectionView: View {
                 Button {
                     // 웹 랜딩(dignify.web.app)이 같은 PostHog 프로젝트에 quiz_* 를 보낸다.
                     // 앱 이벤트는 onboarding_ 접두사로 분리해야 두 퍼널이 안 섞인다.
-                    PostHogSDK.shared.capture("onboarding_quiz_started")
+                    // source는 이탈 이벤트에만 있었다 — 시작·완료에도 붙여야 온보딩과
+                    // 재검사가 한 퍼널로 뭉쳐 이탈률이 실제와 다르게 읽히지 않는다.
+                    PostHogSDK.shared.capture("onboarding_quiz_started",
+                                              properties: ["source": "onboarding"])
                     step = .quiz
                 } label: {
                     Text("Take the taste test")
@@ -222,6 +225,7 @@ struct GenreSelectionView: View {
             "type": result.type.rawValue,
             "genres": result.genreNames,
             "answers": answers,
+            "source": "onboarding",
         ])
         selectedGenres = Set(recommended)
         // 예상 유형을 남겨 두면 프로필이 잠긴 동안에도 유형 자리를 채울 수 있다.
