@@ -3078,6 +3078,40 @@
         }
       }
     },
+    "push_pick_reaction_first": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%@ hit 🔥 on your pick"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%@님이 회원님의 픽에 🔥를 눌렀어요"
+          }
+        }
+      }
+    },
+    "push_pick_reaction_milestone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your pick has %@ 🔥"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회원님의 픽에 🔥 %@개가 모였어요"
+          }
+        }
+      }
+    },
     "tracks dug": {
       "localizations": {
         "ko": {
