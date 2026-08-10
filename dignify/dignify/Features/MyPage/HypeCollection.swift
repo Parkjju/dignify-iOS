@@ -55,10 +55,6 @@ struct HypeCollection: View {
                     cell(track)
                 }
                 .padding(.bottom, 20)
-                .onAppear {
-                    guard maxGroups == nil, group.id == groups.last?.id else { return }
-                    Task { await onReachEnd?() }
-                }
             }
         }
         .onDisappear { audio.stop() }
@@ -109,6 +105,13 @@ struct HypeCollection: View {
         .contentShape(Rectangle())
         .onTapGesture { playPreview(track) }
         .onLongPressGesture { actionTarget = track }
+        // 페이지네이션 트리거는 날짜 그룹이 아니라 **마지막 셀**에 건다.
+        // 그룹 id는 startOfDay라 새 페이지 10개가 전부 같은 날이면 id가 그대로 →
+        // onAppear가 다시 안 불려 그 뒤 하입이 영영 안 보였다.
+        .onAppear {
+            guard maxGroups == nil, track.userHypeTrackId == items.last?.userHypeTrackId else { return }
+            Task { await onReachEnd?() }
+        }
     }
 
     /// 날짜 한 줄(가로 스크롤). onSeeAll이 있으면(미리보기) 끝에 See all 셀을 붙이고,
