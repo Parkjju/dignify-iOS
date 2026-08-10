@@ -3293,6 +3293,17 @@
         }
       }
     },
+    "Your crate now shows every track you've hyped, not just the first few." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담은 곡이 앞부분만 보이던 문제를 고쳤어요. 이제 전부 보여요."
+          }
+        }
+      }
+    },
     "Your hyped tracks now live in your profile." : {
       "localizations" : {
         "ko" : {
