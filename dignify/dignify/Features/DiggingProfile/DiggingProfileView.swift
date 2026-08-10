@@ -358,12 +358,9 @@ struct DiggingProfileView: View {
         .contentShape(Rectangle())
     }
 
-    /// 미리보기 밖에 더 볼 하입이 있는가 — 날짜 초과 / 다음 페이지 존재 / 특정 날짜 트랙 초과.
     private var hasMoreHypes: Bool {
-        if hypeCursor != nil { return true }
-        let byDay = Dictionary(grouping: hypes) { Calendar.current.startOfDay(for: $0.hypedAt) }
-        if byDay.count > previewDayLimit { return true }
-        return byDay.values.contains { $0.count > perDayPreviewLimit }
+        HypeGrouping.hasMore(hypes, cursor: hypeCursor,
+                             maxGroups: previewDayLimit, perDayLimit: perDayPreviewLimit)
     }
 
     /// 최근 previewDayLimit일치가 완결될 때까지 페이지를 이어 받는다(마이페이지 로직 이관).

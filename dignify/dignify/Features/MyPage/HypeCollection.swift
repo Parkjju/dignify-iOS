@@ -23,29 +23,8 @@ struct HypeCollection: View {
 
     private struct DetailTarget: Identifiable { let id: Int }
 
-    private struct DateGroup: Identifiable {
-        let id: Date          // startOfDay
-        let title: String
-        let tracks: [API.HypeItem]
-    }
-
-    /// 백엔드가 최신순으로 주므로 등장 순서를 유지해 날짜별로 묶는다.
-    private var groups: [DateGroup] {
-        let cal = Calendar.current
-        var order: [Date] = []
-        var buckets: [Date: [API.HypeItem]] = [:]
-        for item in items {
-            let day = cal.startOfDay(for: item.hypedAt)
-            if buckets[day] == nil { order.append(day) }
-            buckets[day, default: []].append(item)
-        }
-        let all = order.map { day -> DateGroup in
-            var tracks = buckets[day] ?? []
-            if let perDayLimit { tracks = Array(tracks.prefix(perDayLimit)) }
-            return DateGroup(id: day, title: day.formatted(date: .long, time: .omitted), tracks: tracks)
-        }
-        if let maxGroups { return Array(all.prefix(maxGroups)) }
-        return all
+    private var groups: [HypeGrouping.DayGroup] {
+        HypeGrouping.dayGroups(items, maxGroups: maxGroups, perDayLimit: perDayLimit)
     }
 
     var body: some View {
@@ -109,7 +88,7 @@ struct HypeCollection: View {
         // 그룹 id는 startOfDay라 새 페이지 10개가 전부 같은 날이면 id가 그대로 →
         // onAppear가 다시 안 불려 그 뒤 하입이 영영 안 보였다.
         .onAppear {
-            guard maxGroups == nil, track.userHypeTrackId == items.last?.userHypeTrackId else { return }
+            guard maxGroups == nil, track.userHypeTrackId == HypeGrouping.pagingAnchor(items) else { return }
             Task { await onReachEnd?() }
         }
     }
@@ -117,7 +96,7 @@ struct HypeCollection: View {
     /// 날짜 한 줄(가로 스크롤). onSeeAll이 있으면(미리보기) 끝에 See all 셀을 붙이고,
     /// 오른쪽 끝을 임계 이상 당겼다 놓으면 전체 화면으로 넘긴다. 셀 탭으로도 이동 가능.
     private struct DayRow<Cell: View>: View {
-        let group: DateGroup
+        let group: HypeGrouping.DayGroup
         let onSeeAll: (() -> Void)?
         @ViewBuilder let cell: (API.HypeItem) -> Cell
 

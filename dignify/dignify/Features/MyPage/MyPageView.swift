@@ -81,7 +81,7 @@ struct MyPageView: View {
         let new = nickDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         if new == nickname { isEditingNick = false; nickError = nil; return }
         // 백엔드 검증(NicknameUpdateRequest @Pattern)과 동일 규칙으로 미리 막는다.
-        guard new.range(of: "^[a-zA-Z0-9_가-힣]{1,20}$", options: .regularExpression) != nil else {
+        guard Nickname.isValid(new) else {
             nickError = String(localized: "Letters, numbers, and _ only (1–20 characters)")
             return                          // 편집 모드 유지.
         }
@@ -265,6 +265,16 @@ struct MyPageView: View {
             nickname = profile.nickname
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
+    }
+}
+
+/// 닉네임 규칙. 백엔드 `NicknameUpdateRequest @Pattern`과 **글자 하나까지 같아야** 한다 —
+/// 어긋나면 클라가 통과시킨 값이 서버에서 400으로 튕기거나, 멀쩡한 값이 못 올라간다.
+enum Nickname {
+    static let pattern = "^[a-zA-Z0-9_가-힣]{1,20}$"
+
+    static func isValid(_ value: String) -> Bool {
+        value.range(of: pattern, options: .regularExpression) != nil
     }
 }
 

@@ -144,25 +144,39 @@ struct dignifyTests {
     }
 
     /// 픽 폴백 제목은 서버에 저장하지 않고 매번 클라가 조립하므로, 분기가 어긋나면
-    /// 목록 전체의 제목이 한 번에 틀어진다. 3분기 × ko/en을 못박아 둔다.
-    /// (ko 어순이 반대라 xcstrings에 위치 인자 `%2$@`가 들어가 있다 — 그게 깨져도 여기서 잡힌다.)
+    /// 목록 전체의 제목이 한 번에 틀어진다. 3분기를 못박아 둔다.
     @Test func pickFallbackTitleBranches() {
-        func title(tracks: Int, artists: Int, _ language: String) -> String {
+        func title(tracks: Int, artists: Int) -> String {
             PickTitle.fallback(firstTrack: "Ivy", firstArtist: "Frank Ocean",
                                trackCount: tracks, distinctArtistCount: artists,
-                               locale: Locale(identifier: language))
+                               locale: Locale(identifier: "en"))
         }
-        #expect(title(tracks: 1, artists: 1, "en") == "Ivy by Frank Ocean")
-        #expect(title(tracks: 7, artists: 1, "en") == "Ivy by Frank Ocean and 6 more")
+        #expect(title(tracks: 1, artists: 1) == "Ivy by Frank Ocean")
+        #expect(title(tracks: 7, artists: 1) == "Ivy by Frank Ocean and 6 more")
         // 아티스트가 여럿이면 곡 수가 아니라 아티스트 수로 센다.
-        #expect(title(tracks: 7, artists: 4, "en") == "Frank Ocean and 3 others")
-        #expect(title(tracks: 1, artists: 1, "ko") == "Frank Ocean의 Ivy")
-        #expect(title(tracks: 7, artists: 1, "ko") == "Frank Ocean의 Ivy 외 6곡")
-        #expect(title(tracks: 7, artists: 4, "ko") == "Frank Ocean 외 3명")
+        #expect(title(tracks: 7, artists: 4) == "Frank Ocean and 3 others")
 
         // 공백만 남은 제목은 nil로 보낸다 — 빈 문자열과 null이 둘 다 "제목 없음"이면 판정이 갈린다.
         #expect(PickTitle.normalized("   ") == nil)
         #expect(PickTitle.normalized("   여름밤 ") == "여름밤")
+    }
+
+    /// ko 어순이 en과 반대라 xcstrings에 위치 인자(`%2$@`)가 들어가 있다. 순서가 어긋나면
+    /// "Ivy의 Frank Ocean" 같은 문장이 나오는데, 크래시가 없어 눈으로만 잡힌다.
+    ///
+    /// `String(localized:locale:)`으로는 검증할 수 없다 — `locale`은 숫자·날짜 표시 형식만
+    /// 바꾸고, 어느 언어 테이블을 읽을지는 번들이 정한다(테스트 프로세스는 en으로 뜬다).
+    /// 그래서 ko.lproj를 직접 열어 컴파일된 문자열을 꺼내 포맷한다.
+    @Test func koreanTitleArgumentsStayInOrder() throws {
+        let ko = try #require(Bundle.main.path(forResource: "ko", ofType: "lproj").flatMap(Bundle.init(path:)),
+                              "앱 번들에 ko.lproj가 없다 — 한국어가 빌드에 안 실렸다")
+        // 키가 없으면 키 자체가 돌아오므로 아래 비교에서 그대로 드러난다.
+        func format(_ key: String, _ args: CVarArg...) -> String {
+            String(format: ko.localizedString(forKey: key, value: nil, table: nil), arguments: args)
+        }
+        #expect(format("%@ by %@", "Ivy", "Frank Ocean") == "Frank Ocean의 Ivy")
+        #expect(format("%@ by %@ and %lld more", "Ivy", "Frank Ocean", 6) == "Frank Ocean의 Ivy 외 6곡")
+        #expect(format("%@ and %lld others", "Frank Ocean", 3) == "Frank Ocean 외 3명")
     }
 
     /// 두 축이 어떻게 나오든 유형이 하나로 정해지고, 행동 기반 판정과 같은 규칙을 쓴다.
