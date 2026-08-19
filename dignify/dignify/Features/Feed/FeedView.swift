@@ -203,7 +203,12 @@ struct FeedView: View {
         }
     }
 
-    private struct FeedSnapshot { var list: [Feed]; var index: Int; var cursor: String? }
+    /// 큐레이션 상태(count/setKey)까지 담는다 — 검색 중엔 feedList가 검색 결과라
+    /// 큐레이션 배지도 완주 판정도 성립하지 않는다. 검색 종료 시 그대로 되돌린다.
+    private struct FeedSnapshot {
+        var list: [Feed]; var index: Int; var cursor: String?
+        var curationCount: Int; var curationSetKey: String
+    }
 
     private var recentSearches: [String] {
         recentRaw.split(separator: "\n").map(String.init)
@@ -696,8 +701,13 @@ struct FeedView: View {
         guard !query.isEmpty else { return }
         addRecentSearch(query)
         if savedFeed == nil {             // 일반 피드에서 첫 진입 → 상태 보관.
-            savedFeed = FeedSnapshot(list: feedList, index: currentIndex, cursor: nextCursor)
+            savedFeed = FeedSnapshot(list: feedList, index: currentIndex, cursor: nextCursor,
+                                     curationCount: curationCount, curationSetKey: curationSetKey)
         }
+        // 검색 결과엔 큐레이션 세트가 없다. 안 내리면 배지가 검색 결과에 그대로 남고,
+        // 결과를 세트 길이만큼 넘기면 세트를 완주한 것으로 기록된다(logTrackViewed).
+        curationCount = 0
+        curationSetKey = ""
         isSearching = false
         searchFocused = false
         searchText = query
@@ -732,6 +742,8 @@ struct FeedView: View {
         feedList = saved.list
         currentIndex = saved.index
         nextCursor = saved.cursor
+        curationCount = saved.curationCount
+        curationSetKey = saved.curationSetKey
         savedFeed = nil
         audio.updateWindow(feeds: feedList, current: currentIndex)   // 원래 피드로 오디오 윈도우 복원
     }
