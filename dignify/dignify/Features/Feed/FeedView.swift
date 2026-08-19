@@ -882,10 +882,16 @@ struct FeedView: View {
               session.sessionTrackViews >= Self.reviewViewThreshold,
               // 다른 요청이 떠 있는 순간은 피한다. 겹치면 둘 다 거절당한다.
               !showPushOffer, !session.pendingSignIn else { return }
-        didAskReview = true
+        didAskReview = true   // 1초 안에 또 넘겨도 두 번 예약되지 않게 먼저 세운다.
         PostHogSDK.shared.capture("review_prompt_requested",
                                   properties: ["views": session.sessionTrackViews])
-        requestReview()
+        // 스와이프가 끝난 뒤로 미룬다. 이 함수는 `.onChange(of: currentIndex)`에서 도는데,
+        // 그 턴엔 카드 전환 애니메이션과 AVPlayer 윈도우 재구성이 같이 돈다. 거기에 StoreKit
+        // 첫 호출(프레임워크 로드 + 시스템 통신)이 메인 스레드로 얹히면 전환이 눈에 띄게 끊긴다.
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            requestReview()
+        }
     }
 
     /// 특집 세트 완주 직후 푸시 권한 안내를 띄운다. 알림이 알리는 대상이 방금 본 세트라
