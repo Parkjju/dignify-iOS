@@ -1,5 +1,6 @@
 import SwiftUI
 import PostHog
+import StoreKit
 
 /// 피드가 무엇을 재생하는가. 재생·하입·상세·공유·청취 계측이 전부 여기 있어서
 /// 픽 재생도 두 번째 플레이어를 만들지 않고 이 화면을 모드로 갈라 쓴다.
@@ -16,6 +17,9 @@ struct FeedView: View {
     @Environment(AppSession.self) private var session
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.requestReview) private var requestReview
+    /// 리뷰 요청은 설치당 한 번뿐. 앱을 지웠다 깔면 초기화된다(유일한 재노출 경로).
+    @AppStorage("didAskReview") private var didAskReview = false
     @State private var audio = FeedAudioController()
     @State private var feedList: [Feed] = []
     @State private var isLoading = true
@@ -65,6 +69,11 @@ struct FeedView: View {
             .compactMap { $0 as? UIWindowScene }
             .first?.windows.first { $0.isKeyWindow }
     }
+
+    /// 리뷰를 묻기 전에 이번 실행에서 넘겨야 하는 카드 수(누적 아님).
+    /// 실측 세션 분포는 청취 기준 p50=4·p75=9인데 스와이프 분포는 아직 안 봤다 —
+    /// 15가 어느 백분위인지 모르므로, `review_prompt_requested` 수를 DAU와 비교해 조정한다.
+    private static let reviewViewThreshold = 15
 
     private func resolveSafeInsets() {
         let i = keyWindow?.safeAreaInsets ?? .zero
@@ -854,6 +863,29 @@ struct FeedView: View {
             "track_id": feed.trackId, "artist": feed.artistName,
             "genre": feed.genreNameEn ?? feed.genreName ?? "",
         ])
+        session.sessionTrackViews += 1
+        maybeAskReview()
+    }
+
+    /// 충분히 파고든 세션 중간에 딱 한 번 리뷰를 묻는다.
+    ///
+    /// 시점을 누적 카운트가 아니라 세션 뎁스로 잡은 이유: 실측에서 깊은 세션은 가입 당일에
+    /// 나오고(중앙값 0.0일) 유저당 세션이 2.0회다. 며칠 뒤로 미루는 조건을 걸면 대상자가
+    /// 통째로 잘린다. 지금 몰입해 있는 중이라는 게 우리가 가진 가장 좋은 신호다.
+    ///
+    /// ⚠️ 스토어 빌드에선 시스템이 실제로 시트를 띄웠는지 알 수 없다(365일 3회 제한·이미
+    /// 평가한 유저). 그래도 플래그는 세운다 — 재시도할 방법이 없어서 확인 수단은 이벤트뿐이다.
+    /// **TestFlight 빌드에선 호출해도 안 뜬다.** Xcode로 돌리는 빌드에선 제한 없이 떠서
+    /// 동작 확인이 되는데, `didAskReview`가 남으니 다시 보려면 앱을 지웠다 깔아야 한다.
+    private func maybeAskReview() {
+        guard !didAskReview,
+              session.sessionTrackViews >= Self.reviewViewThreshold,
+              // 다른 요청이 떠 있는 순간은 피한다. 겹치면 둘 다 거절당한다.
+              !showPushOffer, !session.pendingSignIn else { return }
+        didAskReview = true
+        PostHogSDK.shared.capture("review_prompt_requested",
+                                  properties: ["views": session.sessionTrackViews])
+        requestReview()
     }
 
     /// 특집 세트 완주 직후 푸시 권한 안내를 띄운다. 알림이 알리는 대상이 방금 본 세트라

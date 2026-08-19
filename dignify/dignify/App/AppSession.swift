@@ -37,6 +37,13 @@ final class AppSession {
     /// (onAppear/onDisappear는 TabView에서 신뢰할 수 없어 이 값으로 대체.)
     var selectedTab: AppTab = .feed
 
+    /// 이번 실행에서 넘긴 트랙 카드 수. 리뷰 요청 시점 판단에만 쓴다.
+    /// 청취(5초 이상)가 아니라 노출로 세는 이유는 도달 규모다 — 실측 세션당 청취
+    /// 중앙값이 4곡이라, 청취를 임계로 삼으면 프롬프트가 거의 안 뜬다.
+    /// 뷰가 아니라 여기 두는 이유: 픽 재생은 별도 FeedView 인스턴스라(fullScreenCover)
+    /// 뷰에 두면 같은 세션의 디깅이 두 통으로 갈린다.
+    var sessionTrackViews = 0
+
     /// 큐레이션 푸시로 진입했음을 피드에 알리는 1회성 플래그. 피드가 읽고 즉시 내린다.
     /// 이미 완주한 세트라도 이때는 다시 앞세운다 — 푸시를 눌렀는데 없으면 안 되므로.
     var pendingCurationOpen = false
