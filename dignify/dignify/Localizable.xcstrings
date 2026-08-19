@@ -2773,6 +2773,17 @@
         }
       }
     },
+    "The weekly set badge no longer shows up on search results." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색 결과에 이번 주 특집 배지가 잘못 뜨던 문제를 고쳤어요."
+          }
+        }
+      }
+    },
     "This can't be undone, and the reactions on it go too." : {
       "localizations" : {
         "ko" : {
@@ -3310,6 +3321,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "하입한 트랙을 이제 프로필에서 볼 수 있어요."
+          }
+        }
+      }
+    },
+    "Your hypes and reactions no longer go missing after the app has been sitting a while." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 한참 켜두면 담은 곡이나 누른 반응이 사라져 보이던 문제를 고쳤어요."
           }
         }
       }

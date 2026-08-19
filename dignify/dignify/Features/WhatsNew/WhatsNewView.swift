@@ -10,6 +10,10 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.0.10", notes: [
+            "Your hypes and reactions no longer go missing after the app has been sitting a while.",
+            "The weekly set badge no longer shows up on search results.",
+        ]),
         Release(version: "1.0.9", notes: [
             "Your crate now shows every track you've hyped, not just the first few.",
         ]),
