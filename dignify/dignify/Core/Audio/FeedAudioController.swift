@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import QuartzCore
 import Observation
 
 /// current-1 / current / current+1 세 트랙만 AVPlayer로 유지하는 슬라이딩 윈도우.
@@ -22,8 +23,17 @@ final class FeedAudioController {
     /// 임계값을 어디로 옮길지 보려면 원시 체류 시간이 필요하다. 계측 전용, 서버 기록 없음.
     var onDwell: ((Int, Double) -> Void)?
 
+    /// play() 호출부터 재생 위치가 실제로 흐르기 시작할 때까지의 지연(초)을 트랙당 한 번 알린다.
+    /// 실측 체류 중앙값이 2.0초라, 소리가 늦게 나오면 유저는 무음만 보고 넘긴다 —
+    /// 그 무음 구간이 몇 초인지 지금까지 잰 적이 없다. 계측 전용, 서버 기록 없음.
+    /// 스와이프가 지연보다 빨랐으면 아예 발사되지 않는다(= track_viewed만 있고 이 이벤트는 없음).
+    var onPlaybackStart: ((Int, Double) -> Void)?
+
     /// onListen을 이미 보낸 트랙 — 루프·재진입으로 중복 발사하지 않게 한다.
     private var listenedTrackIds: Set<Int> = []
+
+    /// setCurrent에서 play()를 부른 시각. 첫 유효 틱에서 지연을 계산하고 nil로 내린다.
+    private var playRequestedAt: CFTimeInterval?
 
     private var dwellLoops: Double = 0        // 루프로 0에 되돌아간 만큼의 누적
     private var dwellPosition: Double = 0     // 현재 루프에서의 재생 위치
@@ -119,6 +129,7 @@ final class FeedAudioController {
         guard let player = players[trackId] else { return }
         player.seek(to: .zero)
         player.volume = 0                    // fade in은 time observer가 올린다
+        markPlayRequested()
         player.play()
         isPaused = false                     // 새 current는 항상 재생 상태로 시작
         addTimeObserver(for: player, trackId: trackId)
@@ -151,10 +162,25 @@ final class FeedAudioController {
                 guard duration.isFinite, duration > 0 else { return }
                 player.volume = Float(Self.fadeVolume(
                     at: time.seconds, duration: duration, fadeIn: self.fadeIn, fadeOut: self.fadeOut))
+                self.reportPlaybackStartIfNeeded(trackId: trackId, position: time.seconds)
                 self.recordListenIfNeeded(trackId: trackId, playedFor: time.seconds)
                 self.advanceDwell(to: time.seconds)
             }
         }
+    }
+
+    /// play() 직전에 호출해 지연 측정을 연다. setCurrent가 부르고, 테스트가 부른다.
+    func markPlayRequested() {
+        playRequestedAt = CACurrentMediaTime()
+    }
+
+    /// 재생 위치가 0에서 처음 벗어난 순간 = 실제로 소리가 나기 시작한 시점.
+    /// 버퍼링 중에는 play()를 불러도 위치가 0에 머무르므로, 이 델타가 곧 무음 구간이다.
+    /// ponytail: 이미 도는 time observer에 얹는다. AVPlayer 상태 KVO를 따로 붙이지 않음.
+    func reportPlaybackStartIfNeeded(trackId: Int, position: Double) {
+        guard let requestedAt = playRequestedAt, position > 0 else { return }
+        playRequestedAt = nil
+        onPlaybackStart?(trackId, CACurrentMediaTime() - requestedAt)
     }
 
     /// 재생 위치가 임계값을 넘으면 트랙당 한 번만 onListen을 호출한다.

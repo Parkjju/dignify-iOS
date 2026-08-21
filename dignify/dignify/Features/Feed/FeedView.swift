@@ -205,6 +205,11 @@ struct FeedView: View {
         guard res.genreExhausted == true, !genreExhaustedShown,
               session.authState == .signedIn else { return }
         genreExhaustedShown = true
+        // GENRE 풀이 마르면 그 뒤로는 장르 무관 랜덤이 된다 = "장르 우선"이 실질적으로 꺼진다.
+        // 세션당 한 번만 남긴다(페이지마다 찍으면 헤비 유저가 집계를 삼킨다).
+        // views가 소진까지의 뎁스 — 이게 작으면 장르 풀이 얕다는 뜻이다.
+        PostHogSDK.shared.capture("genre_exhausted",
+                                  properties: ["views": session.sessionTrackViews])
         toastMessage = String(localized: "More beyond your genres")
         Task {
             try? await Task.sleep(for: .seconds(3))
@@ -428,6 +433,9 @@ struct FeedView: View {
             resolveSafeInsets()
             audio.onListen = { trackId in recordListen(trackId: trackId) }
             audio.onDwell = { trackId, seconds in logDwell(trackId: trackId, seconds: seconds) }
+            audio.onPlaybackStart = { trackId, latency in
+                logPlaybackStart(trackId: trackId, latency: latency)
+            }
             if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
                 logTrackViewed()   // 첫 트랙(index 0)은 onChange가 안 터지므로 여기서.
@@ -729,6 +737,12 @@ struct FeedView: View {
         loadFailed = false
         do {
             let res = try await session.api.send(.search(query: query), as: API.FeedResponse.self)
+            // 검색은 지금까지 이벤트가 하나도 없었다 — 몇 명이 쓰는지도, 뭘 찾는지도 못 봤다.
+            // 검색 응답엔 장르 필터가 없어(searchFeedList) 취향 밖 청취의 유력한 출처다.
+            // query를 담는 이유: 찾는데 없는 아티스트가 곧 다음 큐레이션·수집 후보다.
+            PostHogSDK.shared.capture("search_performed", properties: [
+                "query": query, "result_count": res.items.count,
+            ])
             feedList = res.items.map(Feed.init)
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
@@ -737,6 +751,8 @@ struct FeedView: View {
             audio.updateWindow(feeds: feedList, current: currentIndex)
         } catch {
             loadFailed = true
+            PostHogSDK.shared.capture("search_performed",
+                                      properties: ["query": query, "failed": true])
         }
         isLoading = false
     }
@@ -862,6 +878,7 @@ struct FeedView: View {
         PostHogSDK.shared.capture("track_viewed", properties: [
             "track_id": feed.trackId, "artist": feed.artistName,
             "genre": feed.genreNameEn ?? feed.genreName ?? "",
+            "source": source(for: feed.trackId),
         ])
         session.sessionTrackViews += 1
         maybeAskReview()
@@ -909,7 +926,8 @@ struct FeedView: View {
 
     private func recordListen(trackId: Int) {
         // 스킵률 = 1 - track_listened/track_viewed. 게스트도 세야 하므로 서버 가드보다 먼저 찍는다.
-        PostHogSDK.shared.capture("track_listened", properties: ["track_id": trackId])
+        PostHogSDK.shared.capture("track_listened",
+                                  properties: ["track_id": trackId, "source": source(for: trackId)])
         guard session.authState == .signedIn else { return }
         Task { try? await session.api.send(.listen(trackId: trackId)) }
     }
@@ -919,6 +937,30 @@ struct FeedView: View {
     private func logDwell(trackId: Int, seconds: Double) {
         PostHogSDK.shared.capture("track_dwell", properties: [
             "track_id": trackId, "seconds": (seconds * 10).rounded() / 10,
+            "source": source(for: trackId),
+        ])
+    }
+
+    /// 이 트랙이 어느 경로로 화면에 떴는지. 검색은 장르 필터가 없어(searchFeedList)
+    /// 취향 밖 곡이 섞이고, 큐레이션도 전 유저 동일이라 장르를 무시한다.
+    /// 셋을 구분하지 않으면 "청취의 몇 %가 취향 밖인가"를 경로 탓으로 돌릴 수 없다.
+    ///
+    /// currentIndex가 아니라 trackId 위치로 판정한다 — dwell은 트랙을 떠난 뒤에 발사돼서
+    /// currentIndex가 이미 다음 트랙으로 넘어가 있다.
+    private func source(for trackId: Int) -> String {
+        if !activeQuery.isEmpty { return "search" }
+        guard let index = feedList.firstIndex(where: { $0.trackId == trackId }) else { return "feed" }
+        return (curationCount > 0 && index < curationCount) ? "curation" : "feed"
+    }
+
+    /// play()부터 실제로 소리가 나기까지의 지연. 스와이프가 이보다 빨랐으면 발사되지 않으므로,
+    /// **track_viewed는 있는데 이 이벤트가 없는 트랙 = 소리를 한 번도 못 들은 노출**이다.
+    /// 그 비율이 청취율 저하를 재생 지연으로 설명할 수 있는지를 가른다.
+    private func logPlaybackStart(trackId: Int, latency: Double) {
+        PostHogSDK.shared.capture("track_playback_started", properties: [
+            "track_id": trackId,
+            "latency_ms": Int((latency * 1000).rounded()),
+            "source": source(for: trackId),
         ])
     }
 
@@ -937,7 +979,8 @@ struct FeedView: View {
         feedList[index].isHyped = target
         session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
         if target {
-            PostHogSDK.shared.capture("track_hyped", properties: ["track_id": trackId])
+            PostHogSDK.shared.capture("track_hyped",
+                                      properties: ["track_id": trackId, "source": source(for: trackId)])
         }
         Task {
             do {
