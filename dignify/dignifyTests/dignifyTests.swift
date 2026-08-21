@@ -46,6 +46,37 @@ struct dignifyTests {
     }
 
     @MainActor
+    @Test func playbackStartFiresOnceWhenAudioActuallyMoves() {
+        let audio = FeedAudioController()
+        var fired: [Int] = []
+        audio.onPlaybackStart = { trackId, _ in fired.append(trackId) }
+
+        // 시작을 열지 않았으면 위치가 흘러도 발사하지 않는다(마이페이지 미리듣기 등).
+        audio.reportPlaybackStartIfNeeded(trackId: 1, position: 0.5)
+        #expect(fired.isEmpty)
+
+        // play()를 불렀어도 위치가 0이면 아직 무음 — 버퍼링 중이다.
+        audio.markPlayRequested()
+        audio.reportPlaybackStartIfNeeded(trackId: 1, position: 0)
+        #expect(fired.isEmpty)
+
+        audio.reportPlaybackStartIfNeeded(trackId: 1, position: 0.05)
+        #expect(fired == [1])
+
+        // 같은 트랙이 계속 흘러도, 루프로 0에 돌아왔다 다시 흘러도 재발사하지 않는다.
+        audio.reportPlaybackStartIfNeeded(trackId: 1, position: 1.2)
+        audio.reportPlaybackStartIfNeeded(trackId: 1, position: 0.1)
+        #expect(fired == [1])
+
+        // 다음 트랙은 setCurrent가 다시 열어줘야 발사된다.
+        audio.reportPlaybackStartIfNeeded(trackId: 2, position: 0.4)
+        #expect(fired == [1])
+        audio.markPlayRequested()
+        audio.reportPlaybackStartIfNeeded(trackId: 2, position: 0.4)
+        #expect(fired == [1, 2])
+    }
+
+    @MainActor
     @Test func dwellAccumulatesAcrossLoops() {
         let audio = FeedAudioController()
         var fired: [(Int, Double)] = []
@@ -145,16 +176,25 @@ struct dignifyTests {
 
     /// 픽 폴백 제목은 서버에 저장하지 않고 매번 클라가 조립하므로, 분기가 어긋나면
     /// 목록 전체의 제목이 한 번에 틀어진다. 3분기를 못박아 둔다.
+    ///
+    /// 기대값을 영어로 박아두면 시뮬레이터 언어가 한국어일 때 깨진다 —
+    /// `String(localized:locale:)`의 `locale`은 언어 테이블을 고르지 않는다(번들이 고른다).
+    /// 그래서 실행 중인 언어의 포맷 문자열을 번들에서 꺼내 기대값을 만든다.
     @Test func pickFallbackTitleBranches() {
         func title(tracks: Int, artists: Int) -> String {
             PickTitle.fallback(firstTrack: "Ivy", firstArtist: "Frank Ocean",
-                               trackCount: tracks, distinctArtistCount: artists,
-                               locale: Locale(identifier: "en"))
+                               trackCount: tracks, distinctArtistCount: artists)
         }
-        #expect(title(tracks: 1, artists: 1) == "Ivy by Frank Ocean")
-        #expect(title(tracks: 7, artists: 1) == "Ivy by Frank Ocean and 6 more")
+        // 키가 테이블에 없으면 키 자체가 돌아오고, 그게 곧 en 원문이다.
+        func expected(_ key: String, _ args: CVarArg...) -> String {
+            String(format: Bundle.main.localizedString(forKey: key, value: nil, table: nil),
+                   arguments: args)
+        }
+        #expect(title(tracks: 1, artists: 1) == expected("%@ by %@", "Ivy", "Frank Ocean"))
+        #expect(title(tracks: 7, artists: 1)
+                == expected("%@ by %@ and %lld more", "Ivy", "Frank Ocean", 6))
         // 아티스트가 여럿이면 곡 수가 아니라 아티스트 수로 센다.
-        #expect(title(tracks: 7, artists: 4) == "Frank Ocean and 3 others")
+        #expect(title(tracks: 7, artists: 4) == expected("%@ and %lld others", "Frank Ocean", 3))
 
         // 공백만 남은 제목은 nil로 보낸다 — 빈 문자열과 null이 둘 다 "제목 없음"이면 판정이 갈린다.
         #expect(PickTitle.normalized("   ") == nil)

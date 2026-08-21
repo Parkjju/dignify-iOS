@@ -15,18 +15,17 @@ enum PickTitle {
     static func fallback(firstTrack: String,
                          firstArtist: String,
                          trackCount: Int,
-                         distinctArtistCount: Int,
-                         locale: Locale = .current) -> String {
+                         distinctArtistCount: Int) -> String {
         if distinctArtistCount > 1 {
             return String(localized: "\(firstArtist) and \(distinctArtistCount - 1) others",
-                          locale: locale, comment: "픽 폴백 제목 — 아티스트 여러 명")
+                          comment: "픽 폴백 제목 — 아티스트 여러 명")
         }
         if trackCount > 1 {
             return String(localized: "\(firstTrack) by \(firstArtist) and \(trackCount - 1) more",
-                          locale: locale, comment: "픽 폴백 제목 — 아티스트 1명, 여러 곡")
+                          comment: "픽 폴백 제목 — 아티스트 1명, 여러 곡")
         }
         return String(localized: "\(firstTrack) by \(firstArtist)",
-                      locale: locale, comment: "픽 폴백 제목 — 1곡")
+                      comment: "픽 폴백 제목 — 1곡")
     }
 
     static func fallback(for pick: API.Pick) -> String {
