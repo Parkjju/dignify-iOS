@@ -991,8 +991,57 @@ struct FeedView: View {
                 if let i = feedList.firstIndex(where: { $0.trackId == trackId }) {
                     feedList[i].isHyped = !target
                 }
+                return   // 서버가 안 받았으니 시드도 안 바뀐다. 재구성할 이유가 없다.
             }
+            if target { await refreshUpcoming() }
         }
+    }
+
+    /// 하입 직후 **아직 안 본 카드만** 새로 받아 갈아끼운다.
+    ///
+    /// 서버 피드는 최근 하입 곡과의 무드 유사도 순인데, 이걸 안 하면 방금 누른 하입이
+    /// 다음 페이지부터 반영된다. 프리페치까지 감안하면 유저는 10~20곡 뒤에 변화를 만나고,
+    /// 그때쯤이면 자기가 뭘 눌러서 그렇게 됐는지 모른다. 배지도 토스트도 없이
+    /// 다음 카드가 실제로 달라지는 것으로 인과를 전달한다.
+    ///
+    /// **재생 중인 카드는 건드리지 않는다.** `currentIndex`까지는 그대로 두고 뒤만 교체하므로
+    /// `updateWindow`가 현재 트랙의 플레이어를 재사용하고(`setCurrent`는 같은 id면 no-op)
+    /// `current+1` 슬롯만 새로 만든다. 지금 듣는 곡이 끊기면 그건 반응이 아니라 사고다.
+    ///
+    /// 실패하거나 결과가 비면 아무것도 안 바꾼다 — 최악이 종전 동작(다음 페이지부터 반영)이다.
+    private func refreshUpcoming() async {
+        guard mode == .normal, activeQuery.isEmpty, !isPaging,
+              feedList.indices.contains(currentIndex),
+              // 큐레이션 세트를 지나기 전이면 손대지 않는다. 뒤를 갈아치우면 아직 안 들은
+              // 세트 곡이 사라지고 완주 판정(curationCount)도 깨진다.
+              currentIndex + 1 >= curationCount
+        else { return }
+        isPaging = true      // 같은 플래그로 페이지네이션과 상호 배제 — 서로 리스트를 덮지 않는다.
+        defer { isPaging = false }
+
+        // 커서를 안 보낸다 = 새 시드 기준 첫 페이지. 방금 하입한 곡 쪽으로 기운 순서가 여기 담긴다.
+        guard let res = try? await session.api.send(.feed(), as: API.FeedResponse.self) else { return }
+        let kept = Array(feedList.prefix(currentIndex + 1))
+        let tail = FeedView.upcoming(after: kept, from: res.items.map(Feed.init))
+        guard !tail.isEmpty else { return }
+
+        feedList = kept + tail
+        nextCursor = res.hasMore ? res.nextCursor : nil
+        savedFeedCursor = nextCursor ?? ""
+        prefetchArtwork(tail)
+        // currentIndex가 안 바뀌므로 onChange(of: currentIndex)가 안 터진다. 다음 카드용
+        // 플레이어를 여기서 직접 세우지 않으면 방금 버린 트랙이 그대로 대기하고 있다.
+        if isOnScreen {
+            audio.updateWindow(feeds: feedList, current: currentIndex)
+        }
+    }
+
+    /// 새로 받은 페이지에서 **이번 세션에 이미 지나간 곡**을 걸러 꼬리로 쓸 목록을 만든다.
+    /// 서버는 하입·큐레이션 곡만 제외할 뿐 "이 유저가 방금 스와이프해 넘긴 곡"은 모른다.
+    /// 정렬이 바뀌면 앞서 본 곡이 다시 상위로 올라올 수 있어 여기서 막는다.
+    static func upcoming(after kept: [Feed], from fresh: [Feed]) -> [Feed] {
+        let seen = Set(kept.map(\.trackId))
+        return fresh.filter { !seen.contains($0.trackId) }
     }
 
     private func backgroundArtwork(for feed: Feed, size: CGSize) -> some View {

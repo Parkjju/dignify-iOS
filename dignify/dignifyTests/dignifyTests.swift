@@ -238,4 +238,26 @@ struct dignifyTests {
         #expect(TasteQuiz.result(answers: [99, -1]).genreNames.isEmpty)
     }
 
+    /// 하입 직후 재구성 — 이미 지나간 곡이 새 페이지 상위로 올라와도 다시 안 보여야 한다.
+    /// 정렬 기준(시드)이 바뀌는 게 이 기능의 전부라, 서버가 같은 곡을 다시 주는 건 정상이고
+    /// 걸러내는 건 클라 몫이다.
+    @Test func upcomingDropsAlreadySeenTracks() {
+        func feed(_ id: Int) -> Feed {
+            Feed(trackId: id, trackName: "t\(id)", artistName: "a", artworkUrl: "",
+                 previewUrl: "", trackViewUrl: "", isHyped: false,
+                 genreName: nil, genreNameEn: nil)
+        }
+        let kept = [feed(1), feed(2), feed(3)]
+
+        // 겹치는 1·3은 빠지고 순서는 서버가 준 그대로 유지된다.
+        let tail = FeedView.upcoming(after: kept, from: [feed(3), feed(9), feed(1), feed(7)])
+        #expect(tail.map(\.trackId) == [9, 7])
+
+        // 전부 겹치면 빈 배열 — 호출부가 이걸 보고 기존 꼬리를 그대로 둔다.
+        #expect(FeedView.upcoming(after: kept, from: [feed(2), feed(1)]).isEmpty)
+
+        // 첫 진입처럼 지나간 곡이 없으면 받은 그대로.
+        #expect(FeedView.upcoming(after: [], from: [feed(5), feed(6)]).map(\.trackId) == [5, 6])
+    }
+
 }
