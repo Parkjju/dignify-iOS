@@ -32,8 +32,15 @@ struct SoundRoundsView: View {
             if isDone { doneView } else { roundsView }
         }
         .background(DSColor.background)
-        .onAppear { autoPlayFirst() }
-        .onDisappear { audio.stop() }
+        .onAppear {
+            // 이 화면이 소리를 내는 동안 아래 피드는 멈춰 있어야 한다(커버는 탭을 안 바꾼다).
+            appSession.modalAudioActive = true
+            autoPlayFirst()
+        }
+        .onDisappear {
+            audio.stop()
+            appSession.modalAudioActive = false
+        }
     }
 
     /// 부르는 쪽에서 미리 받아 둔다. 실패·빈 응답은 빈 배열로 뭉갠다 — 라운드를 못 보여주는 건

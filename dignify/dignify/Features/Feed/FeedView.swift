@@ -142,6 +142,8 @@ struct FeedView: View {
     /// 이 뷰가 지금 화면을 갖고 있는가. 픽 모드는 fullScreenCover라 떠 있는 동안 항상 참이고,
     /// 그동안 selectedTab은 .picks라 밑에 깔린 일반 피드는 알아서 멈춰 있다.
     private var isOnScreen: Bool {
+        // 위에 소리를 내는 커버가 떠 있으면 화면을 가진 게 아니다.
+        if session.modalAudioActive { return false }
         if case .pick = mode { return true }
         return session.selectedTab == .feed
     }
@@ -280,6 +282,14 @@ struct FeedView: View {
             }
             // 앱이 떠 있는 채로 큐레이션 푸시를 탭한 경우. .task는 이미 끝났으므로
             // 여기서 다시 받아야 세트가 앞으로 온다(플래그는 curationPrefix가 내린다).
+            // 소리를 내는 커버가 뜨고 지는 순간. 뜨면 멈추고, 닫히면 원래 트랙으로 되돌린다.
+            .onChange(of: session.modalAudioActive) { _, active in
+                if active {
+                    audio.stop()
+                } else if isOnScreen {
+                    audio.updateWindow(feeds: feedList, current: currentIndex)
+                }
+            }
             // 소리 2지선다가 끝나면 시드가 새로 생긴 것이라 정렬 기준부터 다르다. 통째로 다시 받는다.
             .onChange(of: session.feedReloadToken) { _, _ in
                 guard mode == .normal else { return }
