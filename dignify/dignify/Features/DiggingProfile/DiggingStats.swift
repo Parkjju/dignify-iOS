@@ -52,12 +52,10 @@ struct DiggingStats {
 }
 
 /// 2축 4유형. 표시명/설명/시각 기호는 여기(브랜드 카피).
-/// rawValue는 온보딩 예상 유형을 UserDefaults에 저장할 때 쓰므로 값을 바꾸지 말 것.
 enum DiggingType: String {
     case restlessCurator, purist, omnivore, loyalist
 
-    /// 두 축 → 유형. 행동 기반(DiggingStats)과 퀴즈 기반(TasteQuiz)이 같은 규칙을 쓰도록
-    /// 매핑을 여기 한 곳에 둔다 — 갈라지면 "예상과 확정" 비교 자체가 무의미해진다.
+    /// 두 축 → 유형.
     init(selective: Bool, concentrated: Bool) {
         switch (selective, concentrated) {
         case (true, true):   self = .purist
@@ -65,18 +63,6 @@ enum DiggingType: String {
         case (false, true):  self = .loyalist
         case (false, false): self = .omnivore
         }
-    }
-
-    /// 온보딩 취향 테스트가 예측한 유형. 행동 기반 유형이 확정되기 전까지의 자리표시.
-    /// 퀴즈를 건너뛴 유저는 nil.
-    static var predicted: DiggingType? {
-        UserDefaults.standard.string(forKey: "predictedType").flatMap(DiggingType.init(rawValue:))
-    }
-
-    /// 취향 테스트를 마칠 때마다 갱신(온보딩·설정에서 재검사 모두). 확정 유형이 생기면
-    /// `DiggingStats.type`이 우선하므로 이 값은 그때부터 무시된다.
-    static func setPredicted(_ type: DiggingType) {
-        UserDefaults.standard.set(type.rawValue, forKey: "predictedType")
     }
 
     /// 유형의 시각 기호. MBTI가 정체성이 되는 건 이름에 그림이 붙어서다.

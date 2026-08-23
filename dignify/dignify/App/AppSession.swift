@@ -23,9 +23,6 @@ final class AppSession {
     /// 기록하고, 같은 트랙을 들고 있는 다른 화면(피드↔마이페이지)이 관찰해 UI를 맞춘다.
     var hypeState: [Int: Bool] = [:]
 
-    /// 장르 설정이 바뀔 때마다 증가. 피드가 관찰해 새 장르로 재fetch 한다.
-    var genreVersion = 0
-
     /// 삭제가 확정된 픽 id. 픽 목록과 프로필의 내 픽이 각자 자기 배열을 들고 있어서,
     /// 한쪽에서 지우면 다른 쪽엔 남아 있는다 — 하입이 `hypeState`로 푸는 것과 같은 문제다.
     /// 목록을 다시 받는 대신 걸러내기만 한다(스크롤·페이지가 안 날아간다).
@@ -184,18 +181,6 @@ final class AppSession {
         pendingSignIn = false   // 게스트 게이트 시트에서 로그인한 경우 시트를 닫는다.
     }
 
-    /// 장르 목록을 도메인 모델로 조회한다(온보딩·장르 설정 공용).
-    func fetchGenres() async throws -> [Genre] {
-        let res = try await api.send(.genres, as: API.GenresResponse.self)
-        return res.genres.map { Genre(id: $0.genreId, name: $0.genreName, nameEn: $0.genreNameEn) }
-    }
-
-    /// 유저 장르를 갱신하고 버전을 올려 피드 재fetch를 트리거한다.
-    func updateGenres(ids: [Int]) async throws {
-        try await api.send(.updateGenres(ids: ids))
-        genreVersion += 1
-    }
-
     /// 로그아웃 — 서버에 refresh token revoke 요청(best-effort) 후 로컬 토큰을 폐기한다.
     func logout() async {
         if let token = await api.currentRefreshToken {
@@ -219,10 +204,10 @@ final class AppSession {
     }
 
     /// 계정에 묶인 로컬 상태를 지운다. 토큰만 폐기하면 같은 기기에서 다른 계정으로
-    /// 로그인했을 때 이전 사람의 값이 그대로 보인다(예상 유형·피드 위치·최근 검색어).
+    /// 로그인했을 때 이전 사람의 값이 그대로 보인다(피드 위치·최근 검색어).
     /// `lastSeenVersion`은 기기 단위 기록(What's New 표시 이력)이라 남긴다.
     private func clearAccountLocalState() {
-        for key in ["predictedType", "feedCursor", "recentSearches"] {
+        for key in ["feedCursor", "recentSearches"] {
             UserDefaults.standard.removeObject(forKey: key)
         }
     }

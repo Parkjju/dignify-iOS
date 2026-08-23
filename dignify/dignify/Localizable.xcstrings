@@ -4,6 +4,76 @@
     "" : {
 
     },
+    "Hype anything you like and the next cards follow you." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 드는 곡을 하입하면 다음 카드가 따라와요."
+          }
+        }
+      }
+    },
+    "Pick this one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 곡 고르기"
+          }
+        }
+      }
+    },
+    "Tap a card to hear it. Pick whichever you'd keep listening to." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카드를 누르면 소리가 나와요. 계속 듣고 싶은 쪽을 고르세요."
+          }
+        }
+      }
+    },
+    "We hyped what you picked. Keep hyping and the feed follows you." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡은 하입해 뒀어요. 계속 하입하면 피드가 따라와요."
+          }
+        }
+      }
+    },
+    "Which one pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "둘 중 어느 쪽이 끌리나요?"
+          }
+        }
+      }
+    },
+    "Your hypes shape the feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입이 피드를 만들어요"
+          }
+        }
+      }
+    },
+    "Your picks shape the first feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡이 첫 피드를 만들어요"
+          }
+        }
+      }
+    },
     "—" : {
 
     },
@@ -1691,6 +1761,16 @@
         }
       }
     },
+    "Pick as many as you like" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "원하는 만큼 고르세요"
+          }
+        }
+      }
+    },
     "Pick genres myself" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1698,16 +1778,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "장르 직접 고를래요"
-          }
-        }
-      }
-    },
-    "Pick up to 3" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최대 3개까지 선택할 수 있어요"
           }
         }
       }

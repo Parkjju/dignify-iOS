@@ -135,24 +135,6 @@ struct DiggingProfileView: View {
                     .foregroundStyle(.white.opacity(0.75))
                     .multilineTextAlignment(.center)
                     .padding(.top, 4)
-            } else if let predicted = DiggingType.predicted {
-                // 온보딩 퀴즈가 남긴 예상 유형. 확정 전까지 자리를 채워 두면 잠긴 화면이
-                // 빈 상태가 아니라 "확인 대기 중"이 된다.
-                Text("LIKELY YOUR TYPE")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(3)
-                    .foregroundStyle(.white.opacity(0.6))
-                // name은 이미 String(localized:)를 거쳤다. 보간을 그대로 두면
-                // "%@ %@"가 번역 키로 카탈로그에 실리므로 verbatim으로 막는다.
-                Text(verbatim: "\(predicted.emoji) \(predicted.name)")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                Text("Dig \(max(0, 10 - stats.distinctListenedCount)) more and hype \(max(0, 3 - stats.hypeCount)) to lock it in.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.75))
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 4)
             } else {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 22))

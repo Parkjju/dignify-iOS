@@ -11,7 +11,6 @@ import Foundation
 private nonisolated struct IdentityTokenBody: Encodable { let identityToken: String }
 private nonisolated struct RefreshTokenBody: Encodable { let refreshToken: String }
 private nonisolated struct NicknameBody: Encodable { let nickname: String }
-private nonisolated struct GenreIdsBody: Encodable { let genreIds: [Int] }
 private nonisolated struct ArtistRequestBody: Encodable { let artistName: String }
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
 private nonisolated struct PickBody: Encodable { let title: String?; let trackIds: [Int] }
@@ -49,10 +48,6 @@ nonisolated extension Endpoint {
         Endpoint(method: .post, path: "/auth/withdraw",
                  body: RefreshTokenBody(refreshToken: refreshToken))
     }
-
-    // MARK: Genres
-
-    static var genres: Endpoint { Endpoint(method: .get, path: "/genres") }
 
     // MARK: Feed
 
@@ -142,6 +137,14 @@ nonisolated extension Endpoint {
                  body: ReportBody(pickId: id, reason: reason, detail: detail))
     }
 
+    // MARK: Onboarding
+
+    /// 소리 2지선다 후보. 라운드 수·곡 선정은 전부 서버가 정한다 — 곡 id를 앱에 박으면
+    /// 그 곡이 비활성화되는 순간 온보딩이 통째로 깨진다.
+    static var onboardingCandidates: Endpoint {
+        Endpoint(method: .get, path: "/onboarding/candidates")
+    }
+
     // MARK: Users
 
     static var myProfile: Endpoint { Endpoint(method: .get, path: "/users/me") }
@@ -157,10 +160,6 @@ nonisolated extension Endpoint {
 
     static var completeOnboarding: Endpoint {
         Endpoint(method: .post, path: "/users/me/onboarding/complete")
-    }
-
-    static func updateGenres(ids: [Int]) -> Endpoint {
-        Endpoint(method: .put, path: "/users/me/genres", body: GenreIdsBody(genreIds: ids))
     }
 
     static func myHypes(cursor: Int? = nil) -> Endpoint {

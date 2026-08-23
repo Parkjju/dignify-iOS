@@ -286,14 +286,6 @@ struct FeedView: View {
                 savedFeed = nil
                 Task { await loadInitialFeed(force: true) }
             }
-            // 마이페이지에서 장르를 바꾸면(다른 탭이라 FeedView는 떠 있음) 새 장르로 다시 받는다.
-            .onChange(of: session.genreVersion) { _, _ in
-                guard mode == .normal else { return }
-                activeQuery = ""
-                savedFeed = nil
-                savedFeedCursor = ""
-                Task { await loadInitialFeed(force: true) }
-            }
     }
 
     @ViewBuilder

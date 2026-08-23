@@ -16,7 +16,7 @@ struct AppRootView: View {
             case .guest:
                 MainTabView()
             case .onboardingRequired:
-                GenreSelectionView()
+                NewUserOnboardingView()
             case .signedIn:
                 MainTabView()
             }

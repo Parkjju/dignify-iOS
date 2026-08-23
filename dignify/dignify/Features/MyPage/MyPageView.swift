@@ -126,10 +126,6 @@ struct MyPageView: View {
             Text(verbatim: "\(type.emoji) \(type.name)")
                 .font(DSTypography.caption)
                 .foregroundStyle(DSColor.brand)
-        } else if let predicted = DiggingType.predicted {
-            Text("\(predicted.emoji) \(predicted.name) · not confirmed yet")
-                .font(DSTypography.caption)
-                .foregroundStyle(DSColor.textSecondary)
         } else {
             Text("Your taste, typed")
                 .font(DSTypography.caption)
@@ -171,7 +167,6 @@ struct MyPageView: View {
     private var settingsList: some View {
         VStack(spacing: 0) {
             // 1. 기능 — 실제로 무언가를 바꾸는 행들.
-            NavigationLink { GenreSettingsView() } label: { settingsRow("Genre Settings") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }

@@ -4,7 +4,7 @@ struct MainTabView: View {
     @Environment(AppSession.self) private var session
     /// 방금 온보딩을 마친 신규 유저 표시. 튜토리얼은 온보딩 플로우 앞단으로 옮겨갔고,
     /// 이 플래그는 "신규 가입자에게 What's New를 띄우지 않는다" 판정에만 남아 있다.
-    /// GenreSelectionView가 세팅하고 아래 task가 소비 후 클리어한다.
+    /// NewUserOnboardingView가 세팅하고 아래 task가 소비 후 클리어한다.
     @AppStorage("didJustOnboard") private var didJustOnboard = false
     /// 업데이트 감지용. 신규 설치엔 안 띄우고 조용히 현재 버전만 기록.
     @AppStorage("lastSeenVersion") private var lastSeenVersion = ""

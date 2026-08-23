@@ -8,26 +8,12 @@
 import Foundation
 
 /// 서버 wire 타입 모음 (openapi.yaml 스키마 그대로).
-/// 도메인 모델(`Feed`, `Genre`)과 이름/구조가 달라 분리 — 도메인 매핑은 서비스/뷰모델 계층 책임.
+/// 도메인 모델(`Feed`)과 이름/구조가 달라 분리 — 도메인 매핑은 서비스/뷰모델 계층 책임.
 /// ponytail: 응답 전용이라 대부분 Decodable만. 요청 바디는 Endpoints.swift에 fileprivate.
 nonisolated enum API {
 
     // MARK: Auth
     // /auth/apple, /auth/refresh 응답(AuthTokenResponse)은 AuthTokens(TokenStore.swift) 재사용.
-
-    // MARK: Genres
-
-    struct Genre: Decodable {
-        let genreId: Int
-        let genreName: String
-        /// 배포 순서 때문에 optional — 백엔드보다 앱이 먼저 나가도 장르 목록이 죽지 않게.
-        /// 양쪽 배포가 안정되면 non-optional로 조여도 된다(FeedItem.genreName과 같은 이유).
-        let genreNameEn: String?
-    }
-
-    struct GenresResponse: Decodable {
-        let genres: [Genre]
-    }
 
     // MARK: Feed
 
@@ -64,6 +50,17 @@ nonisolated enum API {
         let genreExhausted: Bool?
     }
 
+    /// 온보딩 2지선다 후보. 라운드마다 축(보컬/에너지/질감) 하나의 양극단에서 한 곡씩 온다.
+    /// 곡 정보는 피드와 같은 모양이라 `FeedItem`을 그대로 쓴다 — 서버도 같은 매퍼를 재사용한다.
+    struct OnboardingCandidates: Decodable {
+        struct Round: Decodable {
+            /// 어느 축의 양극단인지. 화면엔 안 쓰고 어떤 축이 잘 갈리는지 보려고 이벤트에만 싣는다.
+            let axis: String
+            let items: [FeedItem]
+        }
+        let rounds: [Round]
+    }
+
     // MARK: Tracks
 
     struct TrackDetail: Decodable {
@@ -90,14 +87,7 @@ nonisolated enum API {
     struct UserProfile: Decodable {
         let nickname: String
         let isOnboardingComplete: Bool
-        let genres: [ProfileGenre]
-
-        struct ProfileGenre: Decodable {
-            /// 서버는 원래 보내고 있었는데 앱이 안 읽고 있었다. 장르 대조는 이걸로 한다 —
-            /// 이름은 로케일마다 달라져서 엔드포인트 간에 문자열이 어긋날 수 있다.
-            let genreId: Int
-            let genreName: String
-        }
+        // 서버는 genres도 같이 내려주지만 앱이 읽을 데가 없어졌다(장르 설정 화면 삭제).
     }
 
     struct NicknameResponse: Decodable {
