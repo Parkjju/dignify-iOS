@@ -4,6 +4,46 @@
     "" : {
 
     },
+    "Neither one? Skip the round." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "둘 다 아니면 건너뛰어도 괜찮아요."
+          }
+        }
+      }
+    },
+    "The feed now follows what you hype. Let's give it a starting point." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 피드가 하입한 곡을 따라가요. 그 출발점을 잡아볼게요."
+          }
+        }
+      }
+    },
+    "Three quick rounds" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세 번만 골라주세요"
+          }
+        }
+      }
+    },
+    "You'll hear two clips at a time. Pick the one you'd keep listening to — we hype it for you, and the feed starts following that sound." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한 번에 두 곡을 들려드려요. 계속 듣고 싶은 쪽을 고르면 그 곡을 하입해 두고, 피드가 그 소리를 따라가기 시작해요."
+          }
+        }
+      }
+    },
     "—" : {
 
     },
@@ -2595,12 +2635,12 @@
         }
       }
     },
-    "Tap a card to hear it. Pick whichever you'd keep listening to." : {
+    "Tap a card to hear it, then hit Next." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "카드를 누르면 소리가 나와요. 계속 듣고 싶은 쪽을 고르세요."
+            "value" : "카드를 누르면 소리가 나와요. 마음에 드는 쪽을 고른 뒤 '다음'을 누르세요."
           }
         }
       }

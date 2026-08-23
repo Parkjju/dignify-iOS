@@ -48,7 +48,7 @@ struct MainTabView: View {
         // item으로 열면 제시를 일으킨 그 값이 그대로 클로저에 들어온다.
         .background {
             Color.clear.fullScreenCover(item: $soundRounds) { payload in
-                SoundRoundsView(rounds: payload.rounds) { picked in
+                SoundRoundsView(rounds: payload.rounds, isUpdate: true) { picked in
                     didSoundRounds = true
                     soundRounds = nil
                     // 방금 고른 곡이 시드다. 피드는 이미 불러온 뒤라 다시 받지 않으면

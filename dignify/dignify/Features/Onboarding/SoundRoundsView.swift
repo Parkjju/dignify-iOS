@@ -1,8 +1,9 @@
 import SwiftUI
 import PostHog
 
-/// 소리 2지선다 라운드. 두 곡을 듣고 끌리는 쪽을 고르면 **그 곡을 그대로 하입한다** —
-/// 산출물이 무드 시드라 다음 피드부터 그 방향으로 정렬된다.
+/// 소리 2지선다 라운드. 시작 화면 → 라운드 → 마지막 한 줄.
+/// 두 곡을 듣고 끌리는 쪽을 고르면 **그 곡을 그대로 하입한다** — 산출물이 무드 시드라
+/// 다음 피드부터 그 방향으로 정렬된다.
 ///
 /// 신규 가입(온보딩)과 기존 유저(업데이트 후 1회)가 같은 화면을 쓴다. 다른 건 끝난 뒤에 할 일뿐이라
 /// `onFinish`로 넘긴다 — 온보딩은 서버에 완료를 알리고, 기존 유저는 커버만 닫는다.
@@ -10,13 +11,21 @@ import PostHog
 struct SoundRoundsView: View {
     let rounds: [API.OnboardingCandidates.Round]
 
+    /// 업데이트로 들어온 기존 유저인가. 시작 화면에 "왜 지금 이게 떴는지" 한 줄이 더 붙는다 —
+    /// 신규 가입자는 튜토리얼 끝에 이어서 보므로 그 줄이 필요 없다.
+    var isUpdate = false
+
     /// 라운드가 다 끝나고 마지막 버튼을 눌렀을 때. 인자는 실제로 고른 곡 수(전부 건너뛰면 0).
     /// 던지면 마지막 화면에 에러가 남고 버튼은 다시 눌린다.
     var onFinish: (Int) async throws -> Void
 
     @Environment(AppSession.self) private var appSession
     @State private var audio = FeedAudioController()
+    @State private var didStart = false
     @State private var roundIndex = 0
+    /// 이번 라운드에서 고른 곡. 라운드를 넘길 때 비운다. nil이면 하단 버튼이 안 눌린다 —
+    /// 기본 선택을 두면 아무것도 안 듣고 넘긴 유저의 곡이 시드가 된다.
+    @State private var selected: API.FeedItem?
     @State private var pickedCount = 0
     @State private var isSubmitting = false
     @State private var errorMessage: String?
@@ -29,13 +38,18 @@ struct SoundRoundsView: View {
 
     var body: some View {
         Group {
-            if isDone { doneView } else { roundsView }
+            if !didStart {
+                introView
+            } else if isDone {
+                doneView
+            } else {
+                roundsView
+            }
         }
         .background(DSColor.background)
         .onAppear {
             // 이 화면이 소리를 내는 동안 아래 피드는 멈춰 있어야 한다(커버는 탭을 안 바꾼다).
             appSession.modalAudioActive = true
-            autoPlayFirst()
         }
         .onDisappear {
             audio.stop()
@@ -64,6 +78,50 @@ struct SoundRoundsView: View {
         }
     }
 
+    // MARK: - Intro
+
+    /// 라운드가 아무 말 없이 뜨면 유저는 이게 왜 떴는지, 뭘 고르는 건지 모른 채 답을 찍는다.
+    /// 업데이트 유저에겐 특히 그렇다 — 자기가 요청한 적 없는 화면이 앱을 켜자마자 덮는다.
+    private var introView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 16) {
+                Image("HypeIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 56, height: 56)
+                Text("Three quick rounds")
+                    .font(DSTypography.title1)
+                    .tracking(-0.48)
+                    .foregroundStyle(DSColor.textPrimary)
+                    .multilineTextAlignment(.center)
+                if isUpdate {
+                    Text("The feed now follows what you hype. Let's give it a starting point.")
+                        .font(DSTypography.body)
+                        .foregroundStyle(DSColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                Text("You'll hear two clips at a time. Pick the one you'd keep listening to — we hype it for you, and the feed starts following that sound.")
+                    .font(DSTypography.body)
+                    .foregroundStyle(DSColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                Text("Neither one? Skip the round.")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(DSColor.textTertiary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 16)
+            Spacer()
+
+            Button { start() } label: { Text("Get started") }
+                .buttonStyle(DSPrimaryButtonStyle())
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+    }
+
     // MARK: - Rounds
 
     private var roundsView: some View {
@@ -85,7 +143,7 @@ struct SoundRoundsView: View {
                     .font(DSTypography.title1)
                     .tracking(-0.48)
                     .foregroundStyle(DSColor.textPrimary)
-                Text("Tap a card to hear it. Pick whichever you'd keep listening to.")
+                Text("Tap a card to hear it, then hit Next.")
                     .font(DSTypography.body)
                     .foregroundStyle(DSColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -108,62 +166,56 @@ struct SoundRoundsView: View {
             }
 
             Spacer(minLength: 24)
+
+            Button { advance() } label: { Text("Next") }
+                .buttonStyle(DSPrimaryButtonStyle())
+                .disabled(selected == nil)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
         }
     }
 
+    /// 탭 = 이 곡을 고르면서 듣기. 같은 카드를 다시 누르면 재생만 토글한다.
+    /// 넘기는 건 하단 버튼이 한다 — 카드가 선택이자 페이지 넘김이면 뭘 누른 건지 알 수 없다.
     private func candidateCard(_ item: API.FeedItem) -> some View {
-        let isActive = audio.activeTrackId == item.trackId
-        let isPlaying = isActive && !audio.isPaused
+        let isSelected = selected?.trackId == item.trackId
+        let isPlaying = audio.activeTrackId == item.trackId && !audio.isPaused
 
-        return VStack(spacing: 0) {
-            Button {
-                play(item)
-            } label: {
-                HStack(spacing: 14) {
-                    RemoteImage(url: URL(string: item.artworkUrl)) { DSColor.surface }
-                        .scaledToFill()
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        return Button {
+            choose(item)
+        } label: {
+            HStack(spacing: 14) {
+                RemoteImage(url: URL(string: item.artworkUrl)) { DSColor.surface }
+                    .scaledToFill()
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: item.trackName)
-                            .font(DSTypography.bodyMedium)
-                            .foregroundStyle(DSColor.textPrimary)
-                            .lineLimit(1)
-                        Text(verbatim: item.artistName)
-                            .font(DSTypography.caption)
-                            .foregroundStyle(DSColor.textTertiary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 8)
-                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(isActive ? DSColor.brand : DSColor.textTertiary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: item.trackName)
+                        .font(DSTypography.bodyMedium)
+                        .foregroundStyle(DSColor.textPrimary)
+                        .lineLimit(1)
+                    Text(verbatim: item.artistName)
+                        .font(DSTypography.caption)
+                        .foregroundStyle(DSColor.textTertiary)
+                        .lineLimit(1)
                 }
-                .padding(16)
-                .contentShape(Rectangle())
+                Spacer(minLength: 8)
+                Image(systemName: isSelected ? "checkmark.circle.fill"
+                                             : (isPlaying ? "pause.circle.fill" : "play.circle.fill"))
+                    .font(.system(size: 32))
+                    .foregroundStyle(isSelected || isPlaying ? DSColor.brand : DSColor.textTertiary)
             }
-            .buttonStyle(PressScaleStyle())
-
-            Divider().overlay(DSColor.divider)
-
-            Button {
-                choose(item)
-            } label: {
-                Text("Pick this one")
-                    .font(DSTypography.bodyMedium)
-                    .foregroundStyle(DSColor.brand)
-                    .frame(maxWidth: .infinity, minHeight: 48)
-                    .contentShape(Rectangle())
+            .padding(16)
+            .contentShape(Rectangle())
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.medium)
+                    .stroke(isSelected ? DSColor.brand : .clear, lineWidth: 1.5)
             }
-            .buttonStyle(PressScaleStyle())
         }
-        .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium))
-        .overlay {
-            RoundedRectangle(cornerRadius: DSRadius.medium)
-                .stroke(isActive ? DSColor.brand : .clear, lineWidth: 1.5)
-        }
-        .animation(.easeOut(duration: 0.15), value: isActive)
+        .buttonStyle(PressScaleStyle())
+        .animation(.easeOut(duration: 0.15), value: isSelected)
     }
 
     // MARK: - Done
@@ -223,30 +275,33 @@ struct SoundRoundsView: View {
 
     // MARK: - Actions
 
+    private func start() {
+        didStart = true
+        autoPlayFirst()
+    }
+
     private func play(_ item: API.FeedItem) {
         guard let url = URL(string: item.previewUrl) else { return }
         audio.togglePreview(trackId: item.trackId, url: url)
     }
 
-    /// 라운드에 들어오면 A를 자동 재생한다. 첫 소리까지 탭을 요구하면 아무것도 안 듣고
-    /// 고르는 유저가 생기고, 그러면 시드가 취향과 무관해진다.
+    /// 라운드에 들어오면 A를 자동 재생한다(선택은 안 한다). 첫 소리까지 탭을 요구하면
+    /// 아무것도 안 듣고 넘기는 유저가 생긴다.
     private func autoPlayFirst() {
         guard let first = rounds[safe: roundIndex]?.items.first else { return }
         play(first)
     }
 
+    /// 카드 탭 — 고르면서 듣는다. 같은 카드를 다시 누르면 재생만 토글한다.
+    /// **하입은 여기서 보내지 않는다.** 마음이 바뀌어 다른 카드를 누르면 안 고른 곡까지
+    /// 시드가 되기 때문이다. 실제 전송은 라운드를 넘길 때(`advance`) 한 번만 한다.
     private func choose(_ item: API.FeedItem) {
-        pickedCount += 1
-        PostHogSDK.shared.capture("onboarding_sound_picked", properties: [
-            "round": roundIndex,
-            "axis": rounds[safe: roundIndex]?.axis ?? "",
-            "track_id": item.trackId,
-        ])
-        // 하입은 결과를 기다리지 않는다. 실패해도 시드가 하나 줄 뿐이고, 여기서 막으면
-        // 이 화면이 네트워크에 인질로 잡힌다.
-        appSession.hypeState[item.trackId] = true
-        Task { try? await appSession.api.send(.hype(trackId: item.trackId)) }
-        advance()
+        if selected?.trackId == item.trackId {
+            audio.toggleCurrentPlayback()
+            return
+        }
+        selected = item
+        play(item)
     }
 
     private func skipRound() {
@@ -254,11 +309,26 @@ struct SoundRoundsView: View {
             "round": roundIndex,
             "axis": rounds[safe: roundIndex]?.axis ?? "",
         ])
+        selected = nil
         advance()
     }
 
+    /// 고른 곡을 하입하고 다음 라운드로. 건너뛰기는 `selected`가 nil이라 하입 없이 지나간다.
     private func advance() {
+        if let item = selected {
+            pickedCount += 1
+            PostHogSDK.shared.capture("onboarding_sound_picked", properties: [
+                "round": roundIndex,
+                "axis": rounds[safe: roundIndex]?.axis ?? "",
+                "track_id": item.trackId,
+            ])
+            // 하입은 결과를 기다리지 않는다. 실패해도 시드가 하나 줄 뿐이고, 여기서 막으면
+            // 이 화면이 네트워크에 인질로 잡힌다.
+            appSession.hypeState[item.trackId] = true
+            Task { try? await appSession.api.send(.hype(trackId: item.trackId)) }
+        }
         audio.stop()
+        selected = nil
         roundIndex += 1
         if isDone {
             PostHogSDK.shared.capture("onboarding_sound_completed", properties: ["picked": pickedCount])
