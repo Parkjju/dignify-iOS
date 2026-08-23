@@ -90,24 +90,24 @@ struct SoundRoundsView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 56, height: 56)
-                Text("Three quick rounds")
+                Text("What sounds good to you?")
                     .font(DSTypography.title1)
                     .tracking(-0.48)
                     .foregroundStyle(DSColor.textPrimary)
                     .multilineTextAlignment(.center)
                 if isUpdate {
-                    Text("The feed now follows what you hype. Let's give it a starting point.")
+                    Text("Your feed follows the tracks you hype now. Let's set the first direction together.")
                         .font(DSTypography.body)
                         .foregroundStyle(DSColor.textSecondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                 }
-                Text("You'll hear two clips at a time. Pick the one you'd keep listening to — we hype it for you, and the feed starts following that sound.")
+                Text("Rather than ask, we'll just play. Two clips at a time — pick the one you'd rather keep listening to. There's no right answer, and whatever you pick gets hyped.")
                     .font(DSTypography.body)
                     .foregroundStyle(DSColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
-                Text("Neither one? Skip the round.")
+                Text("Three rounds and you're done. Neither one? Skip it.")
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.textTertiary)
                     .multilineTextAlignment(.center)
@@ -124,6 +124,24 @@ struct SoundRoundsView: View {
 
     // MARK: - Rounds
 
+    /// 이 라운드가 무엇을 묻는지. 서버는 축 이름만 주고 설명은 앱이 붙인다 — 카피 톤과 번역이
+    /// 문자열 카탈로그에 있어야 하기 때문이다. **어느 카드가 어느 극단인지는 말하지 않는다.**
+    /// 말하는 순간 유저는 소리가 아니라 라벨을 고른다.
+    ///
+    /// 모르는 축이 오면(서버가 축을 늘렸는데 앱이 옛 버전) 일반 문구로 떨어진다. 라운드는 그대로 돈다.
+    private var axisCopy: (question: LocalizedStringKey, poles: LocalizedStringKey)? {
+        switch rounds[safe: roundIndex]?.axis {
+        case "arousal":
+            return ("Which energy pulls you in?", "One of them drives hard, the other stays calm.")
+        case "lofi":
+            return ("Which texture pulls you in?", "One is raw and noisy, the other is clean and polished.")
+        case "valence":
+            return ("Which mood pulls you in?", "One is bright and up, the other is dark and heavy.")
+        default:
+            return nil
+        }
+    }
+
     private var roundsView: some View {
         VStack(spacing: 0) {
             HStack {
@@ -139,13 +157,19 @@ struct SoundRoundsView: View {
             .padding(.horizontal, 24)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Which one pulls you in?")
+                Text(axisCopy?.question ?? "Which one pulls you in?")
                     .font(DSTypography.title1)
                     .tracking(-0.48)
                     .foregroundStyle(DSColor.textPrimary)
+                if let poles = axisCopy?.poles {
+                    Text(poles)
+                        .font(DSTypography.body)
+                        .foregroundStyle(DSColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Text("Tap a card to hear it, then hit Next.")
-                    .font(DSTypography.body)
-                    .foregroundStyle(DSColor.textSecondary)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(DSColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

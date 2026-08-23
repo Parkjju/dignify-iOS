@@ -4,42 +4,102 @@
     "" : {
 
     },
-    "Neither one? Skip the round." : {
+    "One is bright and up, the other is dark and heavy." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "둘 다 아니면 건너뛰어도 괜찮아요."
+            "value" : "한쪽은 밝고 경쾌하고, 한쪽은 어둡고 무거워요."
           }
         }
       }
     },
-    "The feed now follows what you hype. Let's give it a starting point." : {
+    "One is raw and noisy, the other is clean and polished." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이제 피드가 하입한 곡을 따라가요. 그 출발점을 잡아볼게요."
+            "value" : "한쪽은 거칠고 노이즈가 섞였고, 한쪽은 깔끔하게 다듬었어요."
           }
         }
       }
     },
-    "Three quick rounds" : {
+    "One of them drives hard, the other stays calm." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "세 번만 골라주세요"
+            "value" : "한쪽은 몰아치고, 한쪽은 잔잔해요."
           }
         }
       }
     },
-    "You'll hear two clips at a time. Pick the one you'd keep listening to — we hype it for you, and the feed starts following that sound." : {
+    "Three rounds and you're done. Neither one? Skip it." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한 번에 두 곡을 들려드려요. 계속 듣고 싶은 쪽을 고르면 그 곡을 하입해 두고, 피드가 그 소리를 따라가기 시작해요."
+            "value" : "세 번이면 끝나요. 둘 다 아니면 건너뛰어도 괜찮아요."
+          }
+        }
+      }
+    },
+    "Which energy pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 에너지가 끌리나요?"
+          }
+        }
+      }
+    },
+    "Which mood pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 분위기가 끌리나요?"
+          }
+        }
+      }
+    },
+    "Which texture pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 질감이 끌리나요?"
+          }
+        }
+      }
+    },
+    "Your feed follows the tracks you hype now. Let's set the first direction together." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 피드가 하입한 곡을 따라가요. 첫 방향만 같이 잡을게요."
+          }
+        }
+      }
+    },
+    "What sounds good to you?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 소리를 좋아하세요?"
+          }
+        }
+      }
+    },
+    "Rather than ask, we'll just play. Two clips at a time — pick the one you'd rather keep listening to. There's no right answer, and whatever you pick gets hyped." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설명 대신 그냥 들려드릴게요. 두 곡 중에 더 듣고 싶은 쪽을 고르면 돼요. 정답은 없고, 고른 곡은 하입으로 남아요."
           }
         }
       }
