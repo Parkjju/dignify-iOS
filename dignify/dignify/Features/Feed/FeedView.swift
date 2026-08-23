@@ -280,6 +280,14 @@ struct FeedView: View {
             }
             // 앱이 떠 있는 채로 큐레이션 푸시를 탭한 경우. .task는 이미 끝났으므로
             // 여기서 다시 받아야 세트가 앞으로 온다(플래그는 curationPrefix가 내린다).
+            // 소리 2지선다가 끝나면 시드가 새로 생긴 것이라 정렬 기준부터 다르다. 통째로 다시 받는다.
+            .onChange(of: session.feedReloadToken) { _, _ in
+                guard mode == .normal else { return }
+                activeQuery = ""
+                savedFeed = nil
+                savedFeedCursor = ""
+                Task { await loadInitialFeed(force: true) }
+            }
             .onChange(of: session.pendingCurationOpen) { _, pending in
                 guard mode == .normal, pending else { return }
                 activeQuery = ""

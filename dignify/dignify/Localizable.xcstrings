@@ -4,76 +4,6 @@
     "" : {
 
     },
-    "Hype anything you like and the next cards follow you." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마음에 드는 곡을 하입하면 다음 카드가 따라와요."
-          }
-        }
-      }
-    },
-    "Pick this one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 곡 고르기"
-          }
-        }
-      }
-    },
-    "Tap a card to hear it. Pick whichever you'd keep listening to." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "카드를 누르면 소리가 나와요. 계속 듣고 싶은 쪽을 고르세요."
-          }
-        }
-      }
-    },
-    "We hyped what you picked. Keep hyping and the feed follows you." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "고른 곡은 하입해 뒀어요. 계속 하입하면 피드가 따라와요."
-          }
-        }
-      }
-    },
-    "Which one pulls you in?" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "둘 중 어느 쪽이 끌리나요?"
-          }
-        }
-      }
-    },
-    "Your hypes shape the feed" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입이 피드를 만들어요"
-          }
-        }
-      }
-    },
-    "Your picks shape the first feed" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "고른 곡이 첫 피드를 만들어요"
-          }
-        }
-      }
-    },
     "—" : {
 
     },
@@ -147,6 +77,7 @@
       }
     },
     "%@ selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -840,6 +771,7 @@
       }
     },
     "Done" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -1016,6 +948,7 @@
       }
     },
     "Genre Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -1168,6 +1101,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "하입"
+          }
+        }
+      }
+    },
+    "Hype anything you like and the next cards follow you." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 드는 곡을 하입하면 다음 카드가 따라와요."
           }
         }
       }
@@ -1762,6 +1705,7 @@
       }
     },
     "Pick as many as you like" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -1778,6 +1722,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "장르 직접 고를래요"
+          }
+        }
+      }
+    },
+    "Pick this one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 곡 고르기"
           }
         }
       }
@@ -1948,40 +1902,6 @@
         }
       }
     },
-    "push_pick_reaction_first_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first 🔥"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "첫 반응이 왔어요"
-          }
-        }
-      }
-    },
-    "push_pick_reaction_milestone_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your pick is catching on"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "반응이 쌓이고 있어요"
-          }
-        }
-      }
-    },
     "push_pick_reaction_first" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1999,6 +1919,23 @@
         }
       }
     },
+    "push_pick_reaction_first_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first 🔥"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 반응이 왔어요"
+          }
+        }
+      }
+    },
     "push_pick_reaction_milestone" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2012,6 +1949,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "내 픽에 🔥 %@개가 모였어요"
+          }
+        }
+      }
+    },
+    "push_pick_reaction_milestone_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pick is catching on"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "반응이 쌓이고 있어요"
           }
         }
       }
@@ -2641,6 +2595,16 @@
         }
       }
     },
+    "Tap a card to hear it. Pick whichever you'd keep listening to." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카드를 누르면 소리가 나와요. 계속 듣고 싶은 쪽을 고르세요."
+          }
+        }
+      }
+    },
     "Tap any track in My Page to play its preview right there." : {
       "localizations" : {
         "ko" : {
@@ -3074,6 +3038,16 @@
         }
       }
     },
+    "We hyped what you picked. Keep hyping and the feed follows you." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡은 하입해 뒀어요. 계속 하입하면 피드가 따라와요."
+          }
+        }
+      }
+    },
     "We'll confirm this once you've actually dug around a bit." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3081,6 +3055,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "실제로 좀 파보시면 진짜 유형을 확정해드릴게요."
+          }
+        }
+      }
+    },
+    "We'll let you know when someone drops a 🔥 on it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올린 픽에 🔥가 달리면 바로 알려드릴게요."
           }
         }
       }
@@ -3130,6 +3115,7 @@
       }
     },
     "What music do you like?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -3160,17 +3146,6 @@
         }
       }
     },
-    "We'll let you know when someone drops a 🔥 on it." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "올린 픽에 🔥가 달리면 바로 알려드릴게요."
-          }
-        }
-      }
-    },
     "When someone reacts with 🔥, we can let you know." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3178,6 +3153,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "누가 🔥를 누르면 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "Which one pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "둘 중 어느 쪽이 끌리나요?"
           }
         }
       }
@@ -3406,6 +3391,16 @@
         }
       }
     },
+    "Your hypes shape the feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입이 피드를 만들어요"
+          }
+        }
+      }
+    },
     "Your library is gloriously messy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3445,6 +3440,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "내가 만든 픽"
+          }
+        }
+      }
+    },
+    "Your picks shape the feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡이 피드를 만들어요"
           }
         }
       }
