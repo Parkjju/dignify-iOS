@@ -12,8 +12,7 @@ struct MainTabView: View {
     /// `is_onboarding_complete`를 내리면 구버전 앱이 옛 장르 온보딩을 다시 띄운다.
     @AppStorage("didSoundRounds") private var didSoundRounds = false
     @State private var showWhatsNew = false
-    @State private var soundRounds: [API.OnboardingCandidates.Round] = []
-    @State private var showSoundRounds = false
+    @State private var soundRounds: SoundRoundsPayload?
 
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -42,11 +41,16 @@ struct MainTabView: View {
             }
         }
         // 시트가 아니라 풀스크린이다 — 아래로 쓸어 닫을 수 있으면 라운드가 중간에 끊긴다.
+        //
+        // **`isPresented`가 아니라 `item`으로 연다.** 플래그로 열면 콘텐츠 클로저가 후보 배열이
+        // 채워지기 전 값을 잡아서, 3라운드를 받아도 빈 배열을 든 화면이 뜬다(실제로 밟았다 —
+        // 로그엔 200에 "3라운드 사용"이 찍히는데 화면은 마지막 장이었다).
+        // item으로 열면 제시를 일으킨 그 값이 그대로 클로저에 들어온다.
         .background {
-            Color.clear.fullScreenCover(isPresented: $showSoundRounds) {
-                SoundRoundsView(rounds: soundRounds) { picked in
+            Color.clear.fullScreenCover(item: $soundRounds) { payload in
+                SoundRoundsView(rounds: payload.rounds) { picked in
                     didSoundRounds = true
-                    showSoundRounds = false
+                    soundRounds = nil
                     // 방금 고른 곡이 시드다. 피드는 이미 불러온 뒤라 다시 받지 않으면
                     // 유저는 라운드를 마치고도 예전 순서를 본다.
                     if picked > 0 { session.feedReloadToken += 1 }
@@ -61,8 +65,8 @@ struct MainTabView: View {
             if isReturningUser && !didSoundRounds {
                 // 후보가 없으면(서버 미시딩) 커버를 아예 안 띄운다. 띄웠다 닫으면 화면이 번쩍이고,
                 // 플래그를 태워버리면 시딩된 뒤에도 이 유저는 영영 라운드를 못 본다.
-                soundRounds = await SoundRoundsView.fetch(session)
-                showSoundRounds = !soundRounds.isEmpty
+                let rounds = await SoundRoundsView.fetch(session)
+                if !rounds.isEmpty { soundRounds = SoundRoundsPayload(rounds: rounds) }
             } else if Changelog.shouldShowWhatsNew(lastSeen: lastSeenVersion, current: currentVersion, isReturningUser: isReturningUser) {
                 showWhatsNew = true
             }
@@ -80,6 +84,12 @@ struct MainTabView: View {
             tab.makeContentView()
         }
     }
+}
+
+/// `fullScreenCover(item:)`에 실어 보내는 후보 묶음. 배열 자체는 Identifiable이 될 수 없어 감싼다.
+private struct SoundRoundsPayload: Identifiable {
+    let id = UUID()
+    let rounds: [API.OnboardingCandidates.Round]
 }
 
 /// 게스트가 마이페이지 탭을 열었을 때 노출되는 로그인 유도 화면.
