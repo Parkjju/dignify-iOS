@@ -13,6 +13,7 @@ struct MainTabView: View {
     @AppStorage("didSoundRounds") private var didSoundRounds = false
     @State private var showWhatsNew = false
     @State private var soundRounds: SoundRoundsPayload?
+    @State private var showPersonalizationNotice = false
 
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -57,22 +58,46 @@ struct MainTabView: View {
                 }
             }
         }
+        .background {
+            Color.clear.fullScreenCover(isPresented: $showPersonalizationNotice) {
+                PersonalizationNoticeView {
+                    didSoundRounds = true
+                    showPersonalizationNotice = false
+                }
+            }
+        }
         .task {
             // 기존 로그인 유저가 업데이트로 들어온 경우 = 온보딩 안 거침(didJustOnboard false) + signedIn.
             let isReturningUser = !didJustOnboard && session.authState == .signedIn
             // 업데이트로 들어온 기존 유저도 한 번은 라운드를 탄다. What's New와 같이 띄우지 않는다 —
             // 이번 릴리즈에선 이 화면 자체가 새 소식이고, 모달 두 개가 겹치면 하나가 조용히 안 뜬다.
             if isReturningUser && !didSoundRounds {
-                // 후보가 없으면(서버 미시딩) 커버를 아예 안 띄운다. 띄웠다 닫으면 화면이 번쩍이고,
-                // 플래그를 태워버리면 시딩된 뒤에도 이 유저는 영영 라운드를 못 본다.
-                let rounds = await SoundRoundsView.fetch(session)
-                if !rounds.isEmpty { soundRounds = SoundRoundsPayload(rounds: rounds) }
+                await startPersonalizationIntro()
             } else if Changelog.shouldShowWhatsNew(lastSeen: lastSeenVersion, current: currentVersion, isReturningUser: isReturningUser) {
                 showWhatsNew = true
             }
             lastSeenVersion = currentVersion
             didJustOnboard = false
         }
+    }
+
+    /// 업데이트 유저를 라운드와 안내로 가른다.
+    ///
+    /// **하입이 이미 쌓인 사람은 라운드를 태우지 않는다.** 시드는 최근 하입 5개라 라운드에서 고른
+    /// 3곡이 다섯 칸 중 셋을 먹고, 그러면 쌓아온 취향이 밀려 피드가 잘못 구성된 것처럼 보인다.
+    /// 기준을 3으로 둔 건 그 아래면 시드가 반도 안 차서 라운드가 채워 주는 쪽이 이득이라서다.
+    private func startPersonalizationIntro() async {
+        let stats = try? await session.api.send(.myStats(range: "all"), as: API.UserStats.self)
+        // 통계를 못 받으면 라운드 쪽으로 간다 — 하입이 없는 유저에게 아무 설명 없이 넘어가는 것보다,
+        // 하입이 있는 유저가 라운드를 한 번 더 보는 쪽이 덜 나쁘다.
+        if let hypeCount = stats?.hypeCount, hypeCount >= 3 {
+            showPersonalizationNotice = true
+            return
+        }
+        // 후보가 없으면(서버 미시딩) 커버를 아예 안 띄운다. 띄웠다 닫으면 화면이 번쩍이고,
+        // 플래그를 태워버리면 시딩된 뒤에도 이 유저는 영영 라운드를 못 본다.
+        let rounds = await SoundRoundsView.fetch(session)
+        if !rounds.isEmpty { soundRounds = SoundRoundsPayload(rounds: rounds) }
     }
 
     /// 게스트는 계정 기반 탭(마이페이지) 대신 로그인 유도 플레이스홀더를 본다.

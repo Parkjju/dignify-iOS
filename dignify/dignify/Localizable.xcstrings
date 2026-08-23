@@ -4,6 +4,16 @@
     "" : {
 
     },
+    "Nothing to set up. Genre settings are gone — the feed reads your hypes instead." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "따로 설정할 건 없어요. 장르 설정은 없앴고, 이제 하입이 그 자리를 대신해요."
+          }
+        }
+      }
+    },
     "One is bright and up, the other is dark and heavy." : {
       "localizations" : {
         "ko" : {
@@ -30,6 +40,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "한쪽은 몰아치고, 한쪽은 잔잔해요."
+          }
+        }
+      }
+    },
+    "The tracks you hyped decide what comes next — same sound, same mood. Hype something new and the feed turns with it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡을 기준으로 다음 카드가 정해져요. 비슷한 소리, 비슷한 분위기로요. 새로 하입하면 피드도 그쪽으로 돌아가요."
           }
         }
       }
@@ -100,6 +120,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "설명 대신 그냥 들려드릴게요. 두 곡 중에 더 듣고 싶은 쪽을 고르면 돼요. 정답은 없고, 고른 곡은 하입으로 남아요."
+          }
+        }
+      }
+    },
+    "Your feed follows your hypes now" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 피드가 하입을 따라가요"
           }
         }
       }
