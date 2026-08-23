@@ -50,9 +50,20 @@ final class AppSession {
 
     let api: APIClient
 
-    // ponytail: base URL 상수 하나. 환경 분기 필요해지면 그때 config로.
+    // ponytail: 상수 하나에 #if DEBUG 분기. 환경이 셋 이상 되면 그때 config로.
     // 기본 인자는 nonisolated 문맥에서 평가되므로 이 상수도 격리 밖에 둔다.
+    //
+    // "localhost"가 아니라 IP 리터럴로 쓰는 이유는 ATS다 — 비정규 도메인은 막히고(예외 키를 넣으려면
+    // Info.plist를 만들어야 하는데 이 타깃은 GENERATE_INFOPLIST_FILE=YES다) IP는 ATS가 적용되지 않는다.
+    //
+    // 127.0.0.1이 아니라 맥의 LAN IP다 — 실기기에서 127.0.0.1은 폰 자신이라 요청이 서버까지 못 간다
+    // (로그인 실패가 인증 문제로 보이지만 실은 연결이 안 된 것). 시뮬레이터도 이 주소로 닿는다.
+    // 네트워크가 바뀌면 갱신할 것: `ipconfig getifaddr en0`
+    #if DEBUG
+    private nonisolated static let baseURL = URL(string: "http://192.168.0.166:8080")!
+    #else
     private nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
+    #endif
 
     init(api: APIClient = APIClient(baseURL: AppSession.baseURL)) {
         self.api = api
