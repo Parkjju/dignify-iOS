@@ -18,17 +18,14 @@ struct SoundRoundsView: View {
     @State private var audio = FeedAudioController()
     @State private var roundIndex = 0
     @State private var pickedCount = 0
-    @State private var isDone: Bool
     @State private var isSubmitting = false
     @State private var errorMessage: String?
 
-    init(rounds: [API.OnboardingCandidates.Round], onFinish: @escaping (Int) async throws -> Void) {
-        self.rounds = rounds
-        self.onFinish = onFinish
-        // 후보가 없으면 보여줄 라운드도 없다. 마지막 화면부터 시작해 "하입이 피드를 만든다"는
-        // 한 줄만 남긴다 — 온보딩이 여기서 막히면 안 되고, 완료 버튼도 이 화면에 있다.
-        _isDone = State(initialValue: rounds.isEmpty)
-    }
+    /// 남은 라운드가 없으면 마지막 화면이다. **`@State`로 들지 않는다** — `init`에서
+    /// `rounds.isEmpty`를 상태에 굳히면, SwiftUI가 배열이 채워지기 전에 뷰를 한 번 만들었을 때
+    /// 그 값이 그대로 남아 후보가 있어도 마지막 화면이 뜬다(실제로 밟았다).
+    /// 후보가 0개면 처음부터 여기라 온보딩이 막히지 않는다.
+    private var isDone: Bool { roundIndex >= rounds.count }
 
     var body: some View {
         Group {
@@ -42,9 +39,22 @@ struct SoundRoundsView: View {
     /// 부르는 쪽에서 미리 받아 둔다. 실패·빈 응답은 빈 배열로 뭉갠다 — 라운드를 못 보여주는 건
     /// 막을 일이 아니라 건너뛸 일이다(그 유저는 콜드스타트 피드가 받는다).
     static func fetch(_ session: AppSession) async -> [API.OnboardingCandidates.Round] {
-        let res = try? await session.api.send(.onboardingCandidates, as: API.OnboardingCandidates.self)
-        // 곡이 두 개 다 안 온 라운드는 2지선다가 성립하지 않는다.
-        return (res?.rounds ?? []).filter { $0.items.count == 2 }
+        do {
+            let res = try await session.api.send(.onboardingCandidates, as: API.OnboardingCandidates.self)
+            // 곡이 두 개 다 안 온 라운드는 2지선다가 성립하지 않는다.
+            let rounds = res.rounds.filter { $0.items.count == 2 }
+            #if DEBUG
+            print("[rounds] 후보 \(res.rounds.count)라운드 중 \(rounds.count)라운드 사용")
+            #endif
+            return rounds
+        } catch {
+            // 실패해도 라운드를 건너뛸 뿐이라 화면엔 아무 말도 안 남는다. 그래서 여기 로그가 필요하다
+            // — 서버가 안 줬는지, 디코딩이 깨졌는지가 콘솔에서만 갈린다.
+            #if DEBUG
+            print("[rounds] 후보를 못 받았다: \(error)")
+            #endif
+            return []
+        }
     }
 
     // MARK: - Rounds
@@ -242,12 +252,11 @@ struct SoundRoundsView: View {
 
     private func advance() {
         audio.stop()
-        if roundIndex + 1 < rounds.count {
-            roundIndex += 1
-            autoPlayFirst()
-        } else {
+        roundIndex += 1
+        if isDone {
             PostHogSDK.shared.capture("onboarding_sound_completed", properties: ["picked": pickedCount])
-            isDone = true
+        } else {
+            autoPlayFirst()
         }
     }
 
