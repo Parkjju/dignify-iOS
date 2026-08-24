@@ -18,6 +18,9 @@ struct Feed {
     let genreName: String?
     /// 표시용은 genreName, 분석용은 이쪽. 로케일을 안 타므로 집계가 쪼개지지 않는다.
     let genreNameEn: String?
+    /// 이 곡을 불러온 하입 곡. 무드로 뽑힌 곡에만 있다 — 카드의 장르 칩 자리를 대신 쓴다.
+    /// 기본값을 두는 건 테스트·프리뷰가 이 필드를 몰라도 되게 하기 위해서다.
+    var similarToTrackName: String? = nil
 }
 
 extension Feed {
@@ -37,7 +40,8 @@ extension Feed {
             trackViewUrl: item.trackViewUrl,
             isHyped: item.isHyped,
             genreName: item.genreName,
-            genreNameEn: item.genreNameEn
+            genreNameEn: item.genreNameEn,
+            similarToTrackName: item.similarTo?.trackName
         )
     }
 }

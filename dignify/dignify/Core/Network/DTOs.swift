@@ -32,6 +32,15 @@ nonisolated enum API {
         /// 같은 장르가 로케일별로 다른 값이 되면 분석에서 집계가 쪼개진다(Rock/록).
         /// 화면엔 안 쓰고 이벤트 프로퍼티로만 나간다. optional인 이유는 genreName과 동일.
         let genreNameEn: String?
+        /// 이 곡이 왜 떴는지 — 내가 하입한 곡 중 무드가 가장 가까운 것.
+        /// 무드 정렬로 나온 곡에만 있고 콜드스타트·무작위·검색·큐레이션은 nil이다.
+        let similarTo: SimilarTrack?
+
+        struct SimilarTrack: Decodable {
+            let trackId: Int
+            let trackName: String
+            let artistName: String
+        }
     }
 
     /// 이번 주 큐레이션 세트. setKey는 세트가 교체될 때만 바뀌는 식별자로,

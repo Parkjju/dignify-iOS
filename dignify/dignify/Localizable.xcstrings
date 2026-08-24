@@ -4,122 +4,22 @@
     "" : {
 
     },
-    "All hyped. Your feed starts from here, and turns as you keep hyping." : {
+    "Because you hyped %@" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "세 곡 다 하입해 뒀어요. 피드는 여기서 출발하고, 하입할수록 그쪽으로 돌아가요."
+            "value" : "%@ 하입해서 나온 곡"
           }
         }
       }
     },
-    "Asked in words, taste turns into genre names. Sound is the more honest question." : {
+    "Feels like %@" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "취향을 말로 물으면 장르 이름부터 떠올리게 돼요. 소리로 고르는 쪽이 더 정확해요."
-          }
-        }
-      }
-    },
-    "Energy" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "에너지"
-          }
-        }
-      }
-    },
-    "Here's what you picked" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이런 소리를 고르셨어요"
-          }
-        }
-      }
-    },
-    "Mood" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "밝기"
-          }
-        }
-      }
-    },
-    "Texture" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "거칠기"
-          }
-        }
-      }
-    },
-    "the bright one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "밝은 쪽"
-          }
-        }
-      }
-    },
-    "the calm one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "잔잔한 쪽"
-          }
-        }
-      }
-    },
-    "the clean one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "깔끔한 쪽"
-          }
-        }
-      }
-    },
-    "the dark one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "어두운 쪽"
-          }
-        }
-      }
-    },
-    "the driving one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "몰아치는 쪽"
-          }
-        }
-      }
-    },
-    "the raw one" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "거친 쪽"
+            "value" : "%@ 느낌"
           }
         }
       }
@@ -361,6 +261,16 @@
         }
       }
     },
+    "All hyped. Your feed starts from here, and turns as you keep hyping." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세 곡 다 하입해 뒀어요. 피드는 여기서 출발하고, 하입할수록 그쪽으로 돌아가요."
+          }
+        }
+      }
+    },
     "All over the place" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -430,6 +340,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "아티스트 요청"
+          }
+        }
+      }
+    },
+    "Asked in words, taste turns into genre names. Sound is the more honest question." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취향을 말로 물으면 장르 이름부터 떠올리게 돼요. 소리로 고르는 쪽이 더 정확해요."
           }
         }
       }
@@ -966,6 +886,16 @@
         }
       }
     },
+    "Energy" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에너지"
+          }
+        }
+      }
+    },
     "English is what I'm used to" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1169,6 +1099,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "사람들이랑 놀 때"
+          }
+        }
+      }
+    },
+    "Here's what you picked" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이런 소리를 고르셨어요"
           }
         }
       }
@@ -1509,6 +1449,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "찾는 아티스트가 없나요?"
+          }
+        }
+      }
+    },
+    "Mood" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "밝기"
           }
         }
       }
@@ -2862,6 +2812,16 @@
         }
       }
     },
+    "Texture" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "거칠기"
+          }
+        }
+      }
+    },
     "Thanks — we'll take a look." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2890,6 +2850,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "비트랑 신스"
+          }
+        }
+      }
+    },
+    "the bright one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "밝은 쪽"
+          }
+        }
+      }
+    },
+    "the calm one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잔잔한 쪽"
+          }
+        }
+      }
+    },
+    "the clean one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "깔끔한 쪽"
+          }
+        }
+      }
+    },
+    "the dark one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어두운 쪽"
+          }
+        }
+      }
+    },
+    "the driving one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "몰아치는 쪽"
           }
         }
       }
@@ -2942,6 +2952,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "순수주의자"
+          }
+        }
+      }
+    },
+    "the raw one" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "거친 쪽"
           }
         }
       }
@@ -3230,6 +3250,7 @@
       }
     },
     "We hyped what you picked. Keep hyping and the feed follows you." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -3696,6 +3717,7 @@
       }
     },
     "Your picks shape the feed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {

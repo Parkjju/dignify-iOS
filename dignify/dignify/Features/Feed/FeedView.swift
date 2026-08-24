@@ -1163,21 +1163,32 @@ struct FeedView: View {
                 .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
         }
 
-        /// "이 트랙이 왜 떴는지" 힌트. 유저가 고른 장르 기준으로 피드가 구성되므로
-        /// 장르명 자체가 선정 근거다. 서버가 현지화해 내려주며, 백엔드 배포 전이면 숨는다.
+        /// "이 트랙이 왜 떴는지" 힌트. 무드로 뽑힌 곡이면 그 근거가 된 **내 하입 곡**을,
+        /// 아니면(콜드스타트·무작위·검색) 종전대로 장르명을 띄운다.
+        ///
+        /// **자리를 하나만 쓴다.** 둘을 같이 띄우면 근거가 있는 카드와 없는 카드가 한 화면에 섞여
+        /// "얘만 왜 이유가 있지"가 된다. 한 칩이 있고 그 내용이 바뀌는 편이 설명 부채가 안 생긴다.
         /// DSGenreChip은 밝은 배경의 선택형 Button이라 어두운 카드엔 안 맞아 별도 스타일.
         @ViewBuilder
         private var genreLabel: some View {
-            if let genreName = feed.genreName {
-                Text(genreName)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.white.opacity(0.15), in: Capsule())
-                    .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
+            if let similar = feed.similarToTrackName {
+                chip(Text("Feels like \(similar)"))
+                    .accessibilityLabel("Because you hyped \(similar)")
+            } else if let genreName = feed.genreName {
+                chip(Text(verbatim: genreName))
                     .accessibilityLabel("Genre: \(genreName)")
             }
+        }
+
+        private func chip(_ label: Text) -> some View {
+            label
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+                .lineLimit(1)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(.white.opacity(0.15), in: Capsule())
+                .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
         }
 
         private var infoAndActions: some View {
