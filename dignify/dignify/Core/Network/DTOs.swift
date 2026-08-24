@@ -54,8 +54,12 @@ nonisolated enum API {
     /// 곡 정보는 피드와 같은 모양이라 `FeedItem`을 그대로 쓴다 — 서버도 같은 매퍼를 재사용한다.
     struct OnboardingCandidates: Decodable {
         struct Round: Decodable {
-            /// 어느 축의 양극단인지. 화면엔 안 쓰고 어떤 축이 잘 갈리는지 보려고 이벤트에만 싣는다.
+            /// 어느 축의 양극단인지. 라운드 문구를 고르는 데 쓰고 이벤트에도 싣는다.
             let axis: String
+            /// 두 곡 중 축의 HIGH 극단인 쪽. `items` 순서는 셔플이라 위치로는 알 수 없다.
+            /// **고른 뒤에만 쓴다** — 고르기 전에 알려주면 소리가 아니라 라벨을 고르게 된다.
+            /// 서버가 아직 안 내려줄 수 있어 optional이다(그 경우 극단 표시 없이 그대로 돈다).
+            let highTrackId: Int?
             let items: [FeedItem]
         }
         let rounds: [Round]

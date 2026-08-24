@@ -4,132 +4,122 @@
     "" : {
 
     },
-    "Nothing to set up. Genre settings are gone — the feed reads your hypes instead." : {
+    "All hyped. Your feed starts from here, and turns as you keep hyping." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "따로 설정할 건 없어요. 장르 설정은 없앴고, 이제 하입이 그 자리를 대신해요."
+            "value" : "세 곡 다 하입해 뒀어요. 피드는 여기서 출발하고, 하입할수록 그쪽으로 돌아가요."
           }
         }
       }
     },
-    "One is bright and up, the other is dark and heavy." : {
+    "Asked in words, taste turns into genre names. Sound is the more honest question." : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한쪽은 밝고 경쾌하고, 한쪽은 어둡고 무거워요."
+            "value" : "취향을 말로 물으면 장르 이름부터 떠올리게 돼요. 소리로 고르는 쪽이 더 정확해요."
           }
         }
       }
     },
-    "One is raw and noisy, the other is clean and polished." : {
+    "Energy" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한쪽은 거칠고 노이즈가 섞였고, 한쪽은 깔끔하게 다듬었어요."
+            "value" : "에너지"
           }
         }
       }
     },
-    "One of them drives hard, the other stays calm." : {
+    "Here's what you picked" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한쪽은 몰아치고, 한쪽은 잔잔해요."
+            "value" : "이런 소리를 고르셨어요"
           }
         }
       }
     },
-    "The tracks you hyped decide what comes next — same sound, same mood. Hype something new and the feed turns with it." : {
+    "Mood" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "하입한 곡을 기준으로 다음 카드가 정해져요. 비슷한 소리, 비슷한 분위기로요. 새로 하입하면 피드도 그쪽으로 돌아가요."
+            "value" : "밝기"
           }
         }
       }
     },
-    "Three rounds and you're done. Neither one? Skip it." : {
+    "Texture" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "세 번이면 끝나요. 둘 다 아니면 건너뛰어도 괜찮아요."
+            "value" : "거칠기"
           }
         }
       }
     },
-    "Which energy pulls you in?" : {
+    "the bright one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 에너지가 끌리나요?"
+            "value" : "밝은 쪽"
           }
         }
       }
     },
-    "Which mood pulls you in?" : {
+    "the calm one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 분위기가 끌리나요?"
+            "value" : "잔잔한 쪽"
           }
         }
       }
     },
-    "Which texture pulls you in?" : {
+    "the clean one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 질감이 끌리나요?"
+            "value" : "깔끔한 쪽"
           }
         }
       }
     },
-    "Your feed follows the tracks you hype now. Let's set the first direction together." : {
+    "the dark one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이제 피드가 하입한 곡을 따라가요. 첫 방향만 같이 잡을게요."
+            "value" : "어두운 쪽"
           }
         }
       }
     },
-    "What sounds good to you?" : {
+    "the driving one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어떤 소리를 좋아하세요?"
+            "value" : "몰아치는 쪽"
           }
         }
       }
     },
-    "Rather than ask, we'll just play. Two clips at a time — pick the one you'd rather keep listening to. There's no right answer, and whatever you pick gets hyped." : {
+    "the raw one" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "설명 대신 그냥 들려드릴게요. 두 곡 중에 더 듣고 싶은 쪽을 고르면 돼요. 정답은 없고, 고른 곡은 하입으로 남아요."
-          }
-        }
-      }
-    },
-    "Your feed follows your hypes now" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이제 피드가 하입을 따라가요"
+            "value" : "거친 쪽"
           }
         }
       }
@@ -1726,6 +1716,16 @@
         }
       }
     },
+    "Nothing to set up. Genre settings are gone — the feed reads your hypes instead." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "따로 설정할 건 없어요. 장르 설정은 없앴고, 이제 하입이 그 자리를 대신해요."
+          }
+        }
+      }
+    },
     "Notify me" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1760,6 +1760,26 @@
         }
       }
     },
+    "One is bright and up, the other is dark and heavy." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한쪽은 밝고 경쾌하고, 한쪽은 어둡고 무거워요."
+          }
+        }
+      }
+    },
+    "One is raw and noisy, the other is clean and polished." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한쪽은 거칠고 노이즈가 섞였고, 한쪽은 깔끔하게 다듬었어요."
+          }
+        }
+      }
+    },
     "One lane, all the way down" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1777,6 +1797,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "한 장르를 깊게 파고, 기준이 확실해요."
+          }
+        }
+      }
+    },
+    "One of them drives hard, the other stays calm." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한쪽은 몰아치고, 한쪽은 잔잔해요."
           }
         }
       }
@@ -1857,6 +1887,7 @@
       }
     },
     "Pick this one" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -2129,6 +2160,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "담아둔 곡을 묶어서 나만의 픽을 올려보세요."
+          }
+        }
+      }
+    },
+    "Rather than ask, we'll just play. Two clips at a time — pick the one you'd rather keep listening to. There's no right answer, and whatever you pick gets hyped." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설명 대신 그냥 들려드릴게요. 두 곡 중에 더 듣고 싶은 쪽을 고르면 돼요. 정답은 없고, 고른 곡은 하입으로 남아요."
           }
         }
       }
@@ -2926,6 +2967,16 @@
         }
       }
     },
+    "The tracks you hyped decide what comes next — same sound, same mood. Hype something new and the feed turns with it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡을 기준으로 다음 카드가 정해져요. 비슷한 소리, 비슷한 분위기로요. 새로 하입하면 피드도 그쪽으로 돌아가요."
+          }
+        }
+      }
+    },
     "The voice itself" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3007,6 +3058,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "방금 보신 곡들은 저희가 직접 판 거예요. 매주 새로 파고 있는데, 다음 편 올라오면 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "Three rounds and you're done. Neither one? Skip it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세 번이면 끝나요. 둘 다 아니면 건너뛰어도 괜찮아요."
           }
         }
       }
@@ -3255,6 +3316,16 @@
         }
       }
     },
+    "What sounds good to you?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 소리를 좋아하세요?"
+          }
+        }
+      }
+    },
     "What's New" : {
       "localizations" : {
         "ko" : {
@@ -3287,12 +3358,42 @@
         }
       }
     },
+    "Which energy pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 에너지가 끌리나요?"
+          }
+        }
+      }
+    },
+    "Which mood pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 분위기가 끌리나요?"
+          }
+        }
+      }
+    },
     "Which one pulls you in?" : {
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "둘 중 어느 쪽이 끌리나요?"
+          }
+        }
+      }
+    },
+    "Which texture pulls you in?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어느 쪽 질감이 끌리나요?"
           }
         }
       }
@@ -3496,6 +3597,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "담은 곡이 앞부분만 보이던 문제를 고쳤어요. 이제 전부 보여요."
+          }
+        }
+      }
+    },
+    "Your feed follows the tracks you hype now. Let's set the first direction together." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 피드가 하입한 곡을 따라가요. 첫 방향만 같이 잡을게요."
+          }
+        }
+      }
+    },
+    "Your feed follows your hypes now" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 피드가 하입을 따라가요"
           }
         }
       }

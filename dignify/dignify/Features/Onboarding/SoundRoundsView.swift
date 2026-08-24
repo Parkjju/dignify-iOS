@@ -26,7 +26,18 @@ struct SoundRoundsView: View {
     /// 이번 라운드에서 고른 곡. 라운드를 넘길 때 비운다. nil이면 하단 버튼이 안 눌린다 —
     /// 기본 선택을 두면 아무것도 안 듣고 넘긴 유저의 곡이 시드가 된다.
     @State private var selected: API.FeedItem?
-    @State private var pickedCount = 0
+    /// 라운드마다 무엇을 골랐는지. 마지막 화면이 이걸 그대로 되짚어 준다 —
+    /// 고른 걸 확인할 방법이 없으면 유저는 이 테스트가 실제로 쓰이는지 알 수 없다.
+    @State private var picks: [Pick] = []
+
+    /// 요약 한 줄. `isHigh`는 서버가 `highTrackId`를 안 줬으면 nil이라 극단 표시가 빠진다.
+    struct Pick: Identifiable {
+        let id: Int
+        let axis: String
+        let isHigh: Bool?
+        let trackName: String
+        let artistName: String
+    }
     @State private var isSubmitting = false
     @State private var errorMessage: String?
 
@@ -107,6 +118,11 @@ struct SoundRoundsView: View {
                     .foregroundStyle(DSColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
+                Text("Asked in words, taste turns into genre names. Sound is the more honest question.")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(DSColor.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
                 Text("Three rounds and you're done. Neither one? Skip it.")
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.textTertiary)
@@ -130,7 +146,7 @@ struct SoundRoundsView: View {
     ///
     /// 모르는 축이 오면(서버가 축을 늘렸는데 앱이 옛 버전) 일반 문구로 떨어진다. 라운드는 그대로 돈다.
     private var axisCopy: (question: LocalizedStringKey, poles: LocalizedStringKey)? {
-        switch rounds[safe: roundIndex]?.axis {
+        switch round?.axis {
         case "arousal":
             return ("Which energy pulls you in?", "One of them drives hard, the other stays calm.")
         case "lofi":
@@ -139,6 +155,37 @@ struct SoundRoundsView: View {
             return ("Which mood pulls you in?", "One is bright and up, the other is dark and heavy.")
         default:
             return nil
+        }
+    }
+
+    private var round: API.OnboardingCandidates.Round? { rounds[safe: roundIndex] }
+
+    /// 이 곡이 축의 어느 극단인지. 서버가 `highTrackId`를 안 줬으면 nil이라 표시가 통째로 빠진다.
+    private func pole(of item: API.FeedItem) -> Bool? {
+        guard let high = round?.highTrackId else { return nil }
+        return item.trackId == high
+    }
+
+    /// 축 이름 — 요약에서 왼쪽 열에 선다.
+    private func axisName(_ axis: String) -> LocalizedStringKey? {
+        switch axis {
+        case "arousal": return "Energy"
+        case "lofi": return "Texture"
+        case "valence": return "Mood"
+        default: return nil
+        }
+    }
+
+    /// 고른 쪽을 사람 말로. **고른 뒤에만 보여준다.**
+    private func poleLabel(_ axis: String, isHigh: Bool) -> LocalizedStringKey? {
+        switch (axis, isHigh) {
+        case ("arousal", true): return "the driving one"
+        case ("arousal", false): return "the calm one"
+        case ("lofi", true): return "the raw one"
+        case ("lofi", false): return "the clean one"
+        case ("valence", true): return "the bright one"
+        case ("valence", false): return "the dark one"
+        default: return nil
         }
     }
 
@@ -219,10 +266,19 @@ struct SoundRoundsView: View {
                         .font(DSTypography.bodyMedium)
                         .foregroundStyle(DSColor.textPrimary)
                         .lineLimit(1)
-                    Text(verbatim: item.artistName)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(DSColor.textTertiary)
-                        .lineLimit(1)
+                    // 고르기 전엔 극단을 숨긴다 — 알려주면 소리가 아니라 라벨을 고른다.
+                    // 고른 뒤엔 반대다. 뭘 고른 건지 그 자리에서 알아야 마지막 요약이 처음 보는 말이 아니게 된다.
+                    if isSelected, let label = pole(of: item).flatMap({ poleLabel(round?.axis ?? "", isHigh: $0) }) {
+                        Text(label)
+                            .font(DSTypography.caption)
+                            .foregroundStyle(DSColor.brand)
+                            .lineLimit(1)
+                    } else {
+                        Text(verbatim: item.artistName)
+                            .font(DSTypography.caption)
+                            .foregroundStyle(DSColor.textTertiary)
+                            .lineLimit(1)
+                    }
                 }
                 Spacer(minLength: 8)
                 Image(systemName: isSelected ? "checkmark.circle.fill"
@@ -247,19 +303,18 @@ struct SoundRoundsView: View {
     private var doneView: some View {
         VStack(spacing: 0) {
             Spacer()
-            VStack(spacing: 14) {
-                Image("HypeIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 56, height: 56)
-                // 삼항으로 묶지 않는다 — 문자열 카탈로그 추출이 조용히 한쪽을 빠뜨릴 수 있다.
-                if pickedCount > 0 {
-                    doneCopy("Your picks shape the feed",
-                             "We hyped what you picked. Keep hyping and the feed follows you.")
-                } else {
+            // 삼항으로 묶지 않는다 — 문자열 카탈로그 추출이 조용히 한쪽을 빠뜨릴 수 있다.
+            if picks.isEmpty {
+                VStack(spacing: 14) {
+                    Image("HypeIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
                     doneCopy("Your hypes shape the feed",
                              "Hype anything you like and the next cards follow you.")
                 }
+            } else {
+                summaryView
             }
             Spacer()
 
@@ -279,6 +334,53 @@ struct SoundRoundsView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
+    }
+
+    /// 고른 것을 그대로 되짚어 준다 — 축, 고른 쪽, 그리고 곡 이름.
+    ///
+    /// 곡 이름이 있어야 "아까 그 곡이 맞다"가 눈으로 확인되고, 축과 극단이 붙어야 무작위로 보여준 게
+    /// 아니라는 게 성립한다. 주장만 남기면(=예전 문구) 유저는 이 테스트가 실제로 쓰이는지 알 수 없다.
+    private var summaryView: some View {
+        VStack(spacing: 20) {
+            Text("Here's what you picked")
+                .font(DSTypography.title1)
+                .tracking(-0.48)
+                .foregroundStyle(DSColor.textPrimary)
+
+            VStack(spacing: 12) {
+                ForEach(picks) { pick in
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        if let name = axisName(pick.axis) {
+                            Text(name)
+                                .font(DSTypography.caption)
+                                .foregroundStyle(DSColor.textTertiary)
+                                .frame(width: 52, alignment: .leading)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let isHigh = pick.isHigh, let label = poleLabel(pick.axis, isHigh: isHigh) {
+                                Text(label)
+                                    .font(DSTypography.bodyMedium)
+                                    .foregroundStyle(DSColor.brand)
+                            }
+                            Text(verbatim: "\(pick.trackName) · \(pick.artistName)")
+                                .font(DSTypography.caption)
+                                .foregroundStyle(DSColor.textSecondary)
+                                .lineLimit(1)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium))
+
+            Text("All hyped. Your feed starts from here, and turns as you keep hyping.")
+                .font(DSTypography.body)
+                .foregroundStyle(DSColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+        }
     }
 
     private func doneCopy(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
@@ -331,7 +433,7 @@ struct SoundRoundsView: View {
     private func skipRound() {
         PostHogSDK.shared.capture("onboarding_sound_skipped", properties: [
             "round": roundIndex,
-            "axis": rounds[safe: roundIndex]?.axis ?? "",
+            "axis": round?.axis ?? "",
         ])
         selected = nil
         advance()
@@ -340,10 +442,12 @@ struct SoundRoundsView: View {
     /// 고른 곡을 하입하고 다음 라운드로. 건너뛰기는 `selected`가 nil이라 하입 없이 지나간다.
     private func advance() {
         if let item = selected {
-            pickedCount += 1
+            picks.append(Pick(id: item.trackId, axis: round?.axis ?? "", isHigh: pole(of: item),
+                              trackName: item.trackName, artistName: item.artistName))
             PostHogSDK.shared.capture("onboarding_sound_picked", properties: [
                 "round": roundIndex,
-                "axis": rounds[safe: roundIndex]?.axis ?? "",
+                "axis": round?.axis ?? "",
+                "pole": pole(of: item).map { $0 ? "HIGH" : "LOW" } ?? "",
                 "track_id": item.trackId,
             ])
             // 하입은 결과를 기다리지 않는다. 실패해도 시드가 하나 줄 뿐이고, 여기서 막으면
@@ -355,7 +459,7 @@ struct SoundRoundsView: View {
         selected = nil
         roundIndex += 1
         if isDone {
-            PostHogSDK.shared.capture("onboarding_sound_completed", properties: ["picked": pickedCount])
+            PostHogSDK.shared.capture("onboarding_sound_completed", properties: ["picked": picks.count])
         } else {
             autoPlayFirst()
         }
@@ -368,7 +472,7 @@ struct SoundRoundsView: View {
         Task {
             defer { isSubmitting = false }
             do {
-                try await onFinish(pickedCount)
+                try await onFinish(picks.count)
             } catch {
                 errorMessage = String(localized: "Couldn't save. Please try again.")
             }
