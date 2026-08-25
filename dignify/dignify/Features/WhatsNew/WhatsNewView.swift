@@ -10,6 +10,16 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.1.0", notes: [
+            "Your feed now follows the tracks you hype: same sound, same mood.",
+            "Genre settings are gone. Hype a few tracks and the feed picks up your taste.",
+            "Choose up to 3 tracks to steer the feed, or leave it to your recent hypes.",
+            "Turn hype-following off whenever you want a random feed.",
+            "New here? Three sound rounds set your first direction.",
+            "Every card now tells you which hype it came from.",
+            "Your crate and artist requests now have an edit button.",
+            "Rename or delete your picks straight from your profile.",
+        ]),
         Release(version: "1.0.10", notes: [
             "Your hypes and reactions no longer go missing after the app has been sitting a while.",
             "The weekly set badge no longer shows up on search results.",

@@ -12,6 +12,9 @@ struct MainTabView: View {
     /// `is_onboarding_complete`를 내리면 구버전 앱이 옛 장르 온보딩을 다시 띄운다.
     @AppStorage("didSoundRounds") private var didSoundRounds = false
     @State private var showWhatsNew = false
+    /// 라운드나 안내를 닫은 뒤에 이어서 띄울 What's New. 업데이트 유저는 두 화면 중
+    /// 하나를 먼저 보므로, 여기 담아뒀다가 `onDismiss`에서 꺼낸다.
+    @State private var pendingWhatsNew = false
     @State private var soundRounds: SoundRoundsPayload?
     @State private var showPersonalizationNotice = false
 
@@ -48,7 +51,7 @@ struct MainTabView: View {
         // 로그엔 200에 "3라운드 사용"이 찍히는데 화면은 마지막 장이었다).
         // item으로 열면 제시를 일으킨 그 값이 그대로 클로저에 들어온다.
         .background {
-            Color.clear.fullScreenCover(item: $soundRounds) { payload in
+            Color.clear.fullScreenCover(item: $soundRounds, onDismiss: showPendingWhatsNew) { payload in
                 SoundRoundsView(rounds: payload.rounds, isUpdate: true) { picked in
                     didSoundRounds = true
                     soundRounds = nil
@@ -59,7 +62,8 @@ struct MainTabView: View {
             }
         }
         .background {
-            Color.clear.fullScreenCover(isPresented: $showPersonalizationNotice) {
+            Color.clear.fullScreenCover(isPresented: $showPersonalizationNotice,
+                                        onDismiss: showPendingWhatsNew) {
                 PersonalizationNoticeView {
                     didSoundRounds = true
                     showPersonalizationNotice = false
@@ -69,11 +73,21 @@ struct MainTabView: View {
         .task {
             // 기존 로그인 유저가 업데이트로 들어온 경우 = 온보딩 안 거침(didJustOnboard false) + signedIn.
             let isReturningUser = !didJustOnboard && session.authState == .signedIn
-            // 업데이트로 들어온 기존 유저도 한 번은 라운드를 탄다. What's New와 같이 띄우지 않는다 —
-            // 이번 릴리즈에선 이 화면 자체가 새 소식이고, 모달 두 개가 겹치면 하나가 조용히 안 뜬다.
+            let wantsWhatsNew = Changelog.shouldShowWhatsNew(lastSeen: lastSeenVersion,
+                                                            current: currentVersion,
+                                                            isReturningUser: isReturningUser)
+            // 업데이트로 들어온 기존 유저는 한 번은 라운드(또는 안내)를 탄다. **닫히면 What's New를
+            // 이어 붙인다** — 모달 두 개를 겹쳐 띄우면 하나가 조용히 안 뜨므로 `onDismiss`로 잇는다.
+            // 1.1.0은 장르 설정이 사라진 게 핵심이라, 라운드만 보고 넘어가면 유저는 그 화면이 왜
+            // 떴는지도 장르가 왜 없어졌는지도 모른 채 피드로 간다.
             if isReturningUser && !didSoundRounds {
-                await startPersonalizationIntro()
-            } else if Changelog.shouldShowWhatsNew(lastSeen: lastSeenVersion, current: currentVersion, isReturningUser: isReturningUser) {
+                pendingWhatsNew = wantsWhatsNew
+                if await startPersonalizationIntro() == false {
+                    // 띄운 게 없으면(하입 3개 미만인데 후보가 아직 안 깔림) 이어 붙일 자리도 없다.
+                    pendingWhatsNew = false
+                    showWhatsNew = wantsWhatsNew
+                }
+            } else if wantsWhatsNew {
                 showWhatsNew = true
             }
             lastSeenVersion = currentVersion
@@ -81,23 +95,34 @@ struct MainTabView: View {
         }
     }
 
-    /// 업데이트 유저를 라운드와 안내로 가른다.
+    /// 라운드나 안내를 띄운다. **띄운 게 있으면 true** — 호출부가 What's New를 언제 낼지 가른다.
     ///
-    /// **하입이 이미 쌓인 사람은 라운드를 태우지 않는다.** 시드는 최근 하입 5개라 라운드에서 고른
-    /// 3곡이 다섯 칸 중 셋을 먹고, 그러면 쌓아온 취향이 밀려 피드가 잘못 구성된 것처럼 보인다.
-    /// 기준을 3으로 둔 건 그 아래면 시드가 반도 안 차서 라운드가 채워 주는 쪽이 이득이라서다.
-    private func startPersonalizationIntro() async {
+    /// **하입이 이미 쌓인 사람은 라운드를 태우지 않는다.** 시드는 최근 하입 3곡이라 라운드에서
+    /// 고른 3곡이 시드를 통째로 차지하고, 그러면 쌓아온 취향이 밀려 피드가 잘못 구성된 것처럼 보인다.
+    /// 기준을 3으로 둔 건 그 아래면 라운드가 채워 주는 쪽이 이득이라서다. 밀렸더라도
+    /// 마이페이지의 추천 기준 곡에서 직접 고르면 되돌릴 수 있다(1.1.0에서 생긴 길이다).
+    @discardableResult
+    private func startPersonalizationIntro() async -> Bool {
         let stats = try? await session.api.send(.myStats(range: "all"), as: API.UserStats.self)
         // 통계를 못 받으면 라운드 쪽으로 간다 — 하입이 없는 유저에게 아무 설명 없이 넘어가는 것보다,
         // 하입이 있는 유저가 라운드를 한 번 더 보는 쪽이 덜 나쁘다.
         if let hypeCount = stats?.hypeCount, hypeCount >= 3 {
             showPersonalizationNotice = true
-            return
+            return true
         }
         // 후보가 없으면(서버 미시딩) 커버를 아예 안 띄운다. 띄웠다 닫으면 화면이 번쩍이고,
         // 플래그를 태워버리면 시딩된 뒤에도 이 유저는 영영 라운드를 못 본다.
         let rounds = await SoundRoundsView.fetch(session)
-        if !rounds.isEmpty { soundRounds = SoundRoundsPayload(rounds: rounds) }
+        guard !rounds.isEmpty else { return false }
+        soundRounds = SoundRoundsPayload(rounds: rounds)
+        return true
+    }
+
+    /// 라운드·안내가 닫힌 뒤 What's New를 잇는다. 한 번만 띄운다.
+    private func showPendingWhatsNew() {
+        guard pendingWhatsNew else { return }
+        pendingWhatsNew = false
+        showWhatsNew = true
     }
 
     /// 게스트는 계정 기반 탭(마이페이지) 대신 로그인 유도 플레이스홀더를 본다.
