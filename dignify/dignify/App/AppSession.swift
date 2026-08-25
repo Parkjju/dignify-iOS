@@ -27,6 +27,15 @@ final class AppSession {
     /// 커버는 탭을 안 바꾸므로, 이 값이 없으면 아래 피드가 계속 울려 오디오가 겹친다.
     var modalAudioActive = false
 
+    /// 디깅 성향. 마이페이지 스위치와 피드 안 버튼이 같은 값을 본다 — 두 곳에 각자 상태를 두면
+    /// 한쪽에서 끄고 다른 쪽에 가면 켜진 것으로 보인다. 앱 시작 때 /users/me로 채운다.
+    var diggingMode = true
+
+    /// 하입이 **서버에 반영된 뒤에** 오른다. 하입 수에서 파생된 화면(디깅 프로필 통계)이
+    /// 이걸 관찰해 숫자를 다시 받는다. 낙관적 갱신 시점에 올리면 삭제가 도착하기 전에
+    /// 통계를 다시 받아 옛 숫자가 그대로 돌아온다.
+    var hypeChangeToken = 0
+
     /// 피드를 처음부터 다시 받아야 할 때 올린다. 지금 쓰는 곳은 소리 2지선다 하나뿐 —
     /// 라운드에서 고른 곡이 시드가 되므로 정렬 기준 자체가 바뀐다(부분 교체로는 부족하다).
     var feedReloadToken = 0
@@ -220,10 +229,31 @@ final class AppSession {
         }
     }
 
+    /// 디깅 성향을 바꾸고 피드를 처음부터 다시 받게 한다. 정렬 기준 자체가 바뀌어서
+    /// 들고 있던 커서를 이어 쓸 수 없다 — 부분 교체가 아니라 새 세션이어야 한다.
+    ///
+    /// **낙관적으로 먼저 바꾸고 실패하면 되돌린다.** 스위치나 버튼이 손가락을 안 따라오면
+    /// 유저는 앱이 멈춘 줄 안다. 성공 여부를 돌려주니 호출부가 실패 문구를 띄울 수 있다.
+    @discardableResult
+    func setDiggingMode(_ enabled: Bool) async -> Bool {
+        let previous = diggingMode
+        diggingMode = enabled
+        do {
+            try await api.send(.setDiggingMode(enabled))
+            feedReloadToken += 1
+            return true
+        } catch {
+            diggingMode = previous
+            return false
+        }
+    }
+
     /// 저장된 토큰 기준으로 /users/me를 조회해 signedIn / onboardingRequired를 분기한다.
     private func refreshAuthState() async throws {
         let profile = try await api.send(.myProfile, as: API.UserProfile.self)
         authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
+        // 옛 서버는 이 필드를 안 내려준다. 그때는 지금 동작(켜짐)을 유지한다.
+        diggingMode = profile.diggingMode ?? true
 
         // 실행마다 토큰을 다시 올린다. 서버의 app_build/time_zone은 이 등록 요청의 부산물이라,
         // 여기서 안 올리면 하입이나 아티스트 요청을 하기 전까지 옛날 빌드·옛날 타임존으로 남고

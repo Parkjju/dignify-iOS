@@ -41,6 +41,38 @@ enum PickTitle {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
+
+    /// 제목만 바꾼다(`13_mypage_ia_after_picks.md` §3). 낙관적으로 목록부터 고치고,
+    /// 실패하면 되돌린 뒤 이유를 `onFailure`로 넘긴다 — 조용히 되돌리면 유저는 저장된 줄 알고
+    /// 나갔다가 옛 제목을 다시 본다. 금칙어(400 `PICK_TITLE_BLOCKED`)는 서버가 로케일에 맞춘
+    /// 문구를 내려주므로 그대로 쓴다.
+    ///
+    /// **픽 탭과 프로필의 내 픽 목록이 이 함수를 같이 쓴다.** 진입점이 둘이 되면서 낙관적
+    /// 갱신과 롤백을 두 벌 관리하지 않으려고 여기 한 벌만 둔다.
+    @MainActor
+    static func rename(_ pick: API.Pick, to title: String?,
+                       in picks: Binding<[API.Pick]>,
+                       api: APIClient,
+                       onFailure: @escaping (String) -> Void) {
+        guard let index = picks.wrappedValue.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
+        let previous = picks.wrappedValue[index].title
+        guard previous != title else { return }
+        picks.wrappedValue[index].title = title
+
+        Task {
+            do { try await api.send(.updatePickTitle(id: pick.pickId, title: title)) }
+            catch {
+                guard let i = picks.wrappedValue.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
+                picks.wrappedValue[i].title = previous
+                // `error`는 `any Error`라 enum 케이스 패턴이 바로 안 붙는다 — 먼저 캐스팅한다.
+                if let apiError = error as? APIError, case .server(_, let message, _) = apiError {
+                    onFailure(message)
+                } else {
+                    onFailure(String(localized: "Couldn't save. Try again."))
+                }
+            }
+        }
+    }
 }
 
 /// 픽 반응 이모지. 시딩 단계엔 **한 종류만** 쓴다 — 5종을 깔면 얼마 안 되는 반응이

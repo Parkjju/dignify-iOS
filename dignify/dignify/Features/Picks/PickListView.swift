@@ -483,28 +483,8 @@ struct PickListView: View {
         blockedRaw = LocalModeration.adding(pick.nickname, to: blockedRaw)
     }
 
-    /// 제목만 바꾼다(§3). 낙관적으로 카드부터 고치고, 실패하면 되돌린 뒤 이유를 말한다 —
-    /// 금칙어(400 `PICK_TITLE_BLOCKED`)는 서버가 로케일에 맞춰 문구를 내려주므로 그대로 띄운다.
-    /// 조용히 되돌리면 유저는 저장이 된 줄 알고 나갔다가 옛 제목을 다시 본다.
     private func rename(_ pick: API.Pick, to title: String?) {
-        guard let index = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
-        let previous = picks[index].title
-        guard previous != title else { return }
-        picks[index].title = title
-
-        Task {
-            do { try await session.api.send(.updatePickTitle(id: pick.pickId, title: title)) }
-            catch {
-                guard let i = picks.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
-                picks[i].title = previous
-                // `error`는 `any Error`라 enum 케이스 패턴이 바로 안 붙는다 — 먼저 캐스팅한다.
-                if let apiError = error as? APIError, case .server(_, let message, _) = apiError {
-                    showToast(message)
-                } else {
-                    showToast(String(localized: "Couldn't save. Try again."))
-                }
-            }
-        }
+        PickTitle.rename(pick, to: title, in: $picks, api: session.api) { showToast($0) }
     }
 
     private func delete(_ pick: API.Pick) {
@@ -595,7 +575,7 @@ enum PickMenuAction {
 /// 1뎁스(동작)와 2뎁스(신고 사유)는 **같은 시트를 닫았다 다시 여는** 방식이다.
 /// 한 시트 안에서 내용만 갈아끼우면 높이가 툭 바뀌면서 어디서 온 화면인지가 안 읽힌다.
 /// 전환 안전성은 `.sheet(onDismiss:)`가 보장한다 — 닫힘이 끝난 뒤에만 다음 것을 연다.
-private struct PickMenuSheet: View {
+struct PickMenuSheet: View {
     enum Stage { case actions, reasons, detail, rename }
 
     let pick: API.Pick

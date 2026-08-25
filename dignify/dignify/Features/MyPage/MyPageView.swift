@@ -16,6 +16,7 @@ struct MyPageView: View {
     /// 닉네임 아래 유형 배지용. 확정 유형은 전체 기간 기준으로만 본다 —
     /// 주간으로 보면 한 주 안 들었다고 정체성이 사라졌다 나타났다 한다.
     @State private var confirmedType: DiggingType?
+    @State private var diggingModeFailed = false
 
     var body: some View {
         ScrollView {
@@ -167,6 +168,11 @@ struct MyPageView: View {
     private var settingsList: some View {
         VStack(spacing: 0) {
             // 1. 기능 — 실제로 무언가를 바꾸는 행들.
+            // 이 화면에서 유일하게 피드 자체를 바꾸는 설정이라 묶음 맨 위에 둔다.
+            diggingModeRow
+            // 껐을 때도 보여준다. 숨기면 기능이 사라진 것처럼 보이는데, 실제로는 다시 켜면
+            // 그대로 쓰이는 설정이다. 꺼진 동안 무슨 뜻인지는 그 화면이 설명한다.
+            NavigationLink { SeedPickerView() } label: { settingsRow("Recommend from") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
@@ -223,6 +229,36 @@ struct MyPageView: View {
         Divider().padding(.horizontal, 20).padding(.vertical, 8)
     }
 
+    /// 토글 하나로는 무엇이 켜지는지 알 수 없어서 한 줄 설명을 붙인다.
+    /// 낙관적으로 먼저 바꾸고 실패하면 되돌린다 — 스위치가 손가락을 따라오지 않으면 고장으로 읽힌다.
+    private var diggingModeRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle(isOn: Binding(get: { appSession.diggingMode }, set: { setDiggingMode($0) })) {
+                Text("Follow my hypes")
+                    .font(.system(size: 15))
+                    .foregroundStyle(DSColor.textPrimary)
+            }
+            .tint(DSColor.brand)
+            Text("On, the feed plays tracks that sound like the ones you hyped. Off, it plays anything.")
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColor.textTertiary)
+            if diggingModeFailed {
+                Text("Couldn't save. Please try again.")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(DSColor.destructive)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    private func setDiggingMode(_ enabled: Bool) {
+        diggingModeFailed = false
+        // 되돌리기와 피드 재요청은 AppSession이 한다 — 피드 안 버튼과 같은 경로여야
+        // 어느 쪽으로 껐든 결과가 같다.
+        Task { diggingModeFailed = !(await appSession.setDiggingMode(enabled)) }
+    }
+
     private func settingsRow(_ label: LocalizedStringKey, destructive: Bool = false) -> some View {
         HStack {
             Text(label)
@@ -258,6 +294,7 @@ struct MyPageView: View {
 
         if let profile = await profileResult {
             nickname = profile.nickname
+            appSession.diggingMode = profile.diggingMode ?? true
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
     }

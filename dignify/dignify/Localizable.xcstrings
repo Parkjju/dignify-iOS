@@ -9,7 +9,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 하입해서 나온 곡"
+            "value" : "비슷한 하입 곡: %@"
           }
         }
       }
@@ -19,7 +19,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 느낌"
+            "value" : "비슷한 곡: %@"
           }
         }
       }
@@ -266,7 +266,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "세 곡 다 하입해 뒀어요. 피드는 여기서 출발하고, 하입할수록 그쪽으로 돌아가요."
+            "value" : "고른 곡은 모두 하입해 뒀어요. 피드는 이 곡들과 비슷한 소리부터 보여드리고, 앞으로 하입하는 곡에 맞춰 조금씩 달라져요."
           }
         }
       }
@@ -349,7 +349,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "취향을 말로 물으면 장르 이름부터 떠올리게 돼요. 소리로 고르는 쪽이 더 정확해요."
+            "value" : "좋아하는 음악을 말로 설명하면 장르 이름부터 떠올리게 돼요. 직접 들어 보고 고르는 쪽이 취향을 더 정확하게 담아내요."
           }
         }
       }
@@ -689,16 +689,6 @@
         }
       }
     },
-    "Delete this pick?" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 픽을 삭제할까요?"
-          }
-        }
-      }
-    },
     "Dig %lld more and hype %lld to lock it in." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -811,7 +801,6 @@
       }
     },
     "Done" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
@@ -1170,7 +1159,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "마음에 드는 곡을 하입하면 다음 카드가 따라와요."
+            "value" : "마음에 드는 곡을 하입하면 다음 카드가 그 곡과 비슷해져요."
           }
         }
       }
@@ -1671,7 +1660,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "따로 설정할 건 없어요. 장르 설정은 없앴고, 이제 하입이 그 자리를 대신해요."
+            "value" : "따로 설정할 건 없어요. 장르 설정 화면은 저희가 없앴고, 이제 하입이 그 자리를 대신해요."
           }
         }
       }
@@ -1725,7 +1714,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한쪽은 거칠고 노이즈가 섞였고, 한쪽은 깔끔하게 다듬었어요."
+            "value" : "한쪽은 거칠고 노이즈가 섞여 있고, 한쪽은 깔끔하게 다듬어져 있어요."
           }
         }
       }
@@ -2119,7 +2108,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "설명 대신 그냥 들려드릴게요. 두 곡 중에 더 듣고 싶은 쪽을 고르면 돼요. 정답은 없고, 고른 곡은 하입으로 남아요."
+            "value" : "두 곡을 나란히 들려드릴게요. 정답은 없으니 더 듣고 싶은 쪽을 고르면 돼요. 고른 곡은 자동으로 하입돼요."
           }
         }
       }
@@ -2721,7 +2710,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "카드를 누르면 소리가 나와요. 마음에 드는 쪽을 고른 뒤 '다음'을 누르세요."
+            "value" : "카드를 누르면 곡이 재생돼요. 마음에 드는 쪽을 고른 뒤 '다음'을 눌러 주세요."
           }
         }
       }
@@ -2859,7 +2848,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "밝은 쪽"
+            "value" : "밝은 소리"
           }
         }
       }
@@ -2869,7 +2858,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "잔잔한 쪽"
+            "value" : "잔잔한 소리"
           }
         }
       }
@@ -2879,7 +2868,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "깔끔한 쪽"
+            "value" : "깔끔한 소리"
           }
         }
       }
@@ -2889,7 +2878,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어두운 쪽"
+            "value" : "어두운 소리"
           }
         }
       }
@@ -2899,7 +2888,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "몰아치는 쪽"
+            "value" : "몰아치는 소리"
           }
         }
       }
@@ -2961,7 +2950,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "거친 쪽"
+            "value" : "거친 소리"
           }
         }
       }
@@ -2992,7 +2981,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "하입한 곡을 기준으로 다음 카드가 정해져요. 비슷한 소리, 비슷한 분위기로요. 새로 하입하면 피드도 그쪽으로 돌아가요."
+            "value" : "하입한 곡과 비슷한 소리, 비슷한 분위기의 곡이 다음 카드로 나와요. 새로 하입하면 피드도 그 곡에 맞춰 달라져요."
           }
         }
       }
@@ -3015,16 +3004,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "검색 결과에 이번 주 특집 배지가 잘못 뜨던 문제를 고쳤어요."
-          }
-        }
-      }
-    },
-    "This can't be undone, and the reactions on it go too." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "되돌릴 수 없고, 붙은 반응도 같이 사라져요."
           }
         }
       }
@@ -3087,7 +3066,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "세 번이면 끝나요. 둘 다 아니면 건너뛰어도 괜찮아요."
+            "value" : "세 번만 고르면 끝나요. 둘 다 마음에 들지 않으면 건너뛰어도 괜찮아요."
           }
         }
       }
@@ -3249,17 +3228,6 @@
         }
       }
     },
-    "We hyped what you picked. Keep hyping and the feed follows you." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "고른 곡은 하입해 뒀어요. 계속 하입하면 피드가 따라와요."
-          }
-        }
-      }
-    },
     "We'll confirm this once you've actually dug around a bit." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3384,7 +3352,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 에너지가 끌리나요?"
+            "value" : "에너지는 어느 쪽이 끌리나요?"
           }
         }
       }
@@ -3394,7 +3362,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 분위기가 끌리나요?"
+            "value" : "밝기는 어느 쪽이 끌리나요?"
           }
         }
       }
@@ -3414,7 +3382,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "어느 쪽 질감이 끌리나요?"
+            "value" : "거칠기는 어느 쪽이 끌리나요?"
           }
         }
       }
@@ -3627,7 +3595,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이제 피드가 하입한 곡을 따라가요. 첫 방향만 같이 잡을게요."
+            "value" : "이제 하입한 곡을 기준으로 피드가 만들어져요. 그 첫 방향을 여기서 같이 정할게요."
           }
         }
       }
@@ -3668,7 +3636,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "하입이 피드를 만들어요"
+            "value" : "하입한 곡이 피드를 만들어요"
           }
         }
       }
@@ -3716,17 +3684,6 @@
         }
       }
     },
-    "Your picks shape the feed" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "고른 곡이 피드를 만들어요"
-          }
-        }
-      }
-    },
     "Your playlist is..." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3765,6 +3722,238 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "내 유형"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "편집"
+          }
+        }
+      }
+    },
+    "Follow my hypes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡 따라가기"
+          }
+        }
+      }
+    },
+    "Following your hypes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡 따라가는 중"
+          }
+        }
+      }
+    },
+    "On, the feed plays tracks that sound like the ones you hyped. Off, it plays anything." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "켜면 하입한 곡과 소리가 비슷한 곡이 나오고, 끄면 조건 없이 아무 곡이나 나와요."
+          }
+        }
+      }
+    },
+    "Pick none and the feed follows your %lld most recent hypes, same as before." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아무것도 고르지 않으면 지금까지처럼 최근에 하입한 %lld곡을 기준으로 삼아요."
+          }
+        }
+      }
+    },
+    "Pick up to %lld tracks. The feed then follows only these." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최대 %lld곡까지 고를 수 있어요. 고른 곡만 기준으로 피드가 만들어져요."
+          }
+        }
+      }
+    },
+    "Random" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무작위"
+          }
+        }
+      }
+    },
+    "Recommend from" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추천 기준 곡"
+          }
+        }
+      }
+    },
+    "Switches between hype-based and random" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입 기반과 무작위를 번갈아 바꿉니다"
+          }
+        }
+      }
+    },
+    "Turn on \"Follow my hypes\" for these to take effect." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡이 적용되려면 '하입한 곡 따라가기'를 켜야 해요."
+          }
+        }
+      }
+    },
+    "Couldn't save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장하지 못했어요"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
+          }
+        }
+      }
+    },
+    "Remove this track?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 곡을 담은 곡에서 뺄까요?"
+          }
+        }
+      }
+    },
+    "You can hype it again anytime." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언제든 다시 하입할 수 있어요."
+          }
+        }
+      }
+    },
+    "Your feed now follows the tracks you hype: same sound, same mood." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 하입한 곡을 기준으로 피드가 만들어져요. 비슷한 소리와 분위기의 곡이 이어져요."
+          }
+        }
+      }
+    },
+    "Genre settings are gone. Hype a few tracks and the feed picks up your taste." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 설정이 없어졌어요. 몇 곡만 하입하면 피드가 취향을 따라와요."
+          }
+        }
+      }
+    },
+    "Choose up to 3 tracks to steer the feed, or leave it to your recent hypes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드의 기준이 될 곡을 최대 3곡까지 고를 수 있어요. 고르지 않으면 최근에 하입한 3곡을 기준으로 삼아요."
+          }
+        }
+      }
+    },
+    "Turn hype-following off whenever you want a random feed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡 따라가기를 끄면 무작위 피드로 돌아가요."
+          }
+        }
+      }
+    },
+    "New here? Three sound rounds set your first direction." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음 왔다면 소리 2지선다 세 라운드로 첫 방향을 정해요."
+          }
+        }
+      }
+    },
+    "Every card now tells you which hype it came from." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 곡이 어떤 하입 곡 때문에 나왔는지 카드에 표시돼요."
+          }
+        }
+      }
+    },
+    "Your crate and artist requests now have an edit button." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담은 곡과 아티스트 요청에 편집 버튼이 생겼어요."
+          }
+        }
+      }
+    },
+    "Rename or delete your picks straight from your profile." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "프로필에서도 나의 픽 제목을 고치거나 삭제할 수 있어요."
           }
         }
       }

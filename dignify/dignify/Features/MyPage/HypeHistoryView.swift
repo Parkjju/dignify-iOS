@@ -9,6 +9,7 @@ struct HypeHistoryView: View {
     @State private var isLoading = true
     @State private var isPaging = false
     @State private var loadFailed = false
+    @State private var isEditing = false
 
     var body: some View {
         ScrollView {
@@ -23,7 +24,8 @@ struct HypeHistoryView: View {
                 HypeCollection(
                     items: $items,
                     onReachEnd: { await loadMore() },
-                    onReloadNeeded: { await load() }
+                    onReloadNeeded: { await load() },
+                    isEditing: isEditing
                 )
                 .padding(.top, 16)
             }
@@ -31,6 +33,17 @@ struct HypeHistoryView: View {
         .background(DSColor.background)
         .navigationTitle("Hype History")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // 목록이 비면 편집할 것이 없다. 빈 화면에 편집 버튼만 남기지 않는다.
+            if !items.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(isEditing ? "Done" : "Edit") { isEditing.toggle() }
+                        .tint(DSColor.brand)
+                }
+            }
+        }
+        // 마지막 한 곡까지 지우면 편집 모드가 빈 화면에 남는다.
+        .onChange(of: items.isEmpty) { _, empty in if empty { isEditing = false } }
         .task { await load() }
     }
 

@@ -17,15 +17,25 @@ struct ArtistRequestHistoryView: View {
             } else if items.isEmpty {
                 emptyState
             } else {
-                List(items) { request in
-                    RequestRow(request: request)
-                        .swipeActions {
-                            Button(role: .destructive) {
-                                Task { await delete(request) }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                // ponytail: 편집 모드는 List가 EditButton + onDelete로 이미 제공한다.
+                // 크레이트·픽처럼 배지를 직접 그리지 않는 이유는 여기만 List라서다.
+                List {
+                    ForEach(items) { request in
+                        RequestRow(request: request)
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    Task { await delete(request) }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
-                        }
+                    }
+                    .onDelete { offsets in
+                        // offsets는 화면 순서 기준이다. 지울 대상을 먼저 값으로 뽑아 두지 않으면
+                        // 낙관적 제거로 배열이 줄어든 뒤 인덱스가 밀린다.
+                        let targets = offsets.map { items[$0] }
+                        Task { for request in targets { await delete(request) } }
+                    }
                 }
                 .listStyle(.plain)
             }
@@ -34,6 +44,11 @@ struct ArtistRequestHistoryView: View {
         .navigationTitle("Artist Requests")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if !items.isEmpty {
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton().tint(DSColor.brand)
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showRequestSheet = true } label: { Image(systemName: "plus") }
                     .tint(DSColor.brand)

@@ -16,10 +16,21 @@ struct HypeCollection: View {
     var onReloadNeeded: (() async -> Void)? = nil
     /// 미리보기에서 날짜 행 끝을 오른쪽으로 당기거나 See all 셀을 탭하면 호출(전체 화면 이동).
     var onSeeAll: (() -> Void)? = nil
+    /// 선택 모드. 값이 있으면 **편집 모드보다 우선하고** 탭이 선택 토글이 된다(시드 고르기).
+    /// 셋을 한 컴포넌트에 두는 이유는 날짜 그룹·페이지네이션·썸네일 셀을 그대로 쓰기 위해서다.
+    var selection: Binding<Set<Int>>? = nil
+    /// 선택 모드에서 고를 수 있는 최대 개수. 서버의 MoodRecommender.SEEDS와 같아야 한다.
+    var selectionLimit: Int = 5
+    /// 편집 모드. 켜지면 셀마다 제거 배지가 붙고 탭이 재생 대신 제거로 바뀐다.
+    /// 롱프레스는 이 컴포넌트를 처음 쓰는 사람에게 보이지 않아서, 제거하는 길을 눈에 보이게 하나 더 둔다.
+    /// 소유는 화면 쪽이다 — 편집 버튼이 네비게이션 바나 섹션 헤더에 서야 하는데 둘 다 이 뷰 바깥이다.
+    var isEditing: Bool = false
 
     @State private var audio = FeedAudioController()
     @State private var detailTarget: DetailTarget?
     @State private var actionTarget: API.HypeItem?
+    /// 편집 모드에서 제거를 누른 곡. 확인 알럿이 뜬 뒤에야 실제로 지운다.
+    @State private var removeTarget: API.HypeItem?
 
     private struct DetailTarget: Identifiable { let id: Int }
 
@@ -39,7 +50,9 @@ struct HypeCollection: View {
         .onDisappear { audio.stop() }
         // 피드 등 다른 화면에서 하입이 풀리면 이 목록에서도 제거.
         .onChange(of: appSession.hypeState) { _, state in
-            items.removeAll { state[$0.trackId] == false }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                items.removeAll { state[$0.trackId] == false }
+            }
         }
         .sheet(item: $detailTarget) { TrackDetailView(trackId: $0.id) }
         .sheet(item: $actionTarget) { track in
@@ -47,6 +60,18 @@ struct HypeCollection: View {
                 .presentationDetents([.height(260)])
                 .presentationDragIndicator(.visible)
         }
+        // 편집 모드에선 셀 전체가 표적이라 스크롤하다 스친 손가락에도 곡이 빠진다.
+        // 롱프레스 액션시트에서 온 제거는 안 묻는다 — 거긴 이미 "하입 제거"를 직접 고른 자리다.
+        .alert("Remove this track?", isPresented: removeBinding, presenting: removeTarget) { track in
+            Button("Remove hype", role: .destructive) { removeHype(track) }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("You can hype it again anytime.")
+        }
+    }
+
+    private var removeBinding: Binding<Bool> {
+        Binding(get: { removeTarget != nil }, set: { if !$0 { removeTarget = nil } })
     }
 
     private func cell(_ track: API.HypeItem) -> some View {
@@ -81,9 +106,25 @@ struct HypeCollection: View {
                 .lineLimit(1)
         }
         .frame(width: 72)
+        .overlay(alignment: .topLeading) {
+            if let selection {
+                selectionBadge(isOn: selection.wrappedValue.contains(track.trackId))
+            } else if isEditing {
+                removeBadge
+            }
+        }
         .contentShape(Rectangle())
-        .onTapGesture { playPreview(track) }
-        .onLongPressGesture { actionTarget = track }
+        // 배지만 눌러 지우게 하면 표적이 20pt라 자꾸 빗나간다. 편집 모드에선 셀 전체가 제거다.
+        .onTapGesture {
+            if let selection {
+                toggleSelection(track, selection)
+            } else if isEditing {
+                removeTarget = track
+            } else {
+                playPreview(track)
+            }
+        }
+        .onLongPressGesture { if !isEditing && selection == nil { actionTarget = track } }
         // 페이지네이션 트리거는 날짜 그룹이 아니라 **마지막 셀**에 건다.
         // 그룹 id는 startOfDay라 새 페이지 10개가 전부 같은 날이면 id가 그대로 →
         // onAppear가 다시 안 불려 그 뒤 하입이 영영 안 보였다.
@@ -119,7 +160,7 @@ struct HypeCollection: View {
         private var revealsByOverscroll: Bool { if #available(iOS 18.0, *) { true } else { false } }
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(group.title)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DSColor.textTertiary)
@@ -139,6 +180,10 @@ struct HypeCollection: View {
                     if showsSeeAll { seeAllCell }
                 }
                 .padding(.horizontal, hPadding)
+                // 배지가 셀 위로 6pt 삐져나오는데 offset은 레이아웃 크기를 안 늘린다 →
+                // 콘텐츠 높이가 셀 높이 그대로라 ScrollView가 배지 윗부분을 잘라낸다.
+                // 여기서 자리를 만들고 위 VStack 간격을 8에서 2로 줄여 날짜와의 간격은 유지한다.
+                .padding(.top, 6)
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
             .scrollDisabled(fits)
@@ -181,6 +226,49 @@ struct HypeCollection: View {
             .frame(width: 56, height: 72)
             .contentShape(Rectangle())
             .onTapGesture { onSeeAll?() }
+        }
+    }
+
+    /// 편집 모드 배지. 아트워크 좌상단 모서리에 반쯤 걸치게 띄운다 —
+    /// 안쪽에 넣으면 72pt 썸네일에서 앨범 아트를 가리고, 완전히 바깥에 두면 잘린다.
+    private var removeBadge: some View {
+        Image(systemName: "minus.circle.fill")
+            .font(.system(size: 20))
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(.white, DSColor.destructive)
+            .offset(x: -6, y: -6)
+            .allowsHitTesting(false)   // 탭은 셀 전체가 받는다.
+    }
+
+    /// 선택 모드 배지. 고른 것은 브랜드색 원에 흰 체크, 안 고른 것은 **흰 원에 회색 테두리**다.
+    /// 빈 원이 없으면 여기서 무엇을 할 수 있는지가 안 보여서 유저가 그냥 재생인 줄 안다.
+    ///
+    /// 테두리를 흰색으로 두면 배지가 아트워크 밖으로 나간 절반이 밝은 지면에 묻혀서 원이
+    /// 잘린 것처럼 보인다. 아트워크와 지면 양쪽에서 다 읽히려면 **면은 흰색, 선은 회색**이어야 한다.
+    private func selectionBadge(isOn: Bool) -> some View {
+        Circle()
+            .fill(isOn ? DSColor.brand : .white)
+            .frame(width: 20, height: 20)
+            .overlay {
+                if isOn {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                } else {
+                    Circle().strokeBorder(DSColor.textTertiary, lineWidth: 1.5)
+                }
+            }
+            .offset(x: -6, y: -6)
+            .allowsHitTesting(false)
+    }
+
+    /// 상한을 넘으면 **아무 일도 일어나지 않는다.** 가장 오래 고른 것을 밀어내면 방금 무엇이
+    /// 빠졌는지 화면에서 안 보이고, 유저는 자기가 고른 곡이 사라진 줄 안다.
+    private func toggleSelection(_ track: API.HypeItem, _ selection: Binding<Set<Int>>) {
+        if selection.wrappedValue.contains(track.trackId) {
+            selection.wrappedValue.remove(track.trackId)
+        } else if selection.wrappedValue.count < selectionLimit {
+            selection.wrappedValue.insert(track.trackId)
         }
     }
 
@@ -253,13 +341,21 @@ struct HypeCollection: View {
     }
 
     private func removeHype(_ track: API.HypeItem) {
-        items.removeAll { $0.trackId == track.trackId }   // 낙관적 제거.
+        // 애니메이션 없이 지우면 옆 곡들이 순간이동해서 무엇이 빠졌는지가 안 읽힌다.
+        withAnimation(.easeInOut(duration: 0.2)) {
+            items.removeAll { $0.trackId == track.trackId }   // 낙관적 제거.
+        }
         if audio.activeTrackId == track.trackId { audio.stop() }
         appSession.hypeState[track.trackId] = false       // 피드 등 다른 화면에 반영.
         Task {
             do { try await appSession.api.send(.unhype(trackId: track.trackId)) }
             catch APIError.server(_, _, let status) where status == 404 { }   // 이미 없음.
-            catch { await onReloadNeeded?() }             // 실패 시 목록 재동기화.
+            catch {
+                await onReloadNeeded?()                   // 실패 시 목록 재동기화.
+                return
+            }
+            // 디깅 프로필의 통계는 하입 수에서 나온다. 서버에서 빠진 뒤에 알린다.
+            appSession.hypeChangeToken += 1
         }
     }
 }

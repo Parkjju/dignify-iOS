@@ -9,10 +9,10 @@ import PostHog
 /// 한 화면에 규칙이 두 개가 된다. 상단 range 토글(통계 전용)이 아래 전체에 걸리는 것처럼
 /// 보이던 것도 덩어리가 줄면서 같이 사라진다.
 ///
-/// **할 수 있는 건 조회와 삭제 두 개뿐이다**(`13_mypage_ia_after_picks.md` §3).
-/// 곡 구성 수정은 삭제 후 재게시고(반응이 붙은 픽의 곡이 사후에 바뀌면 그 반응이 무엇에
-/// 대한 것이었는지가 무너진다), 제목 수정 진입점은 픽 탭의 `···` 한 곳에만 둔다 —
-/// 같은 동작을 두 화면에 깔면 낙관적 갱신과 롤백을 두 벌 관리하게 된다.
+/// **할 수 있는 건 조회·제목 수정·삭제다**(`13_mypage_ia_after_picks.md` §3).
+/// 곡 구성 수정은 삭제 후 재게시다 — 반응이 붙은 픽의 곡이 사후에 바뀌면 그 반응이 무엇에
+/// 대한 것이었는지가 무너진다. 제목 수정은 픽 탭과 이 화면 둘 다에서 되지만 낙관적 갱신과
+/// 롤백은 `PickTitle.rename` 한 벌이다.
 struct MyPicksSection: View {
     @Environment(AppSession.self) private var session
 
@@ -114,7 +114,11 @@ private struct MyPicksView: View {
 
     @State private var isPaging = false
     @State private var playing: API.Pick?
-    @State private var deleteTarget: API.Pick?
+    @State private var menuTarget: API.Pick?
+    @State private var menuStage: PickMenuSheet.Stage = .actions
+    /// 시트가 완전히 닫힌 뒤에 실행할 것. 닫히는 중에 다음 시트를 열면 서로 잡아먹는다.
+    @State private var pendingAction: PickMenuAction?
+    @State private var errorMessage: String?
     @Namespace private var zoomNamespace
 
     /// 섹션과 같은 필터. 픽 탭에서 지운 픽이 이 목록에 남아 있으면 안 된다.
@@ -132,8 +136,11 @@ private struct MyPicksView: View {
                         onPlay: { open(pick) },
                         // 내 픽에 내가 반응하는 자리가 아니다. 숫자는 보여주되 버튼은 아니다.
                         onReact: nil,
-                        // `···`엔 삭제만. 신고·차단은 자기 픽에 뜻이 없다.
-                        onMenu: { deleteTarget = pick }
+                        // 픽 탭의 `···`와 같은 시트다. 내 픽이므로 제목 수정·삭제 두 줄이 뜬다.
+                        onMenu: {
+                            menuStage = .actions
+                            menuTarget = pick
+                        }
                     )
                     .onAppear {
                         guard pick.pickId == visible.last?.pickId else { return }
@@ -150,18 +157,40 @@ private struct MyPicksView: View {
             FeedView(mode: .pick(id: pick.pickId, nickname: pick.nickname))
                 .pickZoomTransition(id: pick.pickId, in: zoomNamespace)
         }
-        // 액션시트가 아니라 알럿이다 — 되돌릴 수 없는 동작은 화면 가운데서 한 번 막아야
-        // 손가락이 지나가는 자리에서 끝나지 않는다. 차단 확인(`PickListView`)과 같은 모양.
-        .alert("Delete this pick?", isPresented: deleteBinding, presenting: deleteTarget) { pick in
-            Button("Delete", role: .destructive) { delete(pick) }
-            Button("Cancel", role: .cancel) {}
-        } message: { _ in
-            Text("This can't be undone, and the reactions on it go too.")
+        // 1뎁스(제목 수정·삭제)와 제목 입력 폼이 **같은 시트 하나**다. 고른 것은 `pendingAction`에
+        // 담아뒀다가 `onDismiss`에서 실행한다 — 닫힘이 끝난 뒤라야 다음 시트가 안전하게 뜬다.
+        .sheet(item: $menuTarget, onDismiss: runPendingAction) { pick in
+            PickMenuSheet(pick: pick, stage: menuStage) { action in
+                pendingAction = action
+                menuTarget = nil
+            }
+        }
+        .alert("Couldn't save", isPresented: errorBinding, presenting: errorMessage) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { message in
+            Text(message)
         }
     }
 
-    private var deleteBinding: Binding<Bool> {
-        Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } })
+    private var errorBinding: Binding<Bool> {
+        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    /// 시트가 완전히 닫힌 뒤 호출된다. 신고·차단은 내 픽에 뜻이 없어 이 화면엔 오지 않는다.
+    private func runPendingAction() {
+        guard let action = pendingAction else { return }
+        pendingAction = nil
+        switch action {
+        case .rename(let pick):
+            menuStage = .rename
+            menuTarget = pick
+        case .renamed(let pick, let title):
+            PickTitle.rename(pick, to: title, in: $picks, api: session.api) { errorMessage = $0 }
+        case .delete(let pick):
+            delete(pick)
+        default:
+            break
+        }
     }
 
     private func loadMore() async {

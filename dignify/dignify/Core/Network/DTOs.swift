@@ -100,6 +100,9 @@ nonisolated enum API {
     struct UserProfile: Decodable {
         let nickname: String
         let isOnboardingComplete: Bool
+        /// 디깅 성향. 켜져 있으면 하입한 곡과 비슷한 순으로, 꺼져 있으면 제약 없는 무작위로 온다.
+        /// 옛 서버가 안 내려주는 경우를 대비해 옵셔널로 두고 읽는 쪽에서 켜짐으로 본다.
+        let diggingMode: Bool?
         // 서버는 genres도 같이 내려주지만 앱이 읽을 데가 없어졌다(장르 설정 화면 삭제).
     }
 
@@ -115,6 +118,8 @@ nonisolated enum API {
         let artworkUrl: String
         let previewUrl: String
         let hypedAt: Date   // date-time(ISO8601) — 클라 날짜 섹션 그룹핑용
+        /// 추천 기준으로 고정한 곡인지. 시드 선택 화면이 현재 선택을 그리는 데 쓴다.
+        let isSeed: Bool?
     }
 
     /// 마이페이지 하입 목록. 커서는 마지막 userHypeTrackId(Int).

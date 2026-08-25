@@ -26,6 +26,9 @@ struct DiggingProfileView: View {
     /// 한 번 받아온 뒤엔 재진입해도 다시 안 받는다. 목록이 바뀌는 삭제 경로만 force로 갱신.
     @State private var hypesLoaded = false
     @State private var showAllHypes = false
+    /// 크레이트 편집 모드. 프로필은 세 섹션이 한 스크롤에 이어 붙어 있어서 편집 버튼을
+    /// 네비게이션 바에 두면 어느 섹션을 편집하는지 알 수 없다. 그래서 섹션 헤더에 둔다.
+    @State private var isEditingCrate = false
     /// 프로필엔 최근 N일 미리보기만, 나머지는 See all → HypeHistoryView.
     /// 3일 = 최근 흐름은 보이되 스크롤이 길어지지 않는 선(전체는 See all).
     private let previewDayLimit = 3
@@ -56,6 +59,9 @@ struct DiggingProfileView: View {
         .navigationDestination(isPresented: $showAllHypes) { HypeHistoryView() }
         .task(id: range) { await loadStats() }
         .task { await loadHypes() }
+        // 통계는 하입 수에서 나온다. 담은 곡에서 한 곡 빼면 여기 숫자·순위가 그 즉시 틀린 값이
+        // 되는데, `loadedRange` 때문에 화면을 나갔다 들어와도 다시 안 받는다.
+        .onChange(of: appSession.hypeChangeToken) { Task { await refreshStats() } }
     }
 
     @ViewBuilder
@@ -100,6 +106,16 @@ struct DiggingProfileView: View {
         } catch {
             statsFailed = true
         }
+    }
+
+    /// 하입이 바뀐 뒤 조용히 다시 받는다. `loadStats`처럼 `stats`를 비우지 않는 이유는,
+    /// 곡 하나 지울 때마다 통계 블록이 스피너로 바뀌면 정작 무엇이 어떻게 줄었는지를
+    /// 못 보기 때문이다. 실패하면 화면에 있는 값을 그대로 둔다(다음 변경 때 다시 시도된다).
+    private func refreshStats() async {
+        guard let res = try? await appSession.api.send(.myStats(range: range.rawValue),
+                                                       as: API.UserStats.self) else { return }
+        stats = DiggingStats(res)
+        loadedRange = range
     }
 
     // MARK: - Toggle
@@ -299,10 +315,19 @@ struct DiggingProfileView: View {
             // 통계 → 만든 픽 → 담은 곡이 한 스크롤에 이어 붙어 어디까지가 뭔지 안 읽혔다.
             // 각 섹션이 자기 위의 구분선을 갖는다(`MyPicksSection`도 같은 규칙).
             Divider().padding(.horizontal, 20)
-            Text("Your crate")
-                .font(DSTypography.title2)
-                .foregroundStyle(DSColor.textPrimary)
-                .padding(.horizontal, 20)
+            HStack {
+                Text("Your crate")
+                    .font(DSTypography.title2)
+                    .foregroundStyle(DSColor.textPrimary)
+                Spacer()
+                // 담은 곡이 없으면 편집할 것도 없다.
+                if !hypes.isEmpty {
+                    Button(isEditingCrate ? "Done" : "Edit") { isEditingCrate.toggle() }
+                        .font(DSTypography.bodyMedium)
+                        .tint(DSColor.brand)
+                }
+            }
+            .padding(.horizontal, 20)
             if hypesLoading && hypes.isEmpty {
                 ProgressView().frame(maxWidth: .infinity).padding(.vertical, 24)
             } else if hypes.isEmpty {
@@ -316,13 +341,18 @@ struct DiggingProfileView: View {
                                maxGroups: previewDayLimit,
                                perDayLimit: perDayPreviewLimit,
                                onReloadNeeded: { await loadHypes(force: true) },
-                               onSeeAll: hasMoreHypes ? { showAllHypes = true } : nil)
+                               // 편집 중에는 See all을 막는다. 당겨서 넘어가는 제스처가 살아 있으면
+                               // 지우려던 손짓이 화면 이동으로 끝난다.
+                               onSeeAll: (hasMoreHypes && !isEditingCrate) ? { showAllHypes = true } : nil,
+                               isEditing: isEditingCrate)
                 if hasMoreHypes {
                     Button { showAllHypes = true } label: { seeAllRow }
                         .buttonStyle(.plain)
                 }
             }
         }
+        // 마지막 한 곡까지 지우면 편집 모드가 빈 섹션에 남는다.
+        .onChange(of: hypes.isEmpty) { _, empty in if empty { isEditingCrate = false } }
     }
 
     private var seeAllRow: some View {

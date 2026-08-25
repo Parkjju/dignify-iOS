@@ -48,7 +48,13 @@ struct FeedView: View {
     /// ponytail: 단일 라인 TextField라 검색어에 개행이 안 들어와 안전.
     @AppStorage("recentSearches") private var recentRaw = ""
     @State private var offset: CGFloat = 0
+    /// 미리 받아둘 카드 수. 오디오 슬라이딩 윈도우와 같은 발상이고, 이미지가 더 싸서 조금 넓다.
+    private static let prefetchWindow = 8
+
     @State private var currentIndex = 0
+    /// 이미 미리 받은 트랙. 스크롤할 때마다 같은 URL을 다시 열지 않으려고 든다.
+    /// 피드를 갈아끼워도 안 비운다 — 방금 받은 것을 또 받는 쪽이 손해다.
+    @State private var prefetchedTrackIds: Set<Int> = []
     /// track_viewed 중복 방지 — 탭 복귀 등으로 같은 트랙이 다시 current가 돼도 한 번만 찍는다.
     @State private var lastViewedTrackId: Int?
     @State private var detailTarget: DetailTarget?
@@ -106,7 +112,7 @@ struct FeedView: View {
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
-            prefetchArtwork(feedList)
+            prefetchArtwork(from: currentIndex)
             // 소진 토스트는 스크롤로 실제 소진(페이징)했을 때만. 첫 로드/장르 교체 직후엔 안 띄운다.
             // 피드 탭일 때만 오디오를 갱신한다 — 다른 탭에서 장르 변경으로 재fetch된 경우
             // 여기서 재생하면 안 되고, 탭 복귀 시 onChange(selectedTab)가 새 리스트로 세팅한다.
@@ -129,7 +135,7 @@ struct FeedView: View {
             feedList = res.items.map(Feed.init)
             currentIndex = 0
             nextCursor = nil
-            prefetchArtwork(feedList)
+            prefetchArtwork(from: currentIndex)
             // currentIndex가 0 그대로면 .onChange(of:currentIndex)가 안 터진다. 직접 갱신하지 않으면
             // 이전 화면의 player가 남아 그게 재생된다(loadSearch가 같은 함정을 기록해뒀다).
             audio.updateWindow(feeds: feedList, current: currentIndex)
@@ -184,7 +190,7 @@ struct FeedView: View {
         let newFeeds = res.items.map(Feed.init)
         feedList.append(contentsOf: newFeeds)
         nextCursor = res.hasMore ? res.nextCursor : nil
-        prefetchArtwork(newFeeds)
+        prefetchArtwork(from: currentIndex)
         // 일반 피드일 때만 커서 저장(검색 커서는 세션 한정이라 저장 안 함).
         if activeQuery.isEmpty {
             savedFeedCursor = nextCursor ?? ""
@@ -194,9 +200,16 @@ struct FeedView: View {
 
     /// 페이지의 아트워크(600px)를 URLCache에 미리 데운다. 완료를 기다리지 않고 발사만 —
     /// URLSession이 호스트당 동시성을 큐잉하고, 슬롯 렌더 시 AsyncImage가 캐시 히트로 즉시 뜬다.
-    private func prefetchArtwork(_ feeds: [Feed]) {
-        for feed in feeds {
+    /// 지금 카드 기준 앞쪽 몇 장만 미리 받는다.
+    ///
+    /// **페이지가 30곡이 되면서 통째로 당기면 안 된다(2026-08-24).** 600px 아트워크 30장을
+    /// 한 번에 여는 셈이라 셀룰러에서 한 페이지분 데이터를 다 쓰는데, 그중 대부분은 유저가
+    /// 보기 전에 피드를 나간다. 스크롤이 앞으로 갈 때마다 창이 따라가므로 체감은 같다.
+    private func prefetchArtwork(from index: Int) {
+        for feed in feedList.dropFirst(max(0, index)).prefix(Self.prefetchWindow)
+        where !prefetchedTrackIds.contains(feed.trackId) {
             guard let url = feed.artworkURL(size: 600) else { continue }
+            prefetchedTrackIds.insert(feed.trackId)
             URLSession.shared.dataTask(with: url).resume()
         }
     }
@@ -464,6 +477,7 @@ struct FeedView: View {
         }
         .onChange(of: currentIndex) { _, _ in
             audio.updateWindow(feeds: feedList, current: currentIndex)
+            prefetchArtwork(from: currentIndex)
             logTrackViewed()
         }
         .onChange(of: scenePhase) { _, phase in
@@ -618,6 +632,16 @@ struct FeedView: View {
                     .frame(width: fullWidth)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
+                    // 성향 버튼이 검색 왼쪽에 선다. 피드 안에 두는 이유는 **효과가 보이는 자리가
+                    // 여기뿐**이기 때문이다. 설정 화면에서 끄면 무엇이 달라졌는지 기억으로 비교해야 한다.
+                    Button { toggleDiggingMode() } label: {
+                        Image(systemName: session.diggingMode ? "sparkles" : "shuffle")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(session.diggingMode ? "Following your hypes" : "Random")
                     Button(action: openSearch) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 20, weight: .semibold))
@@ -627,6 +651,27 @@ struct FeedView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Search")
                 }
+            }
+
+            // 지금 피드가 무엇으로 만들어졌는지를 항상 띄운다. 껐을 때만 띄우면 켜진 상태가
+            // 무명(無名)이라, 유저가 이 버튼이 무엇을 바꾸는지 눌러 보기 전엔 알 수 없다.
+            // 문구는 설정 이름("켜짐/꺼짐")이 아니라 **지금 보고 있는 것**을 말한다.
+            if !isSearching, activeQuery.isEmpty {
+                Button { toggleDiggingMode() } label: {
+                    HStack(spacing: 4) {
+                        Text(session.diggingMode ? "Following your hypes" : "Random")
+                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.white.opacity(0.2), in: Capsule())
+                    .overlay { Capsule().stroke(.white.opacity(0.25), lineWidth: 1) }
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Switches between hype-based and random")
             }
 
             // 검색 결과 보는 중(모드 아님)엔 활성 쿼리 칩 표시. 탭하면 전체 피드로 복귀.
@@ -647,6 +692,14 @@ struct FeedView: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSearching)
+    }
+
+    /// 성향을 뒤집고 피드를 새로 받는다. 재요청은 `AppSession`이 `feedReloadToken`을 올려서
+    /// 일으키므로, 위쪽 `onChange(of: session.feedReloadToken)`가 커서를 버리고 다시 받는다.
+    /// 그 경로가 `audio.updateWindow`까지 하므로 여기서 오디오를 따로 건드리지 않는다.
+    private func toggleDiggingMode() {
+        let next = !session.diggingMode
+        Task { await session.setDiggingMode(next) }
     }
 
     /// 검색 모드 하단 패널 — 최근 검색 + "'쿼리' 검색하기" 확정 행.
@@ -1003,6 +1056,7 @@ struct FeedView: View {
                 }
                 return   // 서버가 안 받았으니 시드도 안 바뀐다. 재구성할 이유가 없다.
             }
+            session.hypeChangeToken += 1   // 디깅 프로필 통계가 다시 받아간다.
             if target { await refreshUpcoming() }
         }
     }
@@ -1038,7 +1092,8 @@ struct FeedView: View {
         feedList = kept + tail
         nextCursor = res.hasMore ? res.nextCursor : nil
         savedFeedCursor = nextCursor ?? ""
-        prefetchArtwork(tail)
+        // 뒤가 통째로 갈렸다. 새 곡들의 아트워크를 지금 위치 기준으로 다시 받는다.
+        prefetchArtwork(from: currentIndex)
         // currentIndex가 안 바뀌므로 onChange(of: currentIndex)가 안 터진다. 다음 카드용
         // 플레이어를 여기서 직접 세우지 않으면 방금 버린 트랙이 그대로 대기하고 있다.
         if isOnScreen {

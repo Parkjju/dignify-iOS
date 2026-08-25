@@ -15,6 +15,8 @@ private nonisolated struct ArtistRequestBody: Encodable { let artistName: String
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
 private nonisolated struct PickBody: Encodable { let title: String?; let trackIds: [Int] }
 private nonisolated struct PickTitleBody: Encodable { let title: String? }
+private nonisolated struct DiggingModeBody: Encodable { let enabled: Bool }
+private nonisolated struct SeedTracksBody: Encodable { let trackIds: [Int] }
 private nonisolated struct ReactionBody: Encodable { let emoji: String }
 /// `detail`은 `OTHER`일 때만 채워진다(유저가 직접 쓴 사유). 빈 문자열은 넘기지 않는다 —
 /// 빈 값과 null이 둘 다 "안 씀"이면 서버에서 판정이 두 갈래로 갈린다.
@@ -165,6 +167,16 @@ nonisolated extension Endpoint {
     static func myHypes(cursor: Int? = nil) -> Endpoint {
         Endpoint(method: .get, path: "/users/me/hypes",
                  query: cursor.map(String.init).queryItems(name: "cursor"))
+    }
+
+    static func setDiggingMode(_ enabled: Bool) -> Endpoint {
+        Endpoint(method: .patch, path: "/users/me/digging-mode", body: DiggingModeBody(enabled: enabled))
+    }
+
+    /// 추천 기준 곡 고정. **빈 배열이 곧 해제**라 별도 삭제 요청이 없다.
+    /// 서버가 다섯 곡까지만 받으므로 화면에서도 같은 수로 선택을 막는다.
+    static func setSeedTracks(_ trackIds: [Int]) -> Endpoint {
+        Endpoint(method: .put, path: "/users/me/seeds", body: SeedTracksBody(trackIds: trackIds))
     }
 
     /// range: "all"(전체) | "week"(최근 7일). 그 외 값은 서버가 전체로 처리.
