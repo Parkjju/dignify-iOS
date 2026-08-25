@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 /// 제목을 비운 픽의 표시 제목을 클라에서 조립한다.
 /// 서버에 저장하지 않는 이유: ①게시 시점 로케일로 굳어 영어 유저가 한국어를 본다
@@ -60,7 +61,12 @@ enum PickTitle {
         picks.wrappedValue[index].title = title
 
         Task {
-            do { try await api.send(.updatePickTitle(id: pick.pickId, title: title)) }
+            do {
+                try await api.send(.updatePickTitle(id: pick.pickId, title: title))
+                // 되돌아간 것까지 세지 않으려면 성공한 자리에서만 쏴야 한다.
+                // 비운 경우는 폴백 제목으로 돌아간 것이라 따로 구분한다.
+                PostHogSDK.shared.capture("pick_renamed", properties: ["cleared": title == nil])
+            }
             catch {
                 guard let i = picks.wrappedValue.firstIndex(where: { $0.pickId == pick.pickId }) else { return }
                 picks.wrappedValue[i].title = previous

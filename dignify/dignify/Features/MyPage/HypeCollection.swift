@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 /// 하입 트랙을 날짜(일 단위)별 가로 스크롤로 렌더링하는 재사용 컴포넌트.
 /// 셀 탭 재생 / 롱프레스 액션시트(상세·제거) / 끝 도달 시 페이지네이션 트리거를 포함한다.
@@ -21,6 +22,10 @@ struct HypeCollection: View {
     var selection: Binding<Set<Int>>? = nil
     /// 선택 모드에서 고를 수 있는 최대 개수. 서버의 MoodRecommender.SEEDS와 같아야 한다.
     var selectionLimit: Int = 5
+    /// 선택 모드에서 **첫 셀에 코치마크 앵커를 단다.** 유저마다 담은 곡이 달라 셀의 위치와
+    /// 날짜 묶음 수가 제각각이라, 좌표를 적어 두면 누구에게도 안 맞는다. 앵커는 레이아웃이
+    /// 끝난 뒤의 실측이라 목록이 어떻게 생겼든 첫 셀 위에 정확히 앉는다.
+    var coachAnchors: Bool = false
     /// 편집 모드. 켜지면 셀마다 제거 배지가 붙고 탭이 재생 대신 제거로 바뀐다.
     /// 롱프레스는 이 컴포넌트를 처음 쓰는 사람에게 보이지 않아서, 제거하는 길을 눈에 보이게 하나 더 둔다.
     /// 소유는 화면 쪽이다 — 편집 버튼이 네비게이션 바나 섹션 헤더에 서야 하는데 둘 다 이 뷰 바깥이다.
@@ -132,6 +137,7 @@ struct HypeCollection: View {
             guard maxGroups == nil, track.userHypeTrackId == HypeGrouping.pagingAnchor(items) else { return }
             Task { await onReachEnd?() }
         }
+        .coachAnchor(coachAnchors && track.userHypeTrackId == items.first?.userHypeTrackId ? .seedCell : nil)
     }
 
     /// 날짜 한 줄(가로 스크롤). onSeeAll이 있으면(미리보기) 끝에 See all 셀을 붙이고,
@@ -341,6 +347,9 @@ struct HypeCollection: View {
     }
 
     private func removeHype(_ track: API.HypeItem) {
+        // 편집 버튼이 롱프레스를 대신하는지 보려면 어느 길로 들어왔는지가 필요하다.
+        PostHogSDK.shared.capture("hype_removed",
+                                  properties: ["via": isEditing ? "edit" : "long_press"])
         // 애니메이션 없이 지우면 옆 곡들이 순간이동해서 무엇이 빠졌는지가 안 읽힌다.
         withAnimation(.easeInOut(duration: 0.2)) {
             items.removeAll { $0.trackId == track.trackId }   // 낙관적 제거.

@@ -235,12 +235,16 @@ final class AppSession {
     /// **낙관적으로 먼저 바꾸고 실패하면 되돌린다.** 스위치나 버튼이 손가락을 안 따라오면
     /// 유저는 앱이 멈춘 줄 안다. 성공 여부를 돌려주니 호출부가 실패 문구를 띄울 수 있다.
     @discardableResult
-    func setDiggingMode(_ enabled: Bool) async -> Bool {
+    func setDiggingMode(_ enabled: Bool, source: String) async -> Bool {
         let previous = diggingMode
         diggingMode = enabled
         do {
             try await api.send(.setDiggingMode(enabled))
             feedReloadToken += 1
+            // 서버에 반영된 뒤에만 센다. 낙관적 갱신 시점에 쏘면 실패해 되돌아간 토글까지
+            // 켠 것으로 잡혀 "끈 사람 수"가 부풀려진다.
+            PostHogSDK.shared.capture("digging_mode_changed",
+                                      properties: ["enabled": enabled, "source": source])
             return true
         } catch {
             diggingMode = previous

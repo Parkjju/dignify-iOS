@@ -20,6 +20,8 @@ struct FeedView: View {
     @Environment(\.requestReview) private var requestReview
     /// 리뷰 요청은 설치당 한 번뿐. 앱을 지웠다 깔면 초기화된다(유일한 재노출 경로).
     @AppStorage("didAskReview") private var didAskReview = false
+    /// 피드 코치마크를 이미 봤는지. 하입 버튼이 무엇을 하는지 모르면 이 앱은 그냥 재생기다.
+    @AppStorage("seenFeedCoach") private var seenFeedCoach = false
     @State private var audio = FeedAudioController()
     @State private var feedList: [Feed] = []
     @State private var isLoading = true
@@ -280,6 +282,13 @@ struct FeedView: View {
         return items
     }
 
+    /// 피드가 실제로 떠 있고 가리킬 카드가 있을 때만. 검색 결과나 픽 재생 중에는 안 띄운다 —
+    /// 그때는 하입 버튼이 있어도 "이 피드가 하입을 따라간다"는 설명이 맞지 않는다.
+    private var showsCoach: Bool {
+        !seenFeedCoach && mode == .normal && !isLoading && !feedList.isEmpty
+            && activeQuery.isEmpty && !isSearching && detailTarget == nil
+    }
+
     var body: some View {
         content
             .task { await loadInitialFeed() }
@@ -499,6 +508,10 @@ struct FeedView: View {
         }
         .background { shareSheetHost }
         .overlay { pushOptInOverlay }
+        // 좌표는 한 줄도 안 적는다. 대상 뷰가 올린 앵커를 여기 GeometryProxy가 자기 좌표계로 푼다.
+        // **`ignoresSafeArea`는 GeometryReader에 건다** — 오버레이에만 걸면 원점이 화면 맨 위로
+        // 올라가 구멍이 상단 인셋만큼 밀린다(픽 탭에서 밟았던 것과 같은 함정).
+        .coachMarks(FeedCoach.steps, screen: "feed", isActive: showsCoach) { seenFeedCoach = true }
     }
 
     /// 특집 세트 완주 직후의 푸시 권한 안내. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
@@ -672,6 +685,7 @@ struct FeedView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Switches between hype-based and random")
+                .coachAnchor(.feedMode)
             }
 
             // 검색 결과 보는 중(모드 아님)엔 활성 쿼리 칩 표시. 탭하면 전체 피드로 복귀.
@@ -699,7 +713,7 @@ struct FeedView: View {
     /// 그 경로가 `audio.updateWindow`까지 하므로 여기서 오디오를 따로 건드리지 않는다.
     private func toggleDiggingMode() {
         let next = !session.diggingMode
-        Task { await session.setDiggingMode(next) }
+        Task { await session.setDiggingMode(next, source: "feed") }
     }
 
     /// 검색 모드 하단 패널 — 최근 검색 + "'쿼리' 검색하기" 확정 행.
@@ -899,6 +913,8 @@ struct FeedView: View {
                 feed: feed,
                 screenSize: size,
                 safeAreaInsets: safeInsets,
+                // 윈도에 카드가 셋 떠 있어서 전부 앵커를 달면 어느 카드를 뚫을지가 흔들린다.
+                coachAnchors: feed.trackId == feedList.first?.trackId,
                 onToggleHype: { toggleHype(for: feed) },
                 onOpenDetail: { if requireAccount() { detailTarget = DetailTarget(id: feed.trackId) } },
                 onShare: { shareTrack(feed) }
@@ -1192,6 +1208,8 @@ struct FeedView: View {
         let feed: Feed
         let screenSize: CGSize
         let safeAreaInsets: EdgeInsets
+        /// 코치마크가 가리킬 카드인가. 첫 카드에만 켠다.
+        var coachAnchors: Bool = false
         let onToggleHype: () -> Void
         let onOpenDetail: () -> Void
         let onShare: () -> Void
@@ -1277,6 +1295,7 @@ struct FeedView: View {
                     .foregroundStyle(feed.isHyped ? DSColor.brand : DSColor.textTertiary)
                     .animation(.easeOut, value: feed.isHyped)
                     .accessibilityLabel(feed.isHyped ? "Unhype" : "Hype")
+                    .coachAnchor(coachAnchors ? .hype : nil)
 
                     Spacer()
                     TrackActionButton(systemName: "opticaldisc", action: onOpenDetail)

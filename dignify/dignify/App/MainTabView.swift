@@ -16,7 +16,6 @@ struct MainTabView: View {
     /// 하나를 먼저 보므로, 여기 담아뒀다가 `onDismiss`에서 꺼낸다.
     @State private var pendingWhatsNew = false
     @State private var soundRounds: SoundRoundsPayload?
-    @State private var showPersonalizationNotice = false
 
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -61,15 +60,6 @@ struct MainTabView: View {
                 }
             }
         }
-        .background {
-            Color.clear.fullScreenCover(isPresented: $showPersonalizationNotice,
-                                        onDismiss: showPendingWhatsNew) {
-                PersonalizationNoticeView {
-                    didSoundRounds = true
-                    showPersonalizationNotice = false
-                }
-            }
-        }
         .task {
             // 기존 로그인 유저가 업데이트로 들어온 경우 = 온보딩 안 거침(didJustOnboard false) + signedIn.
             let isReturningUser = !didJustOnboard && session.authState == .signedIn
@@ -95,21 +85,18 @@ struct MainTabView: View {
         }
     }
 
-    /// 라운드나 안내를 띄운다. **띄운 게 있으면 true** — 호출부가 What's New를 언제 낼지 가른다.
+    /// 라운드를 띄운다. **띄웠으면 true** — 호출부가 What's New를 언제 낼지 가른다.
     ///
-    /// **하입이 이미 쌓인 사람은 라운드를 태우지 않는다.** 시드는 최근 하입 3곡이라 라운드에서
-    /// 고른 3곡이 시드를 통째로 차지하고, 그러면 쌓아온 취향이 밀려 피드가 잘못 구성된 것처럼 보인다.
-    /// 기준을 3으로 둔 건 그 아래면 라운드가 채워 주는 쪽이 이득이라서다. 밀렸더라도
-    /// 마이페이지의 추천 기준 곡에서 직접 고르면 되돌릴 수 있다(1.1.0에서 생긴 길이다).
+    /// **하입 수로 가르지 않는다(2026-08-25).** 예전엔 하입 3개 이상이면 안내 화면만 보여주고
+    /// 라운드를 건너뛰었다. 시드가 최근 하입 3곡이라 라운드에서 고른 3곡이 시드를 통째로
+    /// 차지하고, 그러면 쌓아온 취향이 밀린다는 이유였다.
+    ///
+    /// 그 이유가 사라진 건 **유저가 기준 곡을 직접 고를 수 있게 됐기 때문이다**(1.1.0).
+    /// 밀렸으면 마이페이지 → 추천 기준 곡에서 되돌리면 되고, 그 길은 같은 릴리즈의 코치마크가
+    /// 알려준다. 반대로 라운드를 건너뛰면 하입이 많은 유저일수록 이 릴리즈에서 무엇이 바뀌었는지
+    /// 겪어볼 자리가 없어진다 — 소리로 취향을 묻는 화면 자체가 이번 변경의 얼굴이다.
     @discardableResult
     private func startPersonalizationIntro() async -> Bool {
-        let stats = try? await session.api.send(.myStats(range: "all"), as: API.UserStats.self)
-        // 통계를 못 받으면 라운드 쪽으로 간다 — 하입이 없는 유저에게 아무 설명 없이 넘어가는 것보다,
-        // 하입이 있는 유저가 라운드를 한 번 더 보는 쪽이 덜 나쁘다.
-        if let hypeCount = stats?.hypeCount, hypeCount >= 3 {
-            showPersonalizationNotice = true
-            return true
-        }
         // 후보가 없으면(서버 미시딩) 커버를 아예 안 띄운다. 띄웠다 닫으면 화면이 번쩍이고,
         // 플래그를 태워버리면 시딩된 뒤에도 이 유저는 영영 라운드를 못 본다.
         let rounds = await SoundRoundsView.fetch(session)

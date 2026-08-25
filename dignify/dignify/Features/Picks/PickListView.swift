@@ -152,6 +152,7 @@ struct PickListView: View {
                 GeometryReader { proxy in
                     if showsCoach {
                         CoachMarkOverlay(steps: PicksCoach.steps,
+                                         screen: "picks",
                                          anchors: anchors,
                                          proxy: proxy) { seenPicksCoach = true }
                     }

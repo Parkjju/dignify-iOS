@@ -2,7 +2,11 @@ import SwiftUI
 import PostHog
 
 /// 코치마크 — 실제 UI 요소를 뚫어 보여주는 1회성 안내. 카드 캐러셀(`TutorialView`)과 달리
-/// **가리키는 대상이 화면에 실재한다**는 게 값이다. 픽 탭 첫 진입에서만 돈다.
+/// **가리키는 대상이 화면에 실재한다**는 게 값이다. 화면마다 한 번씩만 돈다.
+///
+/// 네 곳이 이 한 벌을 나눠 쓴다: 피드(하입이 무엇을 하는지), 픽 탭, 마이페이지(피드를
+/// 바꾸는 설정 둘), 추천 기준 곡(직접 골라 보게 하는 안내). 각 화면이 `@AppStorage` 플래그와
+/// 스텝 배열만 따로 갖고, 앵커 수집·구멍 뚫기·카드 배치는 전부 여기 것이다.
 ///
 /// **좌표를 한 줄도 안 적는다.** 대상 뷰가 `anchorPreference`로 자기 `bounds`를 올려 보내고,
 /// 오버레이가 `GeometryProxy[anchor]`로 자기 좌표계에서 다시 읽는다 — 레이아웃이 끝난 뒤의
@@ -13,7 +17,14 @@ import PostHog
 
 /// 코치마크가 가리킬 수 있는 자리. 케이스를 늘리려면 대상 뷰에 `.coachAnchor(_:)`만 붙이면 된다.
 enum CoachAnchor: String, CaseIterable {
+    /// 픽 탭
     case play, react, share, compose
+    /// 피드
+    case hype, feedMode
+    /// 마이페이지
+    case followSwitch, seedRow
+    /// 추천 기준 곡
+    case seedCell, seedSave
 }
 
 struct CoachAnchorKey: PreferenceKey {
@@ -33,6 +44,25 @@ extension View {
     func coachAnchor(_ id: CoachAnchor?) -> some View {
         anchorPreference(key: CoachAnchorKey.self, value: .bounds) { anchor in
             id.map { [$0: anchor] } ?? [:]
+        }
+    }
+
+    /// 이 화면에 코치마크를 얹는다. 앵커 수집·좌표 변환·세이프에어리어 확장이 여기 다 들어 있다.
+    ///
+    /// **함수로 감싸는 이유는 타입체커다.** `overlayPreferenceValue`를 제네릭 클로저째 인라인으로
+    /// 두면 뷰 체인이 긴 화면(FeedView)에서 "unable to type-check in reasonable time"이 난다.
+    func coachMarks(_ steps: [CoachStep], screen: String, isActive: Bool,
+                    onFinish: @escaping () -> Void) -> some View {
+        overlayPreferenceValue(CoachAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                if isActive {
+                    CoachMarkOverlay(steps: steps, screen: screen,
+                                     anchors: anchors, proxy: proxy, onFinish: onFinish)
+                }
+            }
+            // **GeometryReader 자체에 건다** — 오버레이에만 걸면 원점이 화면 맨 위로 올라가
+            // 구멍이 상단 인셋만큼 밀린다.
+            .ignoresSafeArea()
         }
     }
 
@@ -78,10 +108,56 @@ enum PicksCoach {
     ]
 }
 
+/// 피드. **하입 버튼이 먼저다** — 그게 무엇을 하는 버튼인지 모르면 나머지 설명이 성립하지 않는다.
+enum FeedCoach {
+    static let steps: [CoachStep] = [
+        CoachStep(anchor: .hype,
+                  title: "Hype what you like",
+                  body: "It saves the track to your crate, and the feed starts looking for tracks that sound like it.",
+                  circular: true),
+        CoachStep(anchor: .feedMode,
+                  title: "See where the feed came from",
+                  body: "This says whether the feed is following your hypes or playing at random. Tap it to switch.",
+                  circular: false),
+    ]
+}
+
+/// 마이페이지. 피드를 실제로 바꾸는 설정 둘만 가리킨다 — 나머지 행은 읽기용이라 안내가 필요 없다.
+enum MyPageCoach {
+    static let steps: [CoachStep] = [
+        CoachStep(anchor: .followSwitch,
+                  title: "Turn it off any time",
+                  body: "The feed follows your hypes by default. Switch this off and it plays anything again.",
+                  circular: false),
+        CoachStep(anchor: .seedRow,
+                  title: "Choose what it follows",
+                  body: "By default the feed follows your three most recent hypes. Open this to pin the tracks it should follow instead.",
+                  circular: false),
+    ]
+}
+
+/// 추천 기준 곡. 여기만 **해 보게 하는** 안내다 — 읽고 나가면 아무것도 안 바뀌므로
+/// 곡 하나를 실제로 골라 저장하는 데까지 데려간다.
+enum SeedCoach {
+    static let steps: [CoachStep] = [
+        CoachStep(anchor: .seedCell,
+                  title: "Tap a track to pin it",
+                  body: "Try one now. Pick up to three, and the feed follows only those instead of your latest hypes.",
+                  circular: false),
+        CoachStep(anchor: .seedSave,
+                  title: "Then save",
+                  body: "The feed rebuilds from your pick right away. Pin nothing and it goes back to your three most recent hypes.",
+                  circular: false),
+    ]
+}
+
 // MARK: - 오버레이
 
 struct CoachMarkOverlay: View {
     let steps: [CoachStep]
+    /// 어느 화면의 안내인지. 네 화면이 이벤트 이름을 같이 쓰므로 **이 값으로만 구분된다** —
+    /// 이름을 화면별로 나누면 완주율을 한 인사이트에서 볼 수 없다.
+    let screen: String
     let anchors: [CoachAnchor: Anchor<CGRect>]
     let proxy: GeometryProxy
     let onFinish: () -> Void
@@ -94,7 +170,12 @@ struct CoachMarkOverlay: View {
     /// 그때는 구멍 없이 설명 카드만 띄운다(진행이 막히는 것보다 낫다).
     private var spot: CGRect? {
         guard let anchor = anchors[step.anchor] else { return nil }
-        return proxy[anchor].insetBy(dx: -8, dy: -8)
+        let rect = proxy[anchor].insetBy(dx: -8, dy: -8)
+        // **화면 밖으로 밀린 대상은 없는 것으로 친다.** 스크롤 목록에서는 앵커가 접힘 아래에
+        // 있을 수 있는데, 그대로 쓰면 보이지도 않는 자리에 구멍을 뚫고 카드를 화면 끝에 붙인다.
+        // 그때는 구멍 없이 설명만 띄운다 — 진행이 막히는 것보다 낫다.
+        guard rect.intersects(CGRect(origin: .zero, size: proxy.size)) else { return nil }
+        return rect
     }
 
     var body: some View {
@@ -111,6 +192,8 @@ struct CoachMarkOverlay: View {
         .contentShape(Rectangle())
         .onTapGesture { }
         .transition(.opacity)
+        // 완주율의 분모. 안내를 도중에 나가버린 유저는 finished가 없으므로 여기서만 세진다.
+        .onAppear { PostHogSDK.shared.capture("coach_shown", properties: ["screen": screen]) }
     }
 
     private var dimmed: some View {
@@ -215,7 +298,8 @@ struct CoachMarkOverlay: View {
 
     private func advance() {
         if index == steps.count - 1 {
-            PostHogSDK.shared.capture("picks_coach_finished", properties: ["last_step": index])
+            PostHogSDK.shared.capture("coach_finished",
+                                      properties: ["screen": screen, "last_step": index])
             onFinish()
         } else {
             withAnimation(.easeOut(duration: 0.2)) { index += 1 }

@@ -1655,16 +1655,6 @@
         }
       }
     },
-    "Nothing to set up. Genre settings are gone — the feed reads your hypes instead." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "따로 설정할 건 없어요. 장르 설정 화면은 저희가 없앴고, 이제 하입이 그 자리를 대신해요."
-          }
-        }
-      }
-    },
     "Notify me" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2976,16 +2966,6 @@
         }
       }
     },
-    "The tracks you hyped decide what comes next — same sound, same mood. Hype something new and the feed turns with it." : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "하입한 곡과 비슷한 소리, 비슷한 분위기의 곡이 다음 카드로 나와요. 새로 하입하면 피드도 그 곡에 맞춰 달라져요."
-          }
-        }
-      }
-    },
     "The voice itself" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3600,16 +3580,6 @@
         }
       }
     },
-    "Your feed follows your hypes now" : {
-      "localizations" : {
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이제 피드가 하입을 따라가요"
-          }
-        }
-      }
-    },
     "Your hyped tracks now live in your profile." : {
       "localizations" : {
         "ko" : {
@@ -3954,6 +3924,138 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "프로필에서도 나의 픽 제목을 고치거나 삭제할 수 있어요."
+          }
+        }
+      }
+    },
+    "Hype what you like" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 들면 하입하세요"
+          }
+        }
+      }
+    },
+    "It saves the track to your crate, and the feed starts looking for tracks that sound like it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡은 담은 곡에 모여요. 그리고 피드가 그 곡과 비슷한 소리를 찾아 와요."
+          }
+        }
+      }
+    },
+    "See where the feed came from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 무엇을 따라가는지"
+          }
+        }
+      }
+    },
+    "This says whether the feed is following your hypes or playing at random. Tap it to switch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드가 하입을 따라가는 중인지 무작위인지 여기서 알 수 있어요. 누르면 바뀌어요."
+          }
+        }
+      }
+    },
+    "Turn it off any time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언제든 끌 수 있어요"
+          }
+        }
+      }
+    },
+    "The feed follows your hypes by default. Switch this off and it plays anything again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드는 기본적으로 하입한 곡을 따라가요. 이 스위치를 끄면 다시 무작위로 재생돼요."
+          }
+        }
+      }
+    },
+    "Choose what it follows" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기준이 될 곡을 직접 골라요"
+          }
+        }
+      }
+    },
+    "By default the feed follows your three most recent hypes. Open this to pin the tracks it should follow instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본은 최근에 하입한 3곡이에요. 여기서 기준으로 삼을 곡을 직접 고정할 수 있어요."
+          }
+        }
+      }
+    },
+    "Tap a track to pin it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "곡을 누르면 고정돼요"
+          }
+        }
+      }
+    },
+    "Try one now. Pick up to three, and the feed follows only those instead of your latest hypes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 하나 눌러 보세요. 최대 3곡까지 고를 수 있고, 고르면 최근 하입 대신 그 곡들만 기준이 돼요."
+          }
+        }
+      }
+    },
+    "Then save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "그다음 저장하세요"
+          }
+        }
+      }
+    },
+    "The feed rebuilds from your pick right away. Pin nothing and it goes back to your three most recent hypes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장하면 피드가 바로 다시 만들어져요. 아무것도 고르지 않으면 최근에 하입한 3곡으로 돌아가요."
           }
         }
       }

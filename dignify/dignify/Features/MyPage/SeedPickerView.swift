@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 /// 추천 기준 곡 고르기. 하입한 곡 중에서 최대 `limit`개를 고정하면, 서버가 최근 하입 대신
 /// 그 곡들만 시드로 쓴다(`MoodRecommender.findSeeds`).
@@ -26,6 +27,9 @@ struct SeedPickerView: View {
     @State private var isSaving = false
     @State private var loadFailed = false
     @State private var saveFailed = false
+    /// 이 화면 코치마크를 이미 봤는지. **읽고 나가면 아무것도 안 바뀌는 화면이라**
+    /// 곡 하나를 실제로 골라 저장하는 데까지 데려간다.
+    @AppStorage("seenSeedCoach") private var seenSeedCoach = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -42,6 +46,7 @@ struct SeedPickerView: View {
                 } else {
                     Button("Save") { Task { await save() } }
                         .tint(DSColor.brand)
+                        .coachAnchor(.seedSave)
                         // 바꾼 게 없으면 누를 이유가 없다. 저장을 눌렀는데 아무 일도 안 일어나면
                         // 실패한 것처럼 보인다.
                         .disabled(selected == savedSelection)
@@ -49,6 +54,11 @@ struct SeedPickerView: View {
             }
         }
         .task { await load() }
+        // 고를 곡이 있을 때만. 빈 목록에서 "눌러 보세요"는 가리킬 데가 없다.
+        .coachMarks(SeedCoach.steps, screen: "seed_picker",
+                    isActive: !seenSeedCoach && !isLoading && !items.isEmpty) {
+            seenSeedCoach = true
+        }
     }
 
     private var header: some View {
@@ -92,7 +102,8 @@ struct SeedPickerView: View {
                 HypeCollection(items: $items,
                                onReachEnd: { await loadMore() },
                                selection: $selected,
-                               selectionLimit: Self.limit)
+                               selectionLimit: Self.limit,
+                               coachAnchors: true)
                     .padding(.top, 8)
             }
         }
@@ -109,6 +120,10 @@ struct SeedPickerView: View {
             // 합쳐지므로, 저장 시 화면에 없는 선택을 지우지 않게 합집합으로 들고 간다.
             selected = Set(res.items.filter { $0.isSeed == true }.map(\.trackId))
             savedSelection = selected
+            // 저장까지 간 비율을 보려면 분모가 필요하다. 목록을 못 받은 진입은 세지 않는다 —
+            // 그때는 고를 수가 없어서 저장 안 한 게 유저의 선택이 아니다.
+            PostHogSDK.shared.capture("seed_picker_opened",
+                                      properties: ["pinned": savedSelection.count])
         } catch {
             loadFailed = true
         }
@@ -139,6 +154,8 @@ struct SeedPickerView: View {
         do {
             try await session.api.send(.setSeedTracks(Array(selected)))
             savedSelection = selected
+            // 0도 의미 있는 값이다 — 고정을 전부 풀고 최근 하입으로 되돌린 것.
+            PostHogSDK.shared.capture("seed_saved", properties: ["count": selected.count])
             // 기준 곡이 바뀌면 정렬 기준 자체가 바뀐다. 들고 있던 커서로 이어 보면 옛 기준으로
             // 뽑힌 페이지가 계속 나와서, 방금 고른 게 반영이 안 된 것처럼 보인다.
             // 성향 토글과 같은 경로로 피드를 처음부터 다시 받게 한다.

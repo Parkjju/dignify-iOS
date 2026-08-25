@@ -17,6 +17,21 @@ struct MyPageView: View {
     /// 주간으로 보면 한 주 안 들었다고 정체성이 사라졌다 나타났다 한다.
     @State private var confirmedType: DiggingType?
     @State private var diggingModeFailed = false
+    /// 마이페이지 코치마크를 이미 봤는지. 피드를 바꾸는 설정 둘이 그냥 목록의 한 줄로 보인다.
+    @AppStorage("seenMyPageCoach") private var seenMyPageCoach = false
+    /// 프로필을 받아 토글이 실제 값으로 그려진 뒤에 코치마크를 띄우기 위한 표시.
+    @State private var profileLoaded = false
+
+    #if DEBUG
+    // 업데이트 유저 흐름을 다시 보기 위한 것들. 릴리즈 빌드엔 이 화면에서 아예 빠진다.
+    @AppStorage("didJustOnboard") private var didJustOnboard = false
+    @AppStorage("didSoundRounds") private var didSoundRounds = false
+    @AppStorage("lastSeenVersion") private var lastSeenVersion = ""
+    @AppStorage("seenFeedCoach") private var seenFeedCoach = false
+    @AppStorage("seenPicksCoach") private var seenPicksCoach = false
+    @AppStorage("seenSeedCoach") private var seenSeedCoach = false
+    @State private var debugResetDone = false
+    #endif
 
     var body: some View {
         ScrollView {
@@ -34,6 +49,11 @@ struct MyPageView: View {
         .background(DSColor.background)
         .navigationTitle("My Page")
         .task { await loadProfile() }
+        // 피드를 바꾸는 설정 둘을 한 번만 짚어 준다. 프로필을 받은 뒤에 띄우는 이유는
+        // 그전엔 토글이 기본값(켜짐)으로 그려져 있어서, 실제 값과 다른 화면을 설명하게 되기 때문이다.
+        .coachMarks(MyPageCoach.steps, screen: "mypage", isActive: !seenMyPageCoach && profileLoaded) {
+            seenMyPageCoach = true
+        }
     }
 
     // MARK: - Profile
@@ -170,9 +190,11 @@ struct MyPageView: View {
             // 1. 기능 — 실제로 무언가를 바꾸는 행들.
             // 이 화면에서 유일하게 피드 자체를 바꾸는 설정이라 묶음 맨 위에 둔다.
             diggingModeRow
+                .coachAnchor(.followSwitch)
             // 껐을 때도 보여준다. 숨기면 기능이 사라진 것처럼 보이는데, 실제로는 다시 켜면
             // 그대로 쓰이는 설정이다. 꺼진 동안 무슨 뜻인지는 그 화면이 설명한다.
             NavigationLink { SeedPickerView() } label: { settingsRow("Recommend from") }
+                .coachAnchor(.seedRow)
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
@@ -196,6 +218,11 @@ struct MyPageView: View {
             // 4. 계정 — 되돌리기 어려운 것들만 마지막에 모은다.
             Button { logout() } label: { settingsRow("Log Out") }
             Button { showWithdrawAlert = true } label: { settingsRow("Delete Account", destructive: true) }
+
+            #if DEBUG
+            groupDivider
+            debugResetRow
+            #endif
         }
         .buttonStyle(.plain)
         .sheet(item: $legalDoc) { SafariView(url: $0.url) }
@@ -229,6 +256,33 @@ struct MyPageView: View {
         Divider().padding(.horizontal, 20).padding(.vertical, 8)
     }
 
+    #if DEBUG
+    /// **디버그 빌드에만 있다.** 로그인 상태는 그대로 두고 "방금 업데이트한 기존 유저"의
+    /// 플래그만 되돌린다. 앱을 지우면 신규 설치가 되어 온보딩을 타므로 그 경로로는
+    /// 업데이트 유저 흐름(라운드 → What's New → 코치마크)을 볼 수가 없다.
+    ///
+    /// `MainTabView`의 판정은 실행 직후 `.task`에서 한 번만 돌기 때문에 **앱을 껐다 켜야** 보인다.
+    private var debugResetRow: some View {
+        Button {
+            didJustOnboard = false          // 신규 가입이 아니라 기존 유저로 본다
+            didSoundRounds = false          // 소리 2지선다를 다시 태운다
+            lastSeenVersion = "1.0.10"      // 지금 버전과 달라야 What's New가 뜬다
+            seenFeedCoach = false
+            seenMyPageCoach = false
+            seenSeedCoach = false
+            seenPicksCoach = false
+            debugResetDone = true
+        } label: {
+            settingsRow("업데이트 유저 상태로 초기화 (DEBUG)")
+        }
+        .alert("초기화했어요", isPresented: $debugResetDone) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(verbatim: "앱을 완전히 껐다 켜면 라운드 → What's New → 코치마크 순서로 뜹니다.")
+        }
+    }
+    #endif
+
     /// 토글 하나로는 무엇이 켜지는지 알 수 없어서 한 줄 설명을 붙인다.
     /// 낙관적으로 먼저 바꾸고 실패하면 되돌린다 — 스위치가 손가락을 따라오지 않으면 고장으로 읽힌다.
     private var diggingModeRow: some View {
@@ -256,7 +310,7 @@ struct MyPageView: View {
         diggingModeFailed = false
         // 되돌리기와 피드 재요청은 AppSession이 한다 — 피드 안 버튼과 같은 경로여야
         // 어느 쪽으로 껐든 결과가 같다.
-        Task { diggingModeFailed = !(await appSession.setDiggingMode(enabled)) }
+        Task { diggingModeFailed = !(await appSession.setDiggingMode(enabled, source: "mypage")) }
     }
 
     private func settingsRow(_ label: LocalizedStringKey, destructive: Bool = false) -> some View {
@@ -297,6 +351,7 @@ struct MyPageView: View {
             appSession.diggingMode = profile.diggingMode ?? true
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
+        profileLoaded = true
     }
 }
 
