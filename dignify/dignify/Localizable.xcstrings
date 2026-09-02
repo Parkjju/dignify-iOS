@@ -3908,6 +3908,16 @@
           }
         }
       }
+    },
+    "Tapping a reaction notification now takes you straight to your picks." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽에 반응이 달렸다는 알림을 누르면 내 픽으로 바로 가요."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
