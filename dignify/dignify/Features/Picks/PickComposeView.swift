@@ -1,9 +1,15 @@
 import SwiftUI
 import PostHog
 
-/// 픽 만들기 — 인스타그램 다중선택 갤러리 구조. 셀 탭이 선택 토글이고 배지는 체크가 아니라
-/// **번호**(선택순 = 재생순). 소스는 탭/세그먼트가 아니라 **검색창 상태**로 갈린다:
-/// 비어 있으면 내 크레이트, 검색을 확정하면 결과 그리드. 선택은 소스가 바뀌어도 유지된다.
+/// 픽 만들기 — 하입한 곡을 **날짜별 리스트**로 훑으며 고른다. 행 탭은 프리뷰 재생이고
+/// 선택은 오른쪽 배지다(`PickTrackRow`). 배지는 체크가 아니라 **번호**(선택순 = 재생순).
+///
+/// 아트워크 그리드에서 리스트로 바꾼 이유: 그리드는 *이미 아는 곡*을 찾을 때 빠른데
+/// 하입 목록은 대부분 기억나지 않는 곡이다. 날짜가 "그날 뭘 파고 있었는지"라는 맥락을 주고,
+/// 재생이 회상을 마무리한다. 작성화면을 열고 85%가 아무것도 못 내고 나가던 구간이 여기다.
+///
+/// 소스는 탭/세그먼트가 아니라 **검색창 상태**로 갈린다: 비어 있으면 하입 목록,
+/// 검색을 확정하면 결과 목록. 선택은 소스가 바뀌어도 유지된다.
 struct PickComposeView: View {
     /// 게시 성공 후 목록을 다시 받게 한다.
     var onCreated: () async -> Void
@@ -17,10 +23,10 @@ struct PickComposeView: View {
     @State private var isPagingCrate = false
 
     @State private var searchText = ""
-    /// 확정된 검색어. 비어 있으면 크레이트 그리드를 본다.
+    /// 확정된 검색어. 비어 있으면 하입 목록을 본다.
     @State private var activeQuery = ""
     @State private var results: [PickTrack] = []
-    /// 검색 결과도 크레이트와 똑같이 페이지가 있다(10개씩). nil이면 더 없음.
+    /// 검색 결과도 하입 목록과 똑같이 페이지가 있다(10개씩). nil이면 더 없음.
     @State private var searchCursor: String?
     @State private var isSearching = false
     @State private var isPagingSearch = false
@@ -34,6 +40,9 @@ struct PickComposeView: View {
     @State private var errorMessage: String?
     /// 제목 단계 미리보기의 `@닉네임`용. 요청이 실패해도 화면은 막지 않는다.
     @State private var myNickname = ""
+    /// 한 번에 한 곡만 무는 단발 미리듣기. `onListen`을 안 붙였으므로 청취 집계에 안 들어간다 —
+    /// 여긴 곡을 고르는 자리지 듣는 자리가 아니라서 피드 청취율을 오염시키면 안 된다.
+    @State private var audio = FeedAudioController()
     /// 미리보기 카드가 `PickCard`를 그대로 쓰는데 zoom 전환 네임스페이스를 요구한다.
     /// 여기선 전환이 없어서 쓰이지 않는다.
     @Namespace private var previewNamespace
@@ -51,14 +60,35 @@ struct PickComposeView: View {
     }
 #endif
 
-    /// 검색에서 고른 비크레이트 곡은 크레이트 그리드 **앞에** 붙는다.
-    /// 안 그러면 검색어를 지웠을 때 그 곡이 그리드에 자리가 없다. 이게 "통합 그리드"의 실체.
-    private var crateGrid: [PickTrack] {
-        let crateIds = Set(crate.map(\.trackId))
-        return selected.filter { !crateIds.contains($0.trackId) } + crate
+    /// 목록 한 덩어리. 날짜 그룹이면 제목이 있고, 검색 결과면 없다.
+    private struct ListSection: Identifiable {
+        let id: String
+        let title: String?
+        let tracks: [PickTrack]
     }
 
-    private var gridItems: [PickTrack] { activeQuery.isEmpty ? crateGrid : results }
+    /// 검색에서 고른 비하입 곡은 `hypedAt`이 없어서 날짜 그룹에 낄 자리가 없다.
+    /// 맨 위에 따로 세워두지 않으면 검색어를 지우는 순간 목록에서 사라져 어디로 갔는지 알 수 없다.
+    private var sections: [ListSection] {
+        guard activeQuery.isEmpty else {
+            return [ListSection(id: "results", title: nil, tracks: results)]
+        }
+        let crateIds = Set(crate.map(\.trackId))
+        let added = selected.filter { !crateIds.contains($0.trackId) }
+        let days = HypeGrouping.byDay(crate, date: { $0.hypedAt ?? .distantPast }).map {
+            ListSection(id: "\($0.day.timeIntervalSince1970)",
+                        title: $0.day.formatted(date: .long, time: .omitted),
+                        tracks: $0.items)
+        }
+        guard !added.isEmpty else { return days }
+        return [ListSection(id: "added",
+                            title: String(localized: "Added from search"),
+                            tracks: added)] + days
+    }
+
+    /// 페이지네이션 트리거가 물 마지막 행. 섹션이 아니라 **행** 기준이어야 한다 —
+    /// 날짜 그룹 id는 startOfDay라 새 페이지가 전부 같은 날이면 값이 그대로다(1.0.9 버그와 같은 함정).
+    private var listItems: [PickTrack] { sections.flatMap(\.tracks) }
 
     var body: some View {
         NavigationStack {
@@ -70,7 +100,7 @@ struct PickComposeView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 20)
                 sourceHeader
-                grid
+                list
                 bottomBar
             }
             .background(DSColor.background)
@@ -89,18 +119,19 @@ struct PickComposeView: View {
                 PostHogSDK.shared.capture("pick_compose_opened")
                 await loadCrate()
             }
-            // 검색어를 지우면 확정 상태도 풀려 크레이트 그리드로 돌아온다.
+            // 검색어를 지우면 확정 상태도 풀려 하입 목록으로 돌아온다.
             .onChange(of: searchText) { _, text in
                 if text.trimmingCharacters(in: .whitespaces).isEmpty { activeQuery = "" }
             }
+            .onDisappear { audio.stop() }
         }
     }
 
-    /// 지금 보고 있는 소스가 무엇인지 + 크레이트로 돌아가는 명시적 문. 검색창을 비우는 게
+    /// 지금 보고 있는 소스가 무엇인지 + 하입 목록으로 돌아가는 명시적 문. 검색창을 비우는 게
     /// 유일한 복귀 경로면 고른 곡들이 어디 갔는지 알 수 없다.
     private var sourceHeader: some View {
         HStack(spacing: 8) {
-            Text(activeQuery.isEmpty ? "Your crate" : "Results for \"\(activeQuery)\"")
+            Text(activeQuery.isEmpty ? "Your hypes" : "Results for \"\(activeQuery)\"")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(DSColor.textSecondary)
                 .lineLimit(1)
@@ -111,7 +142,7 @@ struct PickComposeView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left").font(.system(size: 10, weight: .bold))
-                        Text("Your crate").font(.system(size: 13, weight: .semibold))
+                        Text("Your hypes").font(.system(size: 13, weight: .semibold))
                         if !selected.isEmpty {
                             Text("\(selected.count) selected")
                                 .font(.system(size: 11, weight: .semibold))
@@ -130,25 +161,25 @@ struct PickComposeView: View {
         .padding(.bottom, 14)
     }
 
-    // MARK: - Grid
+    // MARK: - List
 
     @ViewBuilder
-    private var grid: some View {
+    private var list: some View {
         if isSearching || (!crateLoaded && activeQuery.isEmpty) {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if gridItems.isEmpty {
-            emptyGrid
+        } else if listItems.isEmpty {
+            emptyList
         } else {
             ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 16) {
-                    ForEach(gridItems) { track in
-                        cell(track)
-                            // 마지막 셀이 보이면 다음 페이지. 두 소스가 같은 그리드를 쓰므로
-                            // 어느 쪽을 이어받을지는 `loadMore`가 검색어 상태로 가른다.
-                            .onAppear {
-                                guard track.trackId == gridItems.last?.trackId else { return }
-                                Task { await loadMore() }
-                            }
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    ForEach(sections) { section in
+                        if let title = section.title {
+                            Text(title)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(DSColor.textTertiary)
+                                .padding(.top, 10)
+                        }
+                        ForEach(section.tracks) { row($0) }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -157,10 +188,24 @@ struct PickComposeView: View {
         }
     }
 
-    private var emptyGrid: some View {
+    private func row(_ track: PickTrack) -> some View {
+        PickTrackRow(track: track,
+                     number: selected.firstIndex(of: track).map { $0 + 1 },
+                     isPlaying: audio.activeTrackId == track.trackId && !audio.isPaused,
+                     onPlay: { play(track) },
+                     onToggle: { toggle(track) })
+            // 마지막 행이 보이면 다음 페이지. 두 소스가 같은 목록을 쓰므로
+            // 어느 쪽을 이어받을지는 `loadMore`가 검색어 상태로 가른다.
+            .onAppear {
+                guard track.trackId == listItems.last?.trackId else { return }
+                Task { await loadMore() }
+            }
+    }
+
+    private var emptyList: some View {
         VStack(spacing: 12) {
             if activeQuery.isEmpty {
-                Text("Nothing in your crate yet — search for tracks to add.")
+                Text("No hyped tracks yet — search for tracks to add.")
             } else {
                 Text("No results for \"\(activeQuery)\"")
                 Button("Request \"\(activeQuery)\"") { showRequestSheet = true }
@@ -172,62 +217,6 @@ struct PickComposeView: View {
         .multilineTextAlignment(.center)
         .padding(.horizontal, 40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func cell(_ track: PickTrack) -> some View {
-        let number = selected.firstIndex(of: track).map { $0 + 1 }
-        return VStack(alignment: .leading, spacing: 6) {
-            AsyncImage(url: track.artworkUrl.itunesArtworkURL(size: 300)) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                DSColor.surface
-            }
-            .aspectRatio(1, contentMode: .fill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            // 선택은 테두리가 아니라 아트워크를 브랜드로 덮어 알린다. 3열 그리드에선
-            // 얇은 테두리가 잘 안 보이고, 덮으면 고른 것/안 고른 것이 멀리서도 갈린다.
-            .overlay {
-                if number != nil {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(DSColor.brand.opacity(0.55))
-                }
-            }
-            .overlay(alignment: .topTrailing) { badge(number) }
-            .animation(.easeOut(duration: 0.12), value: number)
-
-            Text(track.trackName)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(DSColor.textPrimary)
-                .lineLimit(1)
-            Text(track.artistName)
-                .font(.system(size: 10.5))
-                .foregroundStyle(DSColor.textTertiary)
-                .lineLimit(1)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture { toggle(track) }
-        .accessibilityLabel(Text(verbatim: "\(track.trackName), \(track.artistName)"))
-        .accessibilityAddTraits(number != nil ? .isSelected : [])
-    }
-
-    /// 미선택 셀에도 빈 원을 띄운다 — 여기가 고를 수 있는 자리라는 걸 먼저 알려야 한다.
-    @ViewBuilder
-    private func badge(_ number: Int?) -> some View {
-        Group {
-            if let number {
-                Text(verbatim: "\(number)")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 22, height: 22)
-                    .background(DSColor.brand, in: Circle())
-                    .transition(.scale)
-            } else {
-                Circle()
-                    .stroke(.white.opacity(0.7), lineWidth: 2)
-                    .frame(width: 22, height: 22)
-            }
-        }
-        .padding(8)
     }
 
     private var bottomBar: some View {
@@ -243,7 +232,7 @@ struct PickComposeView: View {
                     .font(.system(size: 14))
                     .foregroundStyle(selected.isEmpty ? DSColor.textTertiary : DSColor.textPrimary)
                 Spacer(minLength: 0)
-                Button("Next") { errorMessage = nil; showTitleStep = true }
+                Button("Next") { goToTitleStep() }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(selected.isEmpty ? DSColor.textTertiary : .white)
                     .padding(.horizontal, 20)
@@ -325,8 +314,8 @@ struct PickComposeView: View {
             .padding(.bottom, 10)
     }
 
-    /// 재생 순서를 번호로 확인하는 자리. 그리드에선 번호 배지가 아트워크에 얹혀 있어
-    /// 순서를 한눈에 훑기 어렵다.
+    /// 재생 순서를 번호로 확인하는 자리. 고르는 목록에선 번호 배지가 행 오른쪽 끝에 있어
+    /// 순서를 위에서 아래로 훑기 어렵다.
     private var trackList: some View {
         VStack(spacing: 10) {
             ForEach(Array(selected.enumerated()), id: \.element.trackId) { index, track in
@@ -421,14 +410,40 @@ struct PickComposeView: View {
 
     // MARK: - Actions
 
+    /// 프리뷰는 한 번에 한 곡. 같은 곡을 다시 누르면 일시정지라 이벤트는 **새 곡이 시작될 때만** 찍는다 —
+    /// 재생/정지를 반복해도 수치가 부풀지 않아야 "재생이 회상을 돕나"를 판정할 수 있다.
+    private func play(_ track: PickTrack) {
+        guard let url = URL(string: track.previewUrl) else { return }
+        if audio.activeTrackId != track.trackId {
+            PostHogSDK.shared.capture("pick_track_previewed",
+                                      properties: ["from": activeQuery.isEmpty ? "crate" : "search"])
+        }
+        audio.togglePreview(trackId: track.trackId, url: url)
+    }
+
     private func toggle(_ track: PickTrack) {
         if let index = selected.firstIndex(of: track) {
             selected.remove(at: index)   // 뒤 번호는 자동으로 당겨진다(재정렬 기능 없음).
         } else if selected.count < maxTracks {
             selected.append(track)
+            // 작성화면 안이 통째로 무계측이라 85% 이탈이 곡 선택인지 제목 단계인지 못 갈랐다.
+            // 이 이벤트가 "한 곡이라도 골랐다"의 하한선이다.
+            PostHogSDK.shared.capture("pick_track_selected", properties: [
+                "from": activeQuery.isEmpty ? "crate" : "search",
+                "selected_count": selected.count,
+            ])
         } else {
             errorMessage = String(localized: "Up to \(maxTracks) tracks.")
         }
+    }
+
+    /// 제목 단계로 넘어간 지점. `pick_track_selected`와 `pick_created` 사이의 마지막 관문이라
+    /// 여기까지 온 사람이 몇인지가 이탈 구간을 가른다.
+    private func goToTitleStep() {
+        errorMessage = nil
+        audio.stop()        // 다음 화면에서 소리만 남으면 어디서 나는지 알 수 없다.
+        PostHogSDK.shared.capture("pick_title_step", properties: ["track_count": selected.count])
+        showTitleStep = true
     }
 
     private func loadCrate(more: Bool = false) async {
@@ -443,7 +458,7 @@ struct PickComposeView: View {
             return
         }
         guard !crateLoaded else { return }
-        // 미리보기 닉네임은 크레이트와 같이 받아온다 — 나란히 쏴서 대기가 겹치게.
+        // 미리보기 닉네임은 하입 목록과 같이 받아온다 — 나란히 쏴서 대기가 겹치게.
         async let profile = try? session.api.send(.myProfile, as: API.UserProfile.self)
         let res = try? await session.api.send(.myHypes(), as: API.HypeListResponse.self)
         myNickname = await profile?.nickname ?? ""
@@ -460,7 +475,7 @@ struct PickComposeView: View {
         Task {
             let res = try? await session.api.send(.search(query: query), as: API.FeedResponse.self)
             // 그 사이 다른 검색어가 확정됐으면 이건 지난 결과다 — 늦게 도착한 쪽이 새 결과를
-            // 덮어쓰면 검색창과 그리드가 어긋난다. 다음 페이지 쪽과 같은 판정.
+            // 덮어쓰면 검색창과 목록이 어긋난다. 다음 페이지 쪽과 같은 판정.
             guard query == activeQuery else { return }
             results = res?.items.map(PickTrack.init) ?? []
             searchCursor = res?.hasMore == true ? res?.nextCursor : nil
@@ -468,7 +483,7 @@ struct PickComposeView: View {
         }
     }
 
-    /// 그리드가 크레이트/검색 두 소스를 갈아끼우므로 다음 페이지 요청도 같이 갈린다.
+    /// 목록이 하입/검색 두 소스를 갈아끼우므로 다음 페이지 요청도 같이 갈린다.
     private func loadMore() async {
         if activeQuery.isEmpty {
             await loadCrate(more: true)
@@ -497,7 +512,7 @@ struct PickComposeView: View {
         isPosting = true
         errorMessage = nil
         let title = PickTitle.normalized(titleText)
-        // 크레이트에 없는 곡 = 검색으로 찾아 넣은 곡. 이 값이 0에 수렴하면 통합 그리드의
+        // 하입 목록에 없는 곡 = 검색으로 찾아 넣은 곡. 이 값이 0에 수렴하면 통합 목록의
         // 검색 소스는 죽은 코드고, 높으면 검색 품질이 시급해진다.
         let crateIds = Set(crate.map(\.trackId))
         let fromSearch = selected.filter { !crateIds.contains($0.trackId) }.count
@@ -513,38 +528,21 @@ struct PickComposeView: View {
                 dismiss()
             } catch APIError.server(_, let message, _) {
                 errorMessage = message   // 금칙어 필터 등 서버 판정을 그대로 보여준다.
+                // 마지막 단계까지 와서 못 낸 사람은 이탈로만 보이고 이유가 안 남는다.
+                capturePostFailure("server")
             } catch {
                 errorMessage = String(localized: "Couldn't post. Try again.")
+                capturePostFailure("network")
             }
             isPosting = false
         }
     }
-}
 
-/// 크레이트(하입)와 검색 결과가 같은 그리드에 섞이므로 두 wire 타입을 하나로 접는다.
-struct PickTrack: Identifiable, Equatable {
-    let trackId: Int
-    let trackName: String
-    let artistName: String
-    let artworkUrl: String
-
-    var id: Int { trackId }
-
-    init(_ item: API.HypeItem) {
-        self.init(trackId: item.trackId, trackName: item.trackName,
-                  artistName: item.artistName, artworkUrl: item.artworkUrl)
-    }
-
-    init(_ item: API.FeedItem) {
-        self.init(trackId: item.trackId, trackName: item.trackName,
-                  artistName: item.artistName, artworkUrl: item.artworkUrl)
-    }
-
-    init(trackId: Int, trackName: String, artistName: String, artworkUrl: String) {
-        self.trackId = trackId
-        self.trackName = trackName
-        self.artistName = artistName
-        self.artworkUrl = artworkUrl
+    private func capturePostFailure(_ reason: String) {
+        PostHogSDK.shared.capture("pick_submit_failed", properties: [
+            "reason": reason,
+            "track_count": selected.count,
+        ])
     }
 }
 

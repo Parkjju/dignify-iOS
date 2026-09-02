@@ -305,9 +305,9 @@ struct DiggingProfileView: View {
         .background(lens.bg, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
-    // MARK: - Crate (하입 브라우징 — 마이페이지에서 이관)
+    // MARK: - Hypes (하입 브라우징 — 마이페이지에서 이관)
 
-    /// 내 크레이트 = 하입한 트랙. 최근 N일 미리보기 + See all 전체 화면.
+    /// 하입한 트랙. 최근 N일 미리보기 + See all 전체 화면.
     /// 실 데이터/재생/제거/동기화는 HypeCollection이 담당(마이페이지와 공유).
     @ViewBuilder
     private var crateSection: some View {
@@ -316,7 +316,7 @@ struct DiggingProfileView: View {
             // 각 섹션이 자기 위의 구분선을 갖는다(`MyPicksSection`도 같은 규칙).
             Divider().padding(.horizontal, 20)
             HStack {
-                Text("Your crate")
+                Text("Your hypes")
                     .font(DSTypography.title2)
                     .foregroundStyle(DSColor.textPrimary)
                 Spacer()

@@ -59,19 +59,10 @@ nonisolated enum API {
         let genreExhausted: Bool?
     }
 
-    /// 온보딩 2지선다 후보. 라운드마다 축(보컬/에너지/질감) 하나의 양극단에서 한 곡씩 온다.
+    /// 온보딩에서 직접 고를 인기곡 풀. 수동 큐레이션이라 정적이고 페이지네이션이 없다.
     /// 곡 정보는 피드와 같은 모양이라 `FeedItem`을 그대로 쓴다 — 서버도 같은 매퍼를 재사용한다.
-    struct OnboardingCandidates: Decodable {
-        struct Round: Decodable {
-            /// 어느 축의 양극단인지. 라운드 문구를 고르는 데 쓰고 이벤트에도 싣는다.
-            let axis: String
-            /// 두 곡 중 축의 HIGH 극단인 쪽. `items` 순서는 셔플이라 위치로는 알 수 없다.
-            /// **고른 뒤에만 쓴다** — 고르기 전에 알려주면 소리가 아니라 라벨을 고르게 된다.
-            /// 서버가 아직 안 내려줄 수 있어 optional이다(그 경우 극단 표시 없이 그대로 돈다).
-            let highTrackId: Int?
-            let items: [FeedItem]
-        }
-        let rounds: [Round]
+    struct SeedPoolResponse: Decodable {
+        let items: [FeedItem]
     }
 
     // MARK: Tracks
@@ -177,6 +168,10 @@ nonisolated enum API {
         /// 낙관적 업데이트로 화면에서 바로 고친다.
         var reactions: [String: Int]
         var myReaction: String?
+        /// 픽 상세를 연 횟수(= 재생 진입). 서버가 `GET /picks/{id}`에서 올린다.
+        /// 카드는 **적은 값을 숨긴다** — `PickCard.playCountFloor` 참고.
+        /// optional인 이유는 `isOfficial`과 같다: 서버가 안 내려주던 시절 응답도 디코드돼야 한다.
+        var playCount: Int? = nil
 
         var id: Int { pickId }
     }

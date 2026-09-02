@@ -23,14 +23,14 @@ enum PickPreview {
                  trackCount: 7, distinctArtistCount: 5,
                  firstArtistName: "Margaret Cho", firstTrackName: "Yer Dihh",
                  thumbnails: Array(artwork.prefix(3)),
-                 reactions: ["🔥": 12], myReaction: "🔥"),
+                 reactions: ["🔥": 12], myReaction: "🔥", playCount: 137),
         // 제목 없음 + 아티스트 여러 명 폴백 + 반응 0 (카운트 숨김 확인)
         API.Pick(pickId: 2, title: nil, nickname: "digger_kim", isMine: false,
                  createdAt: .now.addingTimeInterval(-3600 * 26),
                  trackCount: 4, distinctArtistCount: 4,
                  firstArtistName: "The Fixx", firstTrackName: "Stand or Fall",
                  thumbnails: Array(artwork.dropFirst(1).prefix(3)),
-                 reactions: [:], myReaction: nil),
+                 reactions: [:], myReaction: nil, playCount: 4),   // 임계값 미만 — 안 그려져야 한다
         // 제목 없음 + 아티스트 1명·N곡 폴백 + 3곡(오프셋 스택, +N 없음)
         API.Pick(pickId: 3, title: nil, nickname: "nightowl", isMine: false,
                  createdAt: .now.addingTimeInterval(-60 * 40),
@@ -60,7 +60,7 @@ enum PickPreview {
                  trackCount: 5, distinctArtistCount: 5,
                  firstArtistName: "The Fixx", firstTrackName: "Stand or Fall",
                  thumbnails: Array(artwork.prefix(3)),
-                 reactions: ["🔥": 24], myReaction: nil),
+                 reactions: ["🔥": 24], myReaction: nil, playCount: 5),   // 임계값 딱 — 그려져야 한다
     ]
 
     /// 한계값만 모은 세트. 닉네임은 서버 정규식 상한(`^[a-zA-Z0-9_가-힣]{1,20}$`)인 20자,
@@ -93,14 +93,22 @@ enum PickPreview {
                  reactions: ["🔥": 1], myReaction: nil),
     ]
 
-    /// 만들기 화면 그리드용(크레이트 목업).
+    /// 만들기 화면 목록용(하입 목록 목업). **날짜가 흩어져 있어야** 날짜 섹션이 프리뷰에서 보인다.
+    /// previewUrl은 실제 카탈로그 주소가 아니라 재생 표시만 확인하는 용도다.
     static let tracks: [PickTrack] = [
-        PickTrack(trackId: 30435, trackName: "Yer Dihh (feat. Jane Wiedlin)", artistName: "Margaret Cho", artworkUrl: artwork[0]),
-        PickTrack(trackId: 71256, trackName: "Stand or Fall (Rerecorded)", artistName: "The Fixx", artworkUrl: artwork[1]),
-        PickTrack(trackId: 47106, trackName: "Without You", artistName: "Evan Johnson", artworkUrl: artwork[2]),
-        PickTrack(trackId: 16973, trackName: "In Times of Reflection", artistName: "Joey DeFrancesco", artworkUrl: artwork[3]),
-        PickTrack(trackId: 16094, trackName: "Limehouse Blues", artistName: "Teddy Wilson", artworkUrl: artwork[4]),
-        PickTrack(trackId: 66948, trackName: "Savage (feat. C. King)", artistName: "Privaledge", artworkUrl: artwork[5]),
+        track(30435, "Yer Dihh (feat. Jane Wiedlin)", "Margaret Cho", 0, daysAgo: 0),
+        track(71256, "Stand or Fall (Rerecorded)", "The Fixx", 1, daysAgo: 0),
+        track(47106, "Without You", "Evan Johnson", 2, daysAgo: 1),
+        track(16973, "In Times of Reflection", "Joey DeFrancesco", 3, daysAgo: 1),
+        track(16094, "Limehouse Blues", "Teddy Wilson", 4, daysAgo: 4),
+        track(66948, "Savage (feat. C. King)", "Privaledge", 5, daysAgo: 11),
     ]
+
+    private static func track(_ id: Int, _ name: String, _ artist: String,
+                              _ art: Int, daysAgo: Int) -> PickTrack {
+        PickTrack(trackId: id, trackName: name, artistName: artist, artworkUrl: artwork[art],
+                  previewUrl: "https://example.com/\(id).m4a",
+                  hypedAt: Calendar.current.date(byAdding: .day, value: -daysAgo, to: .now)!)
+    }
 }
 #endif

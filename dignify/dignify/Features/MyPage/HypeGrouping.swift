@@ -9,6 +9,21 @@ enum HypeGrouping {
         var title: String { id.formatted(date: .long, time: .omitted) }
     }
 
+    /// 등장 순서를 유지해 날짜별로 묶는다. 하입 wire 타입이 아닌 목록(픽 만들기의 `PickTrack`)도
+    /// 같은 규칙으로 묶으려고 알맹이만 뺐다 — 날짜 구분이 두 화면에서 갈리면 안 된다.
+    static func byDay<T>(_ items: [T],
+                         date: (T) -> Date,
+                         calendar: Calendar = .current) -> [(day: Date, items: [T])] {
+        var order: [Date] = []
+        var buckets: [Date: [T]] = [:]
+        for item in items {
+            let day = calendar.startOfDay(for: date(item))
+            if buckets[day] == nil { order.append(day) }
+            buckets[day, default: []].append(item)
+        }
+        return order.map { (day: $0, items: buckets[$0] ?? []) }
+    }
+
     /// 백엔드가 최신순으로 주므로 등장 순서를 유지해 날짜별로 묶는다.
     /// - maxGroups: 최근 N일 그룹만(미리보기). nil이면 전체.
     /// - perDayLimit: 날짜당 앞 N개만. nil이면 전체.
@@ -16,17 +31,9 @@ enum HypeGrouping {
                           maxGroups: Int? = nil,
                           perDayLimit: Int? = nil,
                           calendar: Calendar = .current) -> [DayGroup] {
-        var order: [Date] = []
-        var buckets: [Date: [API.HypeItem]] = [:]
-        for item in items {
-            let day = calendar.startOfDay(for: item.hypedAt)
-            if buckets[day] == nil { order.append(day) }
-            buckets[day, default: []].append(item)
-        }
-        let all = order.map { day -> DayGroup in
-            var tracks = buckets[day] ?? []
-            if let perDayLimit { tracks = Array(tracks.prefix(perDayLimit)) }
-            return DayGroup(id: day, tracks: tracks)
+        let all = byDay(items, date: { $0.hypedAt }, calendar: calendar).map { group in
+            DayGroup(id: group.day,
+                     tracks: perDayLimit.map { Array(group.items.prefix($0)) } ?? group.items)
         }
         if let maxGroups { return Array(all.prefix(maxGroups)) }
         return all

@@ -19,18 +19,31 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         completionHandler([.banner, .sound, .list])
     }
 
-    /// 푸시를 탭했을 때. 큐레이션 푸시면 피드 탭으로 보내고 세트를 다시 앞세우게 한다 —
-    /// 곡을 보여주겠다고 알림을 띄워놓고 일반 피드 첫 화면을 열면 그 곡을 못 찾는다.
+    /// 푸시를 탭했을 때 종류별로 갈라 보낸다. 알림이 약속한 것을 못 보여주면 알림을 띄운 뜻이 없다 —
+    /// 곡을 보여주겠다고 해놓고 일반 피드 첫 화면을 열거나, 반응이 달렸다고 해놓고 남의 픽 목록을 열면
+    /// 유저는 자기가 뭘 눌렀는지 모른 채 앱만 켜게 된다.
+    ///
+    /// `notice`(TYPE 없이 보낸 공지)는 분기가 없는 게 맞다 — 갈 데를 지정하지 않은 알림이다.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         let type = response.notification.request.content.userInfo["type"] as? String ?? "unknown"
         PostHogSDK.shared.capture("push_opened", properties: ["type": type])
-        if type == "curation" {
+        switch type {
+        case "curation":
             Task { @MainActor in
                 AppSession.current?.pendingCurationOpen = true
                 AppSession.current?.selectedTab = .feed
             }
+        case "pick_reaction":
+            // 어느 픽인지가 페이로드에 없어서 **내 픽 목록**까지만 간다. 픽 탭으로 보내면
+            // 내 픽이 목록 어디에 있는지 알 수 없어 반응이 달린 픽을 못 찾는다.
+            Task { @MainActor in
+                AppSession.current?.pendingMyPicksOpen = true
+                AppSession.current?.selectedTab = .myPage
+            }
+        default:
+            break
         }
         completionHandler()
     }

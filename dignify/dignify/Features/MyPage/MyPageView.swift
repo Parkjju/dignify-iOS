@@ -21,6 +21,10 @@ struct MyPageView: View {
     @AppStorage("seenMyPageCoach") private var seenMyPageCoach = false
     /// 프로필을 받아 토글이 실제 값으로 그려진 뒤에 코치마크를 띄우기 위한 표시.
     @State private var profileLoaded = false
+    /// 픽 반응 푸시로 들어왔을 때 디깅 프로필로 밀어 올리는 표시.
+    /// `NavigationLink`만으로는 손가락으로 누르는 길밖에 없다. **탭마다 `NavigationStack`은
+    /// `MainTabView`가 이미 씌우므로 여기서 또 감싸면 안 된다** — 경로를 들지 않고 `isPresented`를 쓰는 이유다.
+    @State private var showDiggingProfile = false
 
     #if DEBUG
     // 업데이트 유저 흐름을 다시 보기 위한 것들. 릴리즈 빌드엔 이 화면에서 아예 빠진다.
@@ -31,6 +35,15 @@ struct MyPageView: View {
     @AppStorage("seenPicksCoach") private var seenPicksCoach = false
     @AppStorage("seenSeedCoach") private var seenSeedCoach = false
     @State private var debugResetDone = false
+    /// 앱 재시작 없이 시드 고르기 화면만 바로 띄운다. nil이면 안 뜬다.
+    @State private var debugSeedPool: DebugSeedPool?
+    @State private var debugSeedLoading = false
+
+    /// `fullScreenCover(item:)`용 래퍼. 빈 풀도 띄울 수 있어야 "서버가 안 줬을 때" 화면을 본다.
+    private struct DebugSeedPool: Identifiable {
+        let id = UUID()
+        let items: [API.FeedItem]
+    }
     #endif
 
     var body: some View {
@@ -48,6 +61,14 @@ struct MyPageView: View {
         }
         .background(DSColor.background)
         .navigationTitle("My Page")
+        .navigationDestination(isPresented: $showDiggingProfile) { DiggingProfileView() }
+        // 픽 반응 푸시로 들어왔으면 내 픽이 있는 화면까지 밀어 올린다. 탭만 바꿔 놓으면
+        // 알림을 누른 사람이 마이페이지 첫 화면에서 자기 픽을 다시 찾아 들어가야 한다.
+        .onChange(of: appSession.pendingMyPicksOpen) { _, pending in
+            guard pending else { return }
+            appSession.pendingMyPicksOpen = false
+            showDiggingProfile = true
+        }
         .task { await loadProfile() }
         // 피드를 바꾸는 설정 둘을 한 번만 짚어 준다. 프로필을 받은 뒤에 띄우는 이유는
         // 그전엔 토글이 기본값(켜짐)으로 그려져 있어서, 실제 값과 다른 화면을 설명하게 되기 때문이다.
@@ -221,6 +242,7 @@ struct MyPageView: View {
 
             #if DEBUG
             groupDivider
+            debugSeedPickerRow
             debugResetRow
             #endif
         }
@@ -229,6 +251,15 @@ struct MyPageView: View {
         .fullScreenCover(isPresented: $showTutorial) {
             TutorialView { showTutorial = false }
         }
+        #if DEBUG
+        // 온보딩 화면은 신규 가입 때 한 번뿐이라 그대로는 다시 볼 수가 없다.
+        // 여기선 실제 서버 풀을 받아 띄우고, 고른 곡은 **진짜로 하입된다**(온보딩과 같은 경로).
+        .fullScreenCover(item: $debugSeedPool) { payload in
+            SeedPoolPickerView(pool: payload.items, isUpdate: true) { _ in
+                debugSeedPool = nil
+            }
+        }
+        #endif
         // 같은 뷰에 .sheet 두 개(legalDoc)는 충돌 → 별도 노드에 부착.
         .background {
             Color.clear.sheet(isPresented: $showWhatsNew) {
@@ -257,15 +288,33 @@ struct MyPageView: View {
     }
 
     #if DEBUG
+    /// 시드 고르기 화면을 앱 재시작 없이 연다. `debugResetRow`는 앱을 껐다 켜야 하는데,
+    /// 화면 자체를 손보는 동안엔 그 왕복이 매번 든다.
+    private var debugSeedPickerRow: some View {
+        Button {
+            guard !debugSeedLoading else { return }
+            debugSeedLoading = true
+            Task {
+                let items = await SeedPoolPickerView.fetch(appSession)
+                debugSeedLoading = false
+                debugSeedPool = DebugSeedPool(items: items)
+            }
+        } label: {
+            settingsRow(debugSeedLoading ? "시드 풀 받는 중… (DEBUG)"
+                                         : "온보딩 곡 고르기 열기 (DEBUG)")
+        }
+    }
+
     /// **디버그 빌드에만 있다.** 로그인 상태는 그대로 두고 "방금 업데이트한 기존 유저"의
     /// 플래그만 되돌린다. 앱을 지우면 신규 설치가 되어 온보딩을 타므로 그 경로로는
     /// 업데이트 유저 흐름(라운드 → What's New → 코치마크)을 볼 수가 없다.
     ///
     /// `MainTabView`의 판정은 실행 직후 `.task`에서 한 번만 돌기 때문에 **앱을 껐다 켜야** 보인다.
+    /// 화면만 보려면 위의 `debugSeedPickerRow`가 빠르다 — 이건 **순서까지** 확인할 때 쓴다.
     private var debugResetRow: some View {
         Button {
             didJustOnboard = false          // 신규 가입이 아니라 기존 유저로 본다
-            didSoundRounds = false          // 소리 2지선다를 다시 태운다
+            didSoundRounds = false          // 시드 고르기를 다시 태운다
             lastSeenVersion = "1.0.10"      // 지금 버전과 달라야 What's New가 뜬다
             seenFeedCoach = false
             seenMyPageCoach = false
@@ -278,7 +327,7 @@ struct MyPageView: View {
         .alert("초기화했어요", isPresented: $debugResetDone) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text(verbatim: "앱을 완전히 껐다 켜면 라운드 → What's New → 코치마크 순서로 뜹니다.")
+            Text(verbatim: "앱을 완전히 껐다 켜면 곡 고르기 → What's New → 코치마크 순서로 뜹니다.")
         }
     }
     #endif

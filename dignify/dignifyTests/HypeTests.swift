@@ -74,6 +74,40 @@ struct HypeGroupingTests {
                                      cursor: nil, maxGroups: 3, perDayLimit: 5) == true)
         #expect(HypeGrouping.hasMore([], cursor: nil, maxGroups: 3, perDayLimit: 5) == false)
     }
+
+    /// 픽 만들기 목록이 `byDay`를 하입 wire 타입이 아닌 `PickTrack`으로 부른다.
+    /// 검색에서 고른 곡은 `hypedAt`이 없어 하나의 통 안에 몰리는데, 그게 등장 순서를
+    /// 흐트러뜨리면 방금 고른 곡이 목록 중간으로 사라진다.
+    @Test func byDayKeepsOrderForAnyTypeAndBucketsUndatedTogether() {
+        let day = Calendar.current.startOfDay(for: .now).addingTimeInterval(12 * 3600)
+        let tracks = [
+            PickTrack(trackId: 1, trackName: "a", artistName: "x", artworkUrl: "", hypedAt: day),
+            PickTrack(trackId: 2, trackName: "b", artistName: "x", artworkUrl: "", hypedAt: day.addingTimeInterval(-3600)),
+            PickTrack(trackId: 3, trackName: "c", artistName: "x", artworkUrl: "",
+                      hypedAt: day.addingTimeInterval(-24 * 3600)),
+            PickTrack(trackId: 4, trackName: "d", artistName: "x", artworkUrl: ""),   // 검색에서 고른 곡
+        ]
+        let groups = HypeGrouping.byDay(tracks, date: { $0.hypedAt ?? .distantPast })
+        #expect(groups.map(\.items.count) == [2, 1, 1])
+        #expect(groups[0].items.map(\.trackId) == [1, 2])
+        #expect(groups.last?.items.map(\.trackId) == [4])
+    }
+
+    /// 실제로 밟은 버그다: 이미 하입한 곡을 **검색에서** 고르고 하입 목록으로 돌아오면
+    /// 선택 해제가 안 됐다. 같은 곡인데 검색 결과엔 `hypedAt`이 없고 하입 목록엔 있어서
+    /// 값 비교가 어긋났고, 해제 대신 **두 번째로 담겨** 목록에서 빠지지 않았다.
+    @Test func aTrackSelectedFromSearchIsDeselectableFromTheHypeList() {
+        let fromSearch = PickTrack(trackId: 7, trackName: "t", artistName: "a", artworkUrl: "")
+        let fromCrate = PickTrack(trackId: 7, trackName: "t", artistName: "a", artworkUrl: "",
+                                  previewUrl: "https://example.com/7.m4a", hypedAt: .now)
+        var selected = [fromSearch]
+
+        // 목록 셀이 번호 배지를 그리는 판정이 이것이다 — nil이면 미선택으로 보인다.
+        #expect(selected.firstIndex(of: fromCrate) == 0)
+
+        selected.removeAll { $0 == fromCrate }
+        #expect(selected.isEmpty)
+    }
 }
 
 /// 유형 판정은 임계값 상수 몇 개로 갈린다. 숫자를 만지면 여기가 먼저 깨져야 한다.

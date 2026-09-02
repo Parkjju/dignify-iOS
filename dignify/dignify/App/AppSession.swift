@@ -62,6 +62,11 @@ final class AppSession {
     /// 이미 완주한 세트라도 이때는 다시 앞세운다 — 푸시를 눌렀는데 없으면 안 되므로.
     var pendingCurationOpen = false
 
+    /// 픽 반응 푸시로 진입했음. 마이페이지가 읽고 디깅 프로필(= 내 픽 목록)로 밀어 올린다.
+    /// **여기까지가 지금 페이로드로 갈 수 있는 최선이다** — 어느 픽인지가 안 실려 온다.
+    /// 서버가 `pickId`를 실으면 그 픽 상세로 바로 보낼 수 있다(`TODO.md` P6).
+    var pendingMyPicksOpen = false
+
     let api: APIClient
 
     // ponytail: 상수 하나에 #if DEBUG 분기. 환경이 셋 이상 되면 그때 config로.

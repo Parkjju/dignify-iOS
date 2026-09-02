@@ -995,6 +995,8 @@ struct PickCard: View {
             .foregroundStyle(.white.opacity(0.45))
             .padding(.leading, 4)
 
+            playCountLabel
+
             Spacer(minLength: 0)
 
             // 9:16 이미지 카드로 내보낸다. 텍스트만 보내면 받는 쪽엔 곡이 하나도 안 보이고,
@@ -1016,6 +1018,24 @@ struct PickCard: View {
             .disabled(isPreparingShare)
             .coachAnchor(coachAnchors ? .share : nil)
             .accessibilityLabel("Share")
+        }
+    }
+
+    /// 이 아래면 아예 안 그린다. **"3번 재생됨"은 0보다 나쁜 신호다** — 창작자에게
+    /// 도달을 보여주려고 넣은 자리가 안 읽혔다는 통보가 된다.
+    private static let playCountFloor = 5
+
+    /// 곡 수와 같은 규칙: 표시 전용이라 알약을 안 씌운다(배경 있는 것만 버튼).
+    @ViewBuilder
+    private var playCountLabel: some View {
+        if let plays = pick.playCount, plays >= Self.playCountFloor {
+            HStack(spacing: 5) {
+                Image(systemName: "play.fill").font(.system(size: 11, weight: .semibold))
+                Text("\(plays) plays")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(.white.opacity(0.45))
+            .padding(.leading, 10)
         }
     }
 

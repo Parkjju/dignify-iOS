@@ -143,8 +143,9 @@ nonisolated extension Endpoint {
 
     /// 소리 2지선다 후보. 라운드 수·곡 선정은 전부 서버가 정한다 — 곡 id를 앱에 박으면
     /// 그 곡이 비활성화되는 순간 온보딩이 통째로 깨진다.
-    static var onboardingCandidates: Endpoint {
-        Endpoint(method: .get, path: "/onboarding/candidates")
+    /// 온보딩에서 직접 고를 인기곡 풀. 정적이라 페이지네이션이 없다 — 한 응답에 다 온다.
+    static var onboardingSeedPool: Endpoint {
+        Endpoint(method: .get, path: "/onboarding/seed-pool")
     }
 
     // MARK: Users
