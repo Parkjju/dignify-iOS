@@ -10,6 +10,12 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.2.0", notes: [
+            "Tracks keep playing when you leave the app or turn the screen off.",
+            "Skip tracks from the lock screen, your earbuds, or your car.",
+            "With the screen off, each track rolls into the next one on its own.",
+            "Hype a track right from the lock screen.",
+        ]),
         Release(version: "1.1.1", notes: [
             "New here? Play a few tracks and pick the ones you like — your feed starts there.",
             "Making a pick: your hypes are now sorted by day, and you can play them while you choose.",
