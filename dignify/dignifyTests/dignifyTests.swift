@@ -194,4 +194,56 @@ struct dignifyTests {
         #expect(FeedView.upcoming(after: [], from: [feed(5), feed(6)]).map(\.trackId) == [5, 6])
     }
 
+    /// 백그라운드 재생분이 섞인 체류는 발사 시점이 포그라운드여도 그렇게 표시돼야 한다.
+    /// 발사 시점만 보면 "주머니에서 10분 듣고 복귀해 스와이프"가 포그라운드 체류로 기록되고,
+    /// 중앙값 2.0초짜리 분포에 600초 표본이 섞인다.
+    @MainActor
+    @Test func backgroundDwellStaysMarkedUntilFlush() {
+        func feed(_ id: Int) -> Feed {
+            Feed(trackId: id, trackName: "t\(id)", artistName: "a", artworkUrl: "",
+                 previewUrl: "https://example.com/\(id).m4a", trackViewUrl: "", isHyped: false,
+                 genreName: nil, genreNameEn: nil)
+        }
+        let audio = FeedAudioController()
+        var marks: [Bool] = []
+        audio.onDwell = { _, _ in marks.append(audio.dwellHadBackground) }
+
+        audio.updateWindow(feeds: [feed(1), feed(2)], current: 0)
+        audio.enterBackground()      // 주머니에서 계속 재생
+        audio.advanceDwell(to: 30)
+        audio.enterForeground()      // 복귀해서 스와이프 — 발사는 포그라운드에서 일어난다
+        audio.flushDwell()
+        #expect(marks == [true])
+
+        // flush가 표시를 내려서 다음 트랙 체류는 깨끗하다.
+        audio.advanceDwell(to: 4)
+        audio.flushDwell()
+        #expect(marks == [true, false])
+    }
+
+    /// 화면에서는 루프(스와이프가 있다), 백그라운드에서는 다음 곡(스와이프가 없다).
+    @MainActor
+    @Test func trackEndAdvancesOnlyInBackground() {
+        func feed(_ id: Int) -> Feed {
+            Feed(trackId: id, trackName: "t\(id)", artistName: "a", artworkUrl: "",
+                 previewUrl: "https://example.com/\(id).m4a", trackViewUrl: "", isHyped: false,
+                 genreName: nil, genreNameEn: nil)
+        }
+        let audio = FeedAudioController()
+        var seeks: [Int] = []
+        audio.onRemoteSeek = { seeks.append($0) }
+        audio.updateWindow(feeds: [feed(1), feed(2)], current: 0)
+
+        #expect(audio.handleTrackEnd(id: 1) == false)
+        #expect(seeks.isEmpty)
+
+        audio.enterBackground()
+        #expect(audio.handleTrackEnd(id: 1) == true)
+        #expect(seeks == [1])
+
+        // 현재 트랙이 아닌 플레이어가 끝나면 무시한다.
+        #expect(audio.handleTrackEnd(id: 2) == false)
+        #expect(seeks == [1])
+    }
+
 }

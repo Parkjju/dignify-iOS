@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		C9A39011300AAC03006EF1BB /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = C9A39010300AAC03006EF1BB /* PostHog */; };
+		C9FF11F130495E6200127F32 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9FF11F030495E6200127F32 /* WidgetKit.framework */; };
+		C9FF11F330495E6200127F32 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9FF11F230495E6200127F32 /* SwiftUI.framework */; };
+		C9FF120230495E6300127F32 /* dignifyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C9FF11EE30495E6200127F32 /* dignifyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,13 +28,47 @@
 			remoteGlobalIDString = C9FA32C12FB64A2D00D7808B;
 			remoteInfo = dignify;
 		};
+		C9FF120030495E6300127F32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9FA32BA2FB64A2D00D7808B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9FF11ED30495E6200127F32;
+			remoteInfo = dignifyWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C9FF120330495E6300127F32 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C9FF120230495E6300127F32 /* dignifyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C9FA32C22FB64A2D00D7808B /* dignify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = dignify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FA32CF2FB64A2E00D7808B /* dignifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dignifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FA32D92FB64A2E00D7808B /* dignifyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dignifyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9FF11EE30495E6200127F32 /* dignifyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = dignifyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9FF11F030495E6200127F32 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		C9FF11F230495E6200127F32 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C9FF120630495E6300127F32 /* Exceptions for "dignifyWidget" folder in "dignifyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C9FF11ED30495E6200127F32 /* dignifyWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C9FA32C42FB64A2D00D7808B /* dignify */ = {
@@ -47,6 +84,19 @@
 		C9FA32DC2FB64A2E00D7808B /* dignifyUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = dignifyUITests;
+			sourceTree = "<group>";
+		};
+		C9FF120030495E6200127F32 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C9FF11F430495E6200127F32 /* dignifyWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C9FF120630495E6300127F32 /* Exceptions for "dignifyWidget" folder in "dignifyWidgetExtension" target */,
+			);
+			path = dignifyWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -74,6 +124,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9FF11EB30495E6200127F32 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9FF11F330495E6200127F32 /* SwiftUI.framework in Frameworks */,
+				C9FF11F130495E6200127F32 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -83,6 +142,9 @@
 				C9FA32C42FB64A2D00D7808B /* dignify */,
 				C9FA32D22FB64A2E00D7808B /* dignifyTests */,
 				C9FA32DC2FB64A2E00D7808B /* dignifyUITests */,
+				C9FF11F430495E6200127F32 /* dignifyWidget */,
+				C9FF120030495E6200127F32 /* Shared */,
+				C9FF11EF30495E6200127F32 /* Frameworks */,
 				C9FA32C32FB64A2D00D7808B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -93,8 +155,18 @@
 				C9FA32C22FB64A2D00D7808B /* dignify.app */,
 				C9FA32CF2FB64A2E00D7808B /* dignifyTests.xctest */,
 				C9FA32D92FB64A2E00D7808B /* dignifyUITests.xctest */,
+				C9FF11EE30495E6200127F32 /* dignifyWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C9FF11EF30495E6200127F32 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C9FF11F030495E6200127F32 /* WidgetKit.framework */,
+				C9FF11F230495E6200127F32 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -107,13 +179,16 @@
 				C9FA32BE2FB64A2D00D7808B /* Sources */,
 				C9FA32BF2FB64A2D00D7808B /* Frameworks */,
 				C9FA32C02FB64A2D00D7808B /* Resources */,
+				C9FF120330495E6300127F32 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C9FF120130495E6300127F32 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C9FA32C42FB64A2D00D7808B /* dignify */,
+				C9FF120030495E6200127F32 /* Shared */,
 			);
 			name = dignify;
 			packageProductDependencies = (
@@ -169,6 +244,29 @@
 			productReference = C9FA32D92FB64A2E00D7808B /* dignifyUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		C9FF11ED30495E6200127F32 /* dignifyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9FF120730495E6300127F32 /* Build configuration list for PBXNativeTarget "dignifyWidgetExtension" */;
+			buildPhases = (
+				C9FF11EA30495E6200127F32 /* Sources */,
+				C9FF11EB30495E6200127F32 /* Frameworks */,
+				C9FF11EC30495E6200127F32 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C9FF11F430495E6200127F32 /* dignifyWidget */,
+				C9FF120030495E6200127F32 /* Shared */,
+			);
+			name = dignifyWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = dignifyWidgetExtension;
+			productReference = C9FF11EE30495E6200127F32 /* dignifyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -176,7 +274,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2650;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					C9FA32C12FB64A2D00D7808B = {
@@ -189,6 +287,9 @@
 					C9FA32D82FB64A2E00D7808B = {
 						CreatedOnToolsVersion = 26.5;
 						TestTargetID = C9FA32C12FB64A2D00D7808B;
+					};
+					C9FF11ED30495E6200127F32 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -213,6 +314,7 @@
 				C9FA32C12FB64A2D00D7808B /* dignify */,
 				C9FA32CE2FB64A2E00D7808B /* dignifyTests */,
 				C9FA32D82FB64A2E00D7808B /* dignifyUITests */,
+				C9FF11ED30495E6200127F32 /* dignifyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -233,6 +335,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C9FA32D72FB64A2E00D7808B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9FF11EC30495E6200127F32 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -263,6 +372,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9FF11EA30495E6200127F32 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -275,6 +391,11 @@
 			isa = PBXTargetDependency;
 			target = C9FA32C12FB64A2D00D7808B /* dignify */;
 			targetProxy = C9FA32DA2FB64A2E00D7808B /* PBXContainerItemProxy */;
+		};
+		C9FF120130495E6300127F32 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9FF11ED30495E6200127F32 /* dignifyWidgetExtension */;
+			targetProxy = C9FF120030495E6300127F32 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -562,6 +683,68 @@
 			};
 			name = Release;
 		};
+		C9FF120430495E6300127F32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 5JQS3FU5R6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = dignifyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = dignifyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = parkjju.dignify.dignifyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C9FF120530495E6300127F32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 5JQS3FU5R6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = dignifyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = dignifyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = parkjju.dignify.dignifyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -597,6 +780,15 @@
 			buildConfigurations = (
 				C9FA32EA2FB64A2E00D7808B /* Debug */,
 				C9FA32EB2FB64A2E00D7808B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9FF120730495E6300127F32 /* Build configuration list for PBXNativeTarget "dignifyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9FF120430495E6300127F32 /* Debug */,
+				C9FF120530495E6300127F32 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

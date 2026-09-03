@@ -15,7 +15,6 @@ struct FeedView: View {
     var mode: FeedMode = .normal
 
     @Environment(AppSession.self) private var session
-    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestReview) private var requestReview
     /// 리뷰 요청은 설치당 한 번뿐. 앱을 지웠다 깔면 초기화된다(유일한 재노출 경로).
@@ -468,6 +467,13 @@ struct FeedView: View {
             audio.onPlaybackStart = { trackId, latency in
                 logPlaybackStart(trackId: trackId, latency: latency)
             }
+            audio.onRemoteSeek = { index in remoteSeek(to: index) }
+            // Live Activity 하입 버튼 → 화면 탭과 완전히 같은 경로.
+            // 낙관적 갱신·롤백·계측·시드 재구성이 갈라지면 안 된다.
+            HypeIntentBridge.toggleHype = { trackId in
+                guard let feed = feedList.first(where: { $0.trackId == trackId }) else { return }
+                setHype(trackId: trackId, to: !feed.isHyped)
+            }
             if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
                 logTrackViewed()   // 첫 트랙(index 0)은 onChange가 안 터지므로 여기서.
@@ -489,9 +495,8 @@ struct FeedView: View {
             prefetchArtwork(from: currentIndex)
             logTrackViewed()
         }
-        .onChange(of: scenePhase) { _, phase in
-            phase == .active ? audio.resumeCurrent() : audio.pauseCurrent()
-        }
+        // 백그라운드 일시정지는 없앴다 — 피드 디깅은 앱을 벗어나도 이어진다.
+        // 미리듣기 정지와 체류 시간 표시는 컨트롤러가 didEnterBackground에서 직접 한다.
         // 다른 화면(마이페이지)에서 하입이 바뀌면 살아있는 피드 카드에도 반영.
         .onChange(of: session.hypeState) { _, state in
             for i in feedList.indices {
@@ -958,6 +963,7 @@ struct FeedView: View {
             "track_id": feed.trackId, "artist": feed.artistName,
             "genre": feed.genreNameEn ?? feed.genreName ?? "",
             "source": source(for: feed.trackId),
+            "background": audio.isBackground,
         ])
         session.sessionTrackViews += 1
         maybeAskReview()
@@ -1017,6 +1023,9 @@ struct FeedView: View {
         PostHogSDK.shared.capture("track_dwell", properties: [
             "track_id": trackId, "seconds": (seconds * 10).rounded() / 10,
             "source": source(for: trackId),
+            // 발사 시점이 아니라 체류 구간 전체를 본다 — 백그라운드에서 10분 듣고 복귀해
+            // 스와이프하면 발사는 포그라운드에서 일어나기 때문이다.
+            "background": audio.dwellHadBackground,
         ])
     }
 
@@ -1040,6 +1049,9 @@ struct FeedView: View {
             "track_id": trackId,
             "latency_ms": Int((latency * 1000).rounded()),
             "source": source(for: trackId),
+            // 백그라운드엔 볼 화면이 없다. "무음 구간에 유저가 넘긴다"를 재는 지표라
+            // 판독에서 걸러내야 한다.
+            "background": audio.isBackground,
         ])
     }
 
@@ -1057,6 +1069,7 @@ struct FeedView: View {
               feedList[index].isHyped != target else { return }
         feedList[index].isHyped = target
         session.hypeState[trackId] = target       // 다른 화면(마이페이지)에 반영.
+        audio.syncHype(trackId: trackId, isHyped: target)
         if target {
             PostHogSDK.shared.capture("track_hyped",
                                       properties: ["track_id": trackId, "source": source(for: trackId)])
@@ -1070,6 +1083,7 @@ struct FeedView: View {
                 if let i = feedList.firstIndex(where: { $0.trackId == trackId }) {
                     feedList[i].isHyped = !target
                 }
+                audio.syncHype(trackId: trackId, isHyped: !target)
                 return   // 서버가 안 받았으니 시드도 안 바뀐다. 재구성할 이유가 없다.
             }
             session.hypeChangeToken += 1   // 디깅 프로필 통계가 다시 받아간다.
@@ -1158,6 +1172,21 @@ struct FeedView: View {
         }
     }
     
+    /// 잠금화면·이어폰의 다음/이전으로 트랙을 옮긴다. 화면이 없으니 애니메이션도 없다.
+    ///
+    /// **`.onChange(of: currentIndex)`에 기대지 않고 부수효과를 직접 부른다** — 백그라운드에선
+    /// SwiftUI가 body를 다시 평가하지 않아 onChange가 안 터질 수 있다. 포그라운드에서
+    /// onChange가 이어서 돌아도 셋 다 멱등이라(같은 trackId면 `setCurrent`는 no-op,
+    /// 나머지 둘은 자체 dedup) 두 번 불려도 안전하다.
+    private func remoteSeek(to index: Int) {
+        guard feedList.indices.contains(index) else { return }
+        currentIndex = index
+        audio.updateWindow(feeds: feedList, current: index)
+        prefetchArtwork(from: index)
+        logTrackViewed()
+        Task { await loadMoreIfNeeded() }
+    }
+
     private func goingNext(height: CGFloat) {
         if currentIndex == feedList.count - 1 {
             // 픽은 곡 수가 정해져 있다. 마지막 곡에서 더 넘기려는 손짓은 "다 들었다"는 뜻이라
