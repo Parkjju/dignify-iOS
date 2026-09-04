@@ -10,6 +10,9 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.2.1", notes: [
+            "The weekly set label no longer overlaps the feed mode button.",
+        ]),
         Release(version: "1.2.0", notes: [
             "Tracks keep playing when you leave the app or turn the screen off.",
             "Skip tracks from the lock screen, your earbuds, or your car.",

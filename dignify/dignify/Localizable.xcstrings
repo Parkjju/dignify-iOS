@@ -3024,6 +3024,16 @@
         }
       }
     },
+    "The weekly set label no longer overlaps the feed mode button.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 주 특집 표시가 '하입한 곡 따라가는 중' 버튼과 겹치지 않아요."
+          }
+        }
+      }
+    },
     "Then save": {
       "extractionState": "manual",
       "localizations": {
