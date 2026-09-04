@@ -609,6 +609,24 @@ struct FeedView: View {
         }
     }
 
+    /// 성향 칩("Following your hypes" / "Random")이 지금 떠 있는가.
+    /// **`contextBadge`의 세로 위치가 여기 걸려 있다** — 조건을 두 군데 따로 쓰면
+    /// 한쪽만 고쳐졌을 때 두 알약이 같은 줄에 겹친다.
+    private var showsModePill: Bool {
+        mode == .normal && !isSearching && activeQuery.isEmpty
+    }
+
+    /// 성향 칩이 차지하는 세로 폭(12pt 텍스트 + 상하 5pt ≒ 25) + VStack 간격 8.
+    /// 실측해서 맞추는 루프 대신 상수로 둔다 — 폰트가 고정 크기라 Dynamic Type에도 안 변한다.
+    private static let modePillBand: CGFloat = 33
+
+    /// 배지 상단. 기본값 +56은 검색 아이콘 행(top+8부터 40pt) 바로 아래인데,
+    /// 성향 칩이 **정확히 같은 자리**에서 시작하므로 떠 있을 때는 그만큼 더 내린다.
+    /// 픽 모드엔 검색 오버레이 자체가 없어 기본값을 그대로 쓴다.
+    private var badgeTop: CGFloat {
+        safeInsets.top + 56 + (showsModePill ? Self.modePillBand : 0)
+    }
+
     private func badgePill(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.system(size: 13, weight: .semibold))
@@ -617,7 +635,7 @@ struct FeedView: View {
             .padding(.vertical, 7)
             .background(.black.opacity(0.55), in: Capsule())
             .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
-            .padding(.top, safeInsets.top + 56)
+            .padding(.top, badgeTop)
             .allowsHitTesting(false)
             .transition(.opacity)
     }
@@ -674,7 +692,7 @@ struct FeedView: View {
             // 지금 피드가 무엇으로 만들어졌는지를 항상 띄운다. 껐을 때만 띄우면 켜진 상태가
             // 무명(無名)이라, 유저가 이 버튼이 무엇을 바꾸는지 눌러 보기 전엔 알 수 없다.
             // 문구는 설정 이름("켜짐/꺼짐")이 아니라 **지금 보고 있는 것**을 말한다.
-            if !isSearching, activeQuery.isEmpty {
+            if showsModePill {
                 Button { toggleDiggingMode() } label: {
                     HStack(spacing: 4) {
                         Text(session.diggingMode ? "Following your hypes" : "Random")
