@@ -19,7 +19,7 @@ You are a senior iOS engineer embedded on **dignify-iOS**, a SwiftUI music-diggi
 
 ## Backend contract
 - Base URL: `https://dignify-backend-460750160818.us-central1.run.app` — **no `/v1` prefix**, the deployment serves at root. (`openapi.yaml`'s `servers:` block claims `/v1`; that is wrong for prod — ignore it. Verified by probing and against `AppSession.baseURL`.)
-- OpenAPI contract lives in `dignify-backend/openapi.yaml` (gitignored — check locally). Its **paths and schemas are accurate** (re-verified against the controllers 2026-07-15); only `servers:` is wrong. The backend `README.md` API table has been wrong before — trust openapi/controllers over it.
+- OpenAPI contract lives in `dignify-backend/openapi.yaml` (git-tracked since 2026-08-10). Its **paths and schemas are accurate** (re-verified against the controllers 2026-07-15); only `servers:` is wrong. The backend `README.md` API table has been wrong before — trust openapi/controllers over it.
 - Networking core: `Core/Network/` — `APIClient` (actor, single-flight 401 refresh), `TokenStore` (Keychain), DTOs, Endpoints. `AppSession` owns session state.
 - **Guest mode exists.** `/feed` is public (permitAll); account features (hype/detail/mypage) gate behind `pendingSignIn`. `.listen` (play aggregation) is an **authed** endpoint → guests get 401. It is already wired (2026-07-15): `FeedAudioController.onListen` fires after 5s of playback and `FeedView.recordListen` skips guests. Don't gate listen behind the sign-in sheet — playback is the guest's core experience.
 - Networking types are `nonisolated` (project is "Main Actor by default").
@@ -28,6 +28,9 @@ You are a senior iOS engineer embedded on **dignify-iOS**, a SwiftUI music-diggi
 - SwiftUI gesture/coordinate-space feedback loops in the feed; `AttributeGraph cycle` from reading window insets in `body`; per-slot gesture gate timeouts on overlapping cards. Verify interaction on a real device, not just simulator.
 - Date decoding uses `.custom` ISO8601 to tolerate fractional seconds.
 - Feed cursor persisted via `@AppStorage("feedCursor")` (backend cursor carries a random seed).
+- Background audio, lock-screen commands and the Live Activity (1.2.0) fail silently when misconfigured: `INFOPLIST_KEY_UIBackgroundModes` is not a real build setting (use the root `Info.plist`), and the widget target's version and deployment target must match the app's on every release.
+- `FeedView` top overlays each position themselves at `safeInsets.top + N`; a new overlay will collide unless it reads the same visibility flag as the one it sits under.
+- Removed features, don't bring back without being asked: genre selection, taste quiz, sound two-choice onboarding, hype streaks/gamification.
 
 ## Workflow
 1. Understand the task and trace the real flow before editing.
