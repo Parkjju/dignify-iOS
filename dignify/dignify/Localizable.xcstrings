@@ -1193,6 +1193,17 @@
         }
       }
     },
+    "Hype is now Like. Tap the heart or double-tap a track to save it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하입이 좋아요로 바뀌었어요. 하트를 누르거나 곡을 두 번 탭하면 저장돼요."
+          }
+        }
+      }
+    },
     "I listen to Korean tracks a lot": {
       "extractionState": "manual",
       "localizations": {
@@ -1318,6 +1329,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "좋아요 기록"
+          }
+        }
+      }
+    },
+    "Like a track and a big heart pops up on the cover.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요를 누르면 커버 위에 큰 하트가 떠요."
           }
         }
       }
@@ -3016,6 +3038,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "트랙 상세보기"
+          }
+        }
+      }
+    },
+    "Track details moved to the ••• button under the artwork.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "곡 상세는 이제 아트워크 아래 ••• 버튼에서 볼 수 있어요."
           }
         }
       }
