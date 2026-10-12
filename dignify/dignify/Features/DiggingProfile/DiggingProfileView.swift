@@ -159,7 +159,7 @@ struct DiggingProfileView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
-                Text("Dig 10 tracks and hype 3 to reveal it.")
+                Text("Dig 10 tracks and like 3 to reveal it.")
                     .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.75))
             }
@@ -268,9 +268,8 @@ struct DiggingProfileView: View {
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(lens.tint)
         case .keep:
-            Image("HypeIcon")
-                .renderingMode(.template).resizable().scaledToFit()
-                .frame(width: 13, height: 13)
+            Image(systemName: "heart.fill")
+                .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(lens.tint)
         }
     }
@@ -316,7 +315,7 @@ struct DiggingProfileView: View {
             // 각 섹션이 자기 위의 구분선을 갖는다(`MyPicksSection`도 같은 규칙).
             Divider().padding(.horizontal, 20)
             HStack {
-                Text("Your hypes")
+                Text("Your likes")
                     .font(DSTypography.title2)
                     .foregroundStyle(DSColor.textPrimary)
                 Spacer()
@@ -331,7 +330,7 @@ struct DiggingProfileView: View {
             if hypesLoading && hypes.isEmpty {
                 ProgressView().frame(maxWidth: .infinity).padding(.vertical, 24)
             } else if hypes.isEmpty {
-                Text(hypesFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
+                Text(hypesFailed ? String(localized: "Couldn't load") : String(localized: "No liked tracks yet"))
                     .font(DSTypography.body)
                     .foregroundStyle(DSColor.textSecondary)
                     .frame(maxWidth: .infinity)
@@ -357,7 +356,7 @@ struct DiggingProfileView: View {
 
     private var seeAllRow: some View {
         HStack {
-            Text("See all hypes")
+            Text("See all likes")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(DSColor.brand)
             Spacer()

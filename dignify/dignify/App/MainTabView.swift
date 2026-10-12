@@ -2,8 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppSession.self) private var session
-    /// 방금 온보딩을 마친 신규 유저 표시. 튜토리얼은 온보딩 플로우 앞단으로 옮겨갔고,
-    /// 이 플래그는 "신규 가입자에게 What's New를 띄우지 않는다" 판정에만 남아 있다.
+    /// 방금 온보딩을 마친 신규 유저 표시. "신규 가입자에게 What's New를 띄우지 않는다" 판정에만 쓴다.
     /// NewUserOnboardingView가 세팅하고 아래 task가 소비 후 클리어한다.
     @AppStorage("didJustOnboard") private var didJustOnboard = false
     /// 업데이트 감지용. 신규 설치엔 안 띄우고 조용히 현재 버전만 기록.
@@ -57,7 +56,7 @@ struct MainTabView: View {
                     seedPool = nil
                     // 방금 고른 곡이 시드다. 피드는 이미 불러온 뒤라 다시 받지 않으면
                     // 유저는 고르기를 마치고도 예전 순서를 본다.
-                    if picked > 0 { session.feedReloadToken += 1 }
+                    if !picked.isEmpty { session.feedReloadToken += 1 }
                 }
             }
         }
@@ -112,10 +111,10 @@ struct MainTabView: View {
         showWhatsNew = true
     }
 
-    /// 게스트는 계정 기반 탭(마이페이지) 대신 로그인 유도 플레이스홀더를 본다.
+    /// 게스트는 피드만 쓴다. Picks·마이 탭은 로그인 유도 화면으로 막는다(feed_coachmark 1.0).
     @ViewBuilder
     private func content(for tab: AppTab) -> some View {
-        if tab == .myPage, session.authState == .guest {
+        if tab != .feed, session.authState == .guest {
             GuestSignInPromptView()
         } else {
             tab.makeContentView()
@@ -129,7 +128,7 @@ private struct SeedPoolPayload: Identifiable {
     let items: [API.FeedItem]
 }
 
-/// 게스트가 마이페이지 탭을 열었을 때 노출되는 로그인 유도 화면.
+/// 게스트가 Picks·마이 탭을 열었을 때 노출되는 로그인 유도 화면.
 private struct GuestSignInPromptView: View {
     @Environment(AppSession.self) private var session
 
@@ -139,7 +138,7 @@ private struct GuestSignInPromptView: View {
             Text("Build your own taste")
                 .font(DSTypography.title2)
                 .foregroundStyle(DSColor.textPrimary)
-            Text("Sign in to hype tracks, personalize your feed, and build your crate.")
+            Text("Sign in to save the tracks you love and build a feed that fits your taste.")
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -147,7 +146,7 @@ private struct GuestSignInPromptView: View {
             Button {
                 session.pendingSignIn = true
             } label: {
-                Text("Sign in")
+                Text("Find my taste")
                     .font(DSTypography.headline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 52)

@@ -29,7 +29,7 @@ struct OnboardingFlowView: View {
                         .font(.system(size: 32, weight: .bold))
                         .tracking(-0.96)
                         .foregroundStyle(DSColor.brand)
-                    Text("Discover indie music and build your own taste.")
+                    Text("Discover indie music and build your taste.")
                         .font(.system(size: 14))
                         .foregroundStyle(DSColor.textTertiary)
                         .multilineTextAlignment(.center)

@@ -27,9 +27,6 @@ struct SeedPickerView: View {
     @State private var isSaving = false
     @State private var loadFailed = false
     @State private var saveFailed = false
-    /// 이 화면 코치마크를 이미 봤는지. **읽고 나가면 아무것도 안 바뀌는 화면이라**
-    /// 곡 하나를 실제로 골라 저장하는 데까지 데려간다.
-    @AppStorage("seenSeedCoach") private var seenSeedCoach = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -46,7 +43,6 @@ struct SeedPickerView: View {
                 } else {
                     Button("Save") { Task { await save() } }
                         .tint(DSColor.brand)
-                        .coachAnchor(.seedSave)
                         // 바꾼 게 없으면 누를 이유가 없다. 저장을 눌렀는데 아무 일도 안 일어나면
                         // 실패한 것처럼 보인다.
                         .disabled(selected == savedSelection)
@@ -54,11 +50,6 @@ struct SeedPickerView: View {
             }
         }
         .task { await load() }
-        // 고를 곡이 있을 때만. 빈 목록에서 "눌러 보세요"는 가리킬 데가 없다.
-        .coachMarks(SeedCoach.steps, screen: "seed_picker",
-                    isActive: !seenSeedCoach && !isLoading && !items.isEmpty) {
-            seenSeedCoach = true
-        }
     }
 
     private var header: some View {
@@ -66,13 +57,13 @@ struct SeedPickerView: View {
             Text("Pick up to \(Self.limit) tracks. The feed then follows only these.")
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
-            Text("Pick none and the feed follows your \(Self.limit) most recent hypes, same as before.")
+            Text("Pick none and the feed follows your \(Self.limit) most recent likes, same as before.")
                 .font(DSTypography.caption)
                 .foregroundStyle(DSColor.textTertiary)
             // 꺼진 채로 들어올 수 있다. 고른 것이 지금 아무 데도 안 쓰인다는 걸 말해 주지 않으면
             // 저장하고 나서 피드가 그대로인 것을 고장으로 읽는다.
             if !session.diggingMode {
-                Text("Turn on \"Follow my hypes\" for these to take effect.")
+                Text("Turn on \"Follow my likes\" for these to take effect.")
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.brand)
             }
@@ -93,7 +84,7 @@ struct SeedPickerView: View {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if items.isEmpty {
             // 하입이 없으면 고를 것도 없다. 빈 목록에 "고르세요"만 남기지 않는다.
-            Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
+            Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No liked tracks yet"))
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -102,8 +93,7 @@ struct SeedPickerView: View {
                 HypeCollection(items: $items,
                                onReachEnd: { await loadMore() },
                                selection: $selected,
-                               selectionLimit: Self.limit,
-                               coachAnchors: true)
+                               selectionLimit: Self.limit)
                     .padding(.top, 8)
             }
         }

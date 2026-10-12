@@ -32,7 +32,7 @@ enum HypeIntentBridge {
 /// 잠금화면 Live Activity의 하입 버튼.
 /// 낙관적 갱신·롤백·계측·시드 재구성은 전부 앱 쪽 `setHype`이 그대로 처리한다.
 struct ToggleHypeIntent: LiveActivityIntent {
-    static var title: LocalizedStringResource = "Hype"
+    static var title: LocalizedStringResource = "Like"
 
     @Parameter(title: "Track")
     var trackId: Int

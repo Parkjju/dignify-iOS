@@ -53,13 +53,10 @@ struct DiggingLiveActivity: Widget {
     }
 }
 
-/// 앱의 하입 아이콘과 같은 에셋·같은 브랜드 색을 쓴다.
-/// 익스텐션은 앱 번들의 에셋 카탈로그를 못 봐서 `HypeIcon`은 위젯 쪽에 복사돼 있다.
+/// 앱 피드 버튼과 같은 하트(feed_coachmark 1.1부터, 이전 삽)·같은 브랜드 색. SF Symbol이라 에셋 복사가 필요 없다.
 private func hypeIcon(isHyped: Bool, size: CGFloat) -> some View {
-    Image("HypeIcon")
-        .renderingMode(.template)
-        .resizable()
-        .scaledToFit()
+    Image(systemName: isHyped ? "heart.fill" : "heart")
+        .font(.system(size: size))
         .frame(width: size, height: size)
         .foregroundStyle(isHyped ? Color(red: 0.29, green: 0.25, blue: 0.85) : Color.white.opacity(0.55))
 }
@@ -75,6 +72,6 @@ private struct HypeButton: View {
             hypeIcon(isHyped: state.isHyped, size: size)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(state.isHyped ? "Unhype" : "Hype")
+        .accessibilityLabel(state.isHyped ? "Unlike" : "Like")
     }
 }

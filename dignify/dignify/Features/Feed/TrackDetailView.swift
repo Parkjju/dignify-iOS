@@ -114,13 +114,13 @@ struct TrackDetailView: View {
 
     @ViewBuilder
     private func hypers(_ users: [API.UserSummary]) -> some View {
-        Text("Hyped by")
+        Text("Liked by")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(DSColor.textTertiary)
             .padding(.bottom, 14)
         Group {
             if users.isEmpty {
-                Text("No hypes yet")
+                Text("No likes yet")
                     .font(.system(size: 14))
                     .foregroundStyle(DSColor.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)

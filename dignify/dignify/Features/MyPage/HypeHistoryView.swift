@@ -16,7 +16,7 @@ struct HypeHistoryView: View {
             if isLoading && items.isEmpty {
                 ProgressView().padding(.vertical, 60)
             } else if items.isEmpty {
-                Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No hyped tracks yet"))
+                Text(loadFailed ? String(localized: "Couldn't load") : String(localized: "No liked tracks yet"))
                     .font(DSTypography.body)
                     .foregroundStyle(DSColor.textSecondary)
                     .padding(.vertical, 60)
@@ -31,7 +31,7 @@ struct HypeHistoryView: View {
             }
         }
         .background(DSColor.background)
-        .navigationTitle("Hype History")
+        .navigationTitle("Like History")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             // 목록이 비면 편집할 것이 없다. 빈 화면에 편집 버튼만 남기지 않는다.

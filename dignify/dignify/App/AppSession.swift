@@ -67,6 +67,18 @@ final class AppSession {
     /// 서버가 `pickId`를 실으면 그 픽 상세로 바로 보낼 수 있다(`TODO.md` P6).
     var pendingMyPicksOpen = false
 
+    /// 게스트 → 로그인으로 들어왔는가. 신규 유저 온보딩이 곡 후보를 받는 동안의 로딩에
+    /// 원형 인디케이터를 붙일지만 가른다(바로 로그인은 로고만).
+    var signedInFromGuest = false
+
+    /// 온보딩 「피드 구성 중」 화면이 미리 받아 둔 첫 피드. 피드가 첫 페치 대신 한 번 꺼내 쓰고 비운다 —
+    /// 대기 화면이 응답을 기다렸는데 피드가 같은 요청을 또 보내면 기다린 의미가 없다.
+    var prefetchedFeed: API.FeedResponse?
+
+    /// 게스트가 코치마크에서 더블탭한 곡. 로그인하면 서버에 하입으로 올리고 지운다(feed_coachmark 1.0 #8).
+    /// 곡 고르기에 미리 골라 두지 않는다 — 하입 기록으로만 남는다.
+    static let guestHypeKey = "guestHypeTrackId"
+
     let api: APIClient
 
     // ponytail: 상수 하나에 #if DEBUG 분기. 환경이 셋 이상 되면 그때 config로.
@@ -194,6 +206,7 @@ final class AppSession {
     /// Apple identity token으로 로그인/가입 후 온보딩 여부에 따라 진입 상태를 결정한다.
     /// 실패 시 throw — 호출부(로그인 화면)가 에러를 표시한다.
     func signInWithApple(identityToken: String) async throws {
+        signedInFromGuest = authState == .guest
         let tokens = try await api.send(.appleSignIn(identityToken: identityToken), as: AuthTokens.self)
         await api.setTokens(tokens)
         try await refreshAuthState()
@@ -259,6 +272,8 @@ final class AppSession {
 
     /// 저장된 토큰 기준으로 /users/me를 조회해 signedIn / onboardingRequired를 분기한다.
     private func refreshAuthState() async throws {
+        // authState를 세우기 전에 올린다 — 세우는 순간 피드가 다시 받는데, 그 응답에 이 하입이 있어야 한다.
+        await flushGuestHype()
         let profile = try await api.send(.myProfile, as: API.UserProfile.self)
         authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
         // 옛 서버는 이 필드를 안 내려준다. 그때는 지금 동작(켜짐)을 유지한다.
@@ -269,6 +284,23 @@ final class AppSession {
         // 발송 필터에 조용히 걸려 최신 버전 유저가 푸시를 못 받는다.
         // authState를 세운 뒤에 불러야 registerDeviceToken의 signedIn 가드를 통과한다.
         if authState == .signedIn { requestPushAuthorization(source: "launch", promptIfUndecided: false) }
+    }
+}
+
+extension AppSession {
+    /// 게스트 하입을 서버에 올린다. 이미 하입된 곡(`HYPE_ALREADY_REGISTERED`)도 성공으로 보고 지운다.
+    /// 그 밖의 실패는 남겨 두고 다음 실행(`refreshAuthState`)에서 다시 시도한다.
+    private func flushGuestHype() async {
+        guard let trackId = UserDefaults.standard.object(forKey: Self.guestHypeKey) as? Int else { return }
+        do {
+            try await api.send(.hype(trackId: trackId))
+        } catch APIError.server(let code, _, _) where code == "HYPE_ALREADY_REGISTERED" {
+            // 목표 상태와 같다 — 지운다.
+        } catch {
+            return
+        }
+        UserDefaults.standard.removeObject(forKey: Self.guestHypeKey)
+        hypeState[trackId] = true
     }
 }
 

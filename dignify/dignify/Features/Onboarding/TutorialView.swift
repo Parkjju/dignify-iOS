@@ -107,13 +107,13 @@ private struct TutorialPage: Identifiable {
     static let all: [TutorialPage] = [
         TutorialPage(
             icon: symbol("hand.tap.fill"),
-            title: "Double-tap to hype",
-            body: "Love a track? Double-tap the card to hype it instantly."
+            title: "Double-tap to like",
+            body: "Love a track? Double-tap the card to like it instantly."
         ),
         TutorialPage(
             icon: hypeIcon,
-            title: "Or use the hype button",
-            body: "Tap the hype button to save any track you like."
+            title: "Or use the heart button",
+            body: "Tap the heart to save any track you like."
         ),
         TutorialPage(
             icon: symbol("opticaldisc"),
@@ -147,13 +147,7 @@ private struct TutorialPage: Identifiable {
     }
 
     private static var hypeIcon: AnyView {
-        AnyView(
-            Image("HypeIcon")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 60, height: 60)
-        )
+        symbol("heart.fill")
     }
 }
 

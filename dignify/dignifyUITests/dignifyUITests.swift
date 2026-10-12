@@ -38,7 +38,7 @@ final class GuestFlowUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["My"].exists)
     }
 
-    /// 게스트에게 마이페이지 본문이 보이면 401이 줄줄 나고 빈 화면이 뜬다.
+    /// 게스트에게 마이페이지·Picks 본문이 보이면 401이 줄줄 나고 빈 화면이 뜬다.
     /// 로그인 유도 화면으로 갈아치우는 분기가 살아 있는지 본다.
     func testGuestMyPageIsGatedBehindSignIn() throws {
         let app = launchApp()
@@ -49,7 +49,7 @@ final class GuestFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Build your own taste"].waitForExistence(timeout: 5))
 
-        let signIn = app.buttons["Sign in"]
+        let signIn = app.buttons["Find my taste"]
         XCTAssertTrue(signIn.exists)
         signIn.tap()
 
@@ -59,6 +59,10 @@ final class GuestFlowUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Browse without signing in"].exists)
 
         cancel.tap()
+        XCTAssertTrue(app.staticTexts["Build your own taste"].waitForExistence(timeout: 5))
+
+        // feed_coachmark 1.0부터 Picks 탭도 같은 화면으로 막는다.
+        app.tabBars.buttons["Picks"].tap()
         XCTAssertTrue(app.staticTexts["Build your own taste"].waitForExistence(timeout: 5))
     }
 }

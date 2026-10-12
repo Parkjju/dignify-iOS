@@ -131,7 +131,7 @@ struct PickComposeView: View {
     /// 유일한 복귀 경로면 고른 곡들이 어디 갔는지 알 수 없다.
     private var sourceHeader: some View {
         HStack(spacing: 8) {
-            Text(activeQuery.isEmpty ? "Your hypes" : "Results for \"\(activeQuery)\"")
+            Text(activeQuery.isEmpty ? "Your likes" : "Results for \"\(activeQuery)\"")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(DSColor.textSecondary)
                 .lineLimit(1)
@@ -142,7 +142,7 @@ struct PickComposeView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left").font(.system(size: 10, weight: .bold))
-                        Text("Your hypes").font(.system(size: 13, weight: .semibold))
+                        Text("Your likes").font(.system(size: 13, weight: .semibold))
                         if !selected.isEmpty {
                             Text("\(selected.count) selected")
                                 .font(.system(size: 11, weight: .semibold))
@@ -205,7 +205,7 @@ struct PickComposeView: View {
     private var emptyList: some View {
         VStack(spacing: 12) {
             if activeQuery.isEmpty {
-                Text("No hyped tracks yet — search for tracks to add.")
+                Text("No liked tracks yet — search for tracks to add.")
             } else {
                 Text("No results for \"\(activeQuery)\"")
                 Button("Request \"\(activeQuery)\"") { showRequestSheet = true }

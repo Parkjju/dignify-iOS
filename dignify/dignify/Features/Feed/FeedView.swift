@@ -21,6 +21,19 @@ struct FeedView: View {
     @AppStorage("didAskReview") private var didAskReview = false
     /// 피드 코치마크를 이미 봤는지. 하입 버튼이 무엇을 하는지 모르면 이 앱은 그냥 재생기다.
     @AppStorage("seenFeedCoach") private var seenFeedCoach = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 제스처 코치마크 단계. 더블탭 → 하입됨 → 스와이프, 따라 해야 넘어간다.
+    @State private var coachStep: FeedCoachStep = .doubleTap
+    /// 스와이프 단계의 손·화면 힌트 주기 시작 시각. 둘이 이 값 하나로 돌아서 박자가 안 어긋난다.
+    /// nil = 멈춤(잡고 끄는 중·동작 줄이기).
+    @State private var coachCycleStart: Date?
+    /// 화면 힌트 중간에 잡았을 때 그 위치. 끌기가 거기서 이어진다.
+    @State private var dragBase: CGFloat = 0
+    @State private var coachShownLogged = false
+    /// 트랙별 하입 버스트 횟수. 오를 때마다 그 카드 버튼이 한 번 튄다(카드마다 따로 세야 다른 카드가 안 튄다).
+    @State private var burstCounts: [Int: Int] = [:]
+    /// 트랙별 공유·더보기 버튼 자리(카드 좌표). 아트워크 바로 아래라 탭 제스처가 버튼 탭까지 먹지 않게 뺀다.
+    @State private var actionsFrames: [Int: CGRect] = [:]
     @State private var audio = FeedAudioController()
     @State private var feedList: [Feed] = []
     @State private var isLoading = true
@@ -64,9 +77,6 @@ struct FeedView: View {
     @State private var toastMessage: String?
     /// 장르 소진 토스트를 피드 세션당 한 번만 노출하기 위한 플래그.
     @State private var genreExhaustedShown = false
-    @State private var showsHypeBurst = false
-    @State private var burstLocation: CGPoint = .zero
-    @State private var burstConfetti: [ConfettiPiece] = []
     /// Read once on appear — reading UIKit window insets during body evaluation
     /// triggers a UIKit↔SwiftUI AttributeGraph cycle that freezes all touch input.
     @State private var safeInsets = EdgeInsets()
@@ -103,7 +113,14 @@ struct FeedView: View {
         genreExhaustedShown = false   // 새 피드 세션이므로 소진 토스트 다시 허용.
         do {
             let saved = savedFeedCursor.isEmpty ? nil : savedFeedCursor
-            var res = try await session.api.send(.feed(cursor: saved), as: API.FeedResponse.self)
+            var res: API.FeedResponse
+            if let prefetched = session.prefetchedFeed {
+                // 온보딩 「피드 구성 중」이 기다려서 받아 둔 첫 페이지. 새 시드라 커서도 새로 쓴다.
+                session.prefetchedFeed = nil
+                res = prefetched
+            } else {
+                res = try await session.api.send(.feed(cursor: saved), as: API.FeedResponse.self)
+            }
             // 저장된 커서가 소진/무효(빈 결과)면 새 세션으로 폴백.
             if res.items.isEmpty, saved != nil {
                 savedFeedCursor = ""
@@ -124,6 +141,11 @@ struct FeedView: View {
             loadFailed = true
         }
         isLoading = false
+        // 코치마크 완주율의 분모. 화면마다 같은 이벤트를 쓰고 screen으로 가른다(CoachMarkOverlay와 같은 이름).
+        if showsCoach, !coachShownLogged {
+            coachShownLogged = true
+            PostHogSDK.shared.capture("coach_shown", properties: ["screen": "feed"])
+        }
     }
 
     /// 픽 재생. 30곡 상한 덕에 한 응답에 다 오므로 커서도 페이지네이션도 없다.
@@ -281,8 +303,8 @@ struct FeedView: View {
         return items
     }
 
-    /// 피드가 실제로 떠 있고 가리킬 카드가 있을 때만. 검색 결과나 픽 재생 중에는 안 띄운다 —
-    /// 그때는 하입 버튼이 있어도 "이 피드가 하입을 따라간다"는 설명이 맞지 않는다.
+    /// 제스처 코치마크(`FeedCoachGesture.swift`)를 띄우는가. 피드가 실제로 떠 있고 카드가 있을 때만.
+    /// 검색 결과나 픽 재생 중에는 안 띄운다 — 처음 보는 피드에서 조작을 익히는 자리라서.
     private var showsCoach: Bool {
         !seenFeedCoach && mode == .normal && !isLoading && !feedList.isEmpty
             && activeQuery.isEmpty && !isSearching && detailTarget == nil
@@ -397,19 +419,7 @@ struct FeedView: View {
         GeometryReader { geo in
             let size = geo.size
             ZStack(alignment: .top) {
-                // Paging layer — the ONE place gestures live. Slots overlap in
-                // layout, so a single gesture here avoids multiple recognizers
-                // fighting the system gesture gate (which froze all input).
-                ZStack {
-                    ForEach(windowedFeeds) { item in
-                        feedSlot(for: item.feed, size: size)
-                            .offset(y: CGFloat(item.slot) * size.height + offset)
-                    }
-                }
-                .frame(width: size.width, height: size.height)
-                .contentShape(Rectangle())
-                .gesture(dragGesture(height: size.height))
-                .simultaneousGesture(tapGestures(height: size.height))
+                pagingLayer(size: size)
 
                 // 검색 중엔 피드 위에 최근 검색 패널을 덮고, 그 바깥 탭으로 검색 모드를 빠져나온다.
                 if isSearching {
@@ -434,11 +444,6 @@ struct FeedView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .allowsHitTesting(false)
                         .transition(.opacity)
-                }
-
-                if showsHypeBurst {
-                    HypeBurstView(isOn: feedList[currentIndex].isHyped, confetti: burstConfetti)
-                        .position(burstLocation)
                 }
 
                 if let toastMessage {
@@ -513,10 +518,29 @@ struct FeedView: View {
         }
         .background { shareSheetHost }
         .overlay { pushOptInOverlay }
-        // 좌표는 한 줄도 안 적는다. 대상 뷰가 올린 앵커를 여기 GeometryProxy가 자기 좌표계로 푼다.
-        // **`ignoresSafeArea`는 GeometryReader에 건다** — 오버레이에만 걸면 원점이 화면 맨 위로
-        // 올라가 구멍이 상단 인셋만큼 밀린다(픽 탭에서 밟았던 것과 같은 함정).
-        .coachMarks(FeedCoach.steps, screen: "feed", isActive: showsCoach) { seenFeedCoach = true }
+    }
+
+    /// Paging layer — the ONE place gestures live. Slots overlap in
+    /// layout, so a single gesture here avoids multiple recognizers
+    /// fighting the system gesture gate (which froze all input).
+    ///
+    /// 코치마크 스와이프 단계에선 화면 힌트(`peek`)가 매 프레임 바뀌어 TimelineView로 감싼다.
+    /// 평소엔 `paused`라 비용이 없다. 분기로 두 벌을 두면 전환 순간 슬롯이 새로 만들어져 아트워크가 다시 뜬다.
+    private func pagingLayer(size: CGSize) -> some View {
+        let peekStart = showsCoach && coachStep == .swipeUp ? coachCycleStart : nil
+        return TimelineView(.animation(paused: peekStart == nil)) { context in
+            let peek = peekStart.map { FeedCoachMotion.peekOffset(at: context.date.timeIntervalSince($0)) } ?? 0
+            ZStack {
+                ForEach(windowedFeeds) { item in
+                    feedSlot(for: item.feed, size: size)
+                        .offset(y: CGFloat(item.slot) * size.height + offset + peek)
+                }
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .contentShape(Rectangle())
+        .gesture(dragGesture(height: size.height))
+        .simultaneousGesture(tapGestures(height: size.height))
     }
 
     /// 특집 세트 완주 직후의 푸시 권한 안내. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
@@ -609,23 +633,14 @@ struct FeedView: View {
         }
     }
 
-    /// 성향 칩("Following your hypes" / "Random")이 지금 떠 있는가.
-    /// **`contextBadge`의 세로 위치가 여기 걸려 있다** — 조건을 두 군데 따로 쓰면
-    /// 한쪽만 고쳐졌을 때 두 알약이 같은 줄에 겹친다.
+    /// 성향 칩("Following your likes" / "Random")이 지금 떠 있는가.
     private var showsModePill: Bool {
         mode == .normal && !isSearching && activeQuery.isEmpty
     }
 
-    /// 성향 칩이 차지하는 세로 폭(12pt 텍스트 + 상하 5pt ≒ 25) + VStack 간격 8.
-    /// 실측해서 맞추는 루프 대신 상수로 둔다 — 폰트가 고정 크기라 Dynamic Type에도 안 변한다.
-    private static let modePillBand: CGFloat = 33
-
-    /// 배지 상단. 기본값 +56은 검색 아이콘 행(top+8부터 40pt) 바로 아래인데,
-    /// 성향 칩이 **정확히 같은 자리**에서 시작하므로 떠 있을 때는 그만큼 더 내린다.
-    /// 픽 모드엔 검색 오버레이 자체가 없어 기본값을 그대로 쓴다.
-    private var badgeTop: CGFloat {
-        safeInsets.top + 56 + (showsModePill ? Self.modePillBand : 0)
-    }
+    /// 배지 상단. 위 버튼 줄(top+8부터 40pt) 바로 아래로 고정이다 — 1.1부터 모드 알약이
+    /// 같은 줄 왼쪽에 서서 더 내릴 일이 없다(feed_coachmark 1.1 #11).
+    private var badgeTop: CGFloat { safeInsets.top + 56 }
 
     private func badgePill(_ text: LocalizedStringKey) -> some View {
         Text(text)
@@ -650,85 +665,92 @@ struct FeedView: View {
         }
     }
 
+    /// 한 줄(feed_coachmark 1.1): 왼쪽 성향 버튼 + 바로 옆 모드 알약(검색 결과를 보는 중이면 쿼리 알약),
+    /// 오른쪽 끝 검색. 검색을 열면 줄 전체가 검색창이 된다.
     private func searchControls(fullWidth: CGFloat) -> some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            HStack {
-                Spacer(minLength: 0)   // 접힘 시 버튼을 우측에 붙이고, 펼치면 풀폭으로 채운다.
-                if isSearching {
-                    // 펼침 상태에서만 DSSearchBar. 접힘 땐 전용 아이콘 버튼(아래)을 써서
-                    // 40pt로 축소된 서치바에 아이콘이 클립되던 문제를 피한다.
-                    DSSearchBar(
-                        text: $searchText,
-                        placeholder: "Search artists, tracks",
-                        backgroundStyle: DSColor.surface,
-                        borderStyle: DSColor.borderLight,
-                        isFocused: $searchFocused,
-                        onSubmit: { runSearch(searchText) }
-                    )
-                    .frame(width: fullWidth)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                } else {
-                    // 성향 버튼이 검색 왼쪽에 선다. 피드 안에 두는 이유는 **효과가 보이는 자리가
-                    // 여기뿐**이기 때문이다. 설정 화면에서 끄면 무엇이 달라졌는지 기억으로 비교해야 한다.
-                    Button { toggleDiggingMode() } label: {
-                        Image(systemName: session.diggingMode ? "sparkles" : "shuffle")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 40, height: 40)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(session.diggingMode ? "Following your hypes" : "Random")
-                    Button(action: openSearch) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 40, height: 40)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Search")
-                }
-            }
-
-            // 지금 피드가 무엇으로 만들어졌는지를 항상 띄운다. 껐을 때만 띄우면 켜진 상태가
-            // 무명(無名)이라, 유저가 이 버튼이 무엇을 바꾸는지 눌러 보기 전엔 알 수 없다.
-            // 문구는 설정 이름("켜짐/꺼짐")이 아니라 **지금 보고 있는 것**을 말한다.
-            if showsModePill {
+        HStack(spacing: 4) {
+            if isSearching {
+                // 펼침 상태에서만 DSSearchBar. 접힘 땐 전용 아이콘 버튼(아래)을 써서
+                // 40pt로 축소된 서치바에 아이콘이 클립되던 문제를 피한다.
+                DSSearchBar(
+                    text: $searchText,
+                    placeholder: "Search artists, tracks",
+                    backgroundStyle: DSColor.surface,
+                    borderStyle: DSColor.borderLight,
+                    isFocused: $searchFocused,
+                    onSubmit: { runSearch(searchText) }
+                )
+                .frame(width: fullWidth)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            } else {
+                // 성향 버튼을 피드 안에 두는 이유는 **효과가 보이는 자리가 여기뿐**이기 때문이다.
+                // 설정 화면에서 끄면 무엇이 달라졌는지 기억으로 비교해야 한다.
                 Button { toggleDiggingMode() } label: {
-                    HStack(spacing: 4) {
-                        Text(session.diggingMode ? "Following your hypes" : "Random")
-                            .font(.system(size: 12, weight: .medium))
-                        Image(systemName: "arrow.left.arrow.right")
-                            .font(.system(size: 9, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.white.opacity(0.2), in: Capsule())
-                    .overlay { Capsule().stroke(.white.opacity(0.25), lineWidth: 1) }
+                    Image(systemName: session.diggingMode ? "sparkles" : "shuffle")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint("Switches between hype-based and random")
-                .coachAnchor(.feedMode)
-            }
+                .accessibilityLabel(session.diggingMode ? "Following your likes" : "Random")
 
-            // 검색 결과 보는 중(모드 아님)엔 활성 쿼리 칩 표시. 탭하면 전체 피드로 복귀.
-            if !activeQuery.isEmpty, !isSearching {
-                Button(action: clearSearch) {
-                    HStack(spacing: 4) {
-                        Text(activeQuery)
-                            .font(.system(size: 12, weight: .medium))
-                        Image(systemName: "xmark")
-                            .font(.system(size: 9, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(DSColor.brand, in: Capsule())
+                if showsModePill {
+                    modePill
+                } else if !activeQuery.isEmpty {
+                    queryPill
+                }
+
+                Spacer(minLength: 0)
+
+                Button(action: openSearch) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Search")
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSearching)
+    }
+
+    /// 지금 피드가 무엇으로 만들어졌는지를 항상 띄운다. 껐을 때만 띄우면 켜진 상태가
+    /// 무명(無名)이라, 유저가 이 버튼이 무엇을 바꾸는지 눌러 보기 전엔 알 수 없다.
+    /// 문구는 설정 이름("켜짐/꺼짐")이 아니라 **지금 보고 있는 것**을 말한다.
+    private var modePill: some View {
+        Button { toggleDiggingMode() } label: {
+            HStack(spacing: 4) {
+                Text(session.diggingMode ? "Following your likes" : "Random")
+                    .font(.system(size: 12, weight: .medium))
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.system(size: 9, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.white.opacity(0.2), in: Capsule())
+            .overlay { Capsule().stroke(.white.opacity(0.25), lineWidth: 1) }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Switches between like-based and random")
+    }
+
+    /// 검색 결과 보는 중엔 모드 알약 자리에 활성 쿼리. 탭하면 전체 피드로 복귀.
+    private var queryPill: some View {
+        Button(action: clearSearch) {
+            HStack(spacing: 4) {
+                Text(activeQuery)
+                    .font(.system(size: 12, weight: .medium))
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(DSColor.brand, in: Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     /// 성향을 뒤집고 피드를 새로 받는다. 재요청은 `AppSession`이 `feedReloadToken`을 올려서
@@ -876,9 +898,15 @@ struct FeedView: View {
     private func dragGesture(height: CGFloat) -> some Gesture {
         DragGesture()
             .onChanged { value in
-                offset = value.translation.height
+                // 코치마크 화면 힌트 중간에 잡으면 그 자리에서 이어 끈다. 잡는 동안 손·힌트는 멈춘다.
+                if let start = coachCycleStart {
+                    dragBase = FeedCoachMotion.peekOffset(at: Date().timeIntervalSince(start))
+                    coachCycleStart = nil
+                }
+                offset = dragBase + value.translation.height
             }
             .onEnded { value in
+                dragBase = 0
                 // 느리게 충분히 끌었거나(거리) 빠르게 튕겼으면(예측 착지점=속도 반영) 전환.
                 // predictedEndTranslation은 손을 뗀 속도로 감속했을 때 도달할 위치라
                 // 빠른 플릭은 짧게 움직여도 넘어가고, 느린 드래그는 거리 임계로 처리된다.
@@ -890,11 +918,19 @@ struct FeedView: View {
                 } else if distance <= height * -0.10 || predicted <= height * -0.30 {
                     goingNext(height: height)
                 } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        offset = 0
-                    }
+                    snapBack()
                 }
             }
+    }
+
+    /// 넘어가지 않고 제자리로. 코치마크 스와이프 단계면 돌아온 그 순간 손·화면 힌트를 함께 처음부터 다시 돌린다.
+    private func snapBack() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            offset = 0
+        } completion: {
+            guard showsCoach, coachStep == .swipeUp, !reduceMotion, coachCycleStart == nil else { return }
+            coachCycleStart = Date()
+        }
     }
 
     /// 더블탭(하입)에 우선권을 주고, 단일 탭(재생/일시정지 토글)은 더블탭이
@@ -912,10 +948,23 @@ struct FeedView: View {
     /// 제스처 레이어는 `simultaneousGesture`라 버튼 위에서도 같이 발동한다 —
     /// 그래서 첫 탭이 일시정지에 먹히고 버튼은 두 번째 탭에야 반응했다.
     private func handleSingleTap(at location: CGPoint, height: CGFloat) {
+        // 코치마크 「좋아요를 눌렀어요」는 화면 아무 곳이나 누르면 넘어간다. 재생은 건드리지 않는다.
+        if showsCoach, coachStep == .hyped {
+            advanceCoach()
+            return
+        }
         let topBand = safeInsets.top + 56
         let bottomBand = safeInsets.bottom + 160
-        guard location.y > topBand, location.y < height - bottomBand else { return }
+        guard location.y > topBand, location.y < height - bottomBand,
+              !isOnActions(location) else { return }
         audio.toggleCurrentPlayback()
+    }
+
+    /// 아트워크 아래 공유·더보기 버튼 위인가. 위아래 밴드 밖이라 따로 뺀다.
+    private func isOnActions(_ location: CGPoint) -> Bool {
+        guard feedList.indices.contains(currentIndex),
+              let frame = actionsFrames[feedList[currentIndex].trackId] else { return false }
+        return frame.insetBy(dx: -8, dy: -8).contains(location)
     }
 
     private func feedSlot(for feed: Feed, size: CGSize) -> some View {
@@ -936,11 +985,15 @@ struct FeedView: View {
                 feed: feed,
                 screenSize: size,
                 safeAreaInsets: safeInsets,
-                // 윈도에 카드가 셋 떠 있어서 전부 앵커를 달면 어느 카드를 뚫을지가 흔들린다.
-                coachAnchors: feed.trackId == feedList.first?.trackId,
+                // 코치마크는 지금 카드에만 얹는다. 끄는 동안 화면 1/4에서 0이 되도록 흐려진다.
+                coach: showsCoach && feed.trackId == feedList[currentIndex].trackId ? coachStep : nil,
+                coachCycleStart: coachCycleStart,
+                coachOpacity: max(0, 1 - abs(offset) / (size.height / 4)),
+                burstToken: burstCounts[feed.trackId] ?? 0,
                 onToggleHype: { toggleHype(for: feed) },
                 onOpenDetail: { if requireAccount() { detailTarget = DetailTarget(id: feed.trackId) } },
-                onShare: { shareTrack(feed) }
+                onShare: { shareTrack(feed) },
+                onActionsFrame: { actionsFrames[feed.trackId] = $0 }
             )
         }
         .frame(width: size.width, height: size.height)
@@ -1076,7 +1129,15 @@ struct FeedView: View {
     private func toggleHype(for feed: Feed) {
         guard requireAccount() else { return }
         guard let index = feedList.firstIndex(where: { $0.trackId == feed.trackId }) else { return }
-        setHype(trackId: feed.trackId, to: !feedList[index].isHyped)
+        let target = !feedList[index].isHyped
+        setHype(trackId: feed.trackId, to: target)
+        if target { burst(feed.trackId) }
+    }
+
+    /// 좋아요 순간 모션(큰 하트·버튼 팡·조각)을 한 번 돌린다. 동작 줄이기면 안 뜬다. 좋아요 취소엔 부르지 않는다.
+    private func burst(_ trackId: Int) {
+        guard !reduceMotion else { return }
+        burstCounts[trackId, default: 0] += 1
     }
 
     /// 하입 상태를 낙관적으로 갱신하고 서버와 동기화. 이미 목표 상태면 no-op.
@@ -1168,28 +1229,63 @@ struct FeedView: View {
         .clipped()
     }
 
+    /// 더블탭. 하입을 켜기만 한다(false→true, true는 유지). 해제는 하입 버튼으로만.
     private func triggerHype(at location: CGPoint) {
-        guard requireAccount() else { return }
-        // 탭 제스처는 하입을 켜기만 한다(false→true, true는 유지). 해제는 하입 버튼으로만.
-        setHype(trackId: feedList[currentIndex].trackId, to: true)
-        burstLocation = location
-        burstConfetti = Self.makeConfetti()
-        showsHypeBurst = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
-            showsHypeBurst = false
+        guard feedList.indices.contains(currentIndex), !isOnActions(location) else { return }
+        if showsCoach, coachStep == .hyped {
+            advanceCoach()
+            return
+        }
+        let trackId = feedList[currentIndex].trackId
+        let coaching = showsCoach && coachStep == .doubleTap
+        if session.authState == .guest {
+            // 게스트는 코치마크 더블탭 한 번만 시트 없이 받는다. 곡 id를 기기에 두고 로그인하면
+            // AppSession이 서버에 올린다. 두 번째부터는 지금처럼 로그인 시트.
+            guard coaching else {
+                session.pendingSignIn = true
+                return
+            }
+            UserDefaults.standard.set(trackId, forKey: AppSession.guestHypeKey)
+            feedList[currentIndex].isHyped = true
+            session.hypeState[trackId] = true
+            audio.syncHype(trackId: trackId, isHyped: true)
+        } else {
+            setHype(trackId: trackId, to: true)
+        }
+        burst(trackId)
+        if coaching { advanceCoach() }
+    }
+
+    // MARK: - Coach
+
+    /// 따라 했으니 다음 단계로. 캡션·손이 0.2초 페이드로 바뀐다.
+    private func advanceCoach() {
+        withAnimation(.easeOut(duration: 0.2)) {
+            switch coachStep {
+            case .doubleTap:
+                coachStep = .hyped
+            case .hyped:
+                coachStep = .swipeUp
+                coachCycleStart = reduceMotion ? nil : Date()
+            case .swipeUp:
+                finishCoach()
+            }
         }
     }
 
-    private static func makeConfetti(count: Int = 14) -> [ConfettiPiece] {
-        (0..<count).map { _ in
-            ConfettiPiece(
-                color: [DSColor.brand, .yellow, .pink, .mint, .orange].randomElement()!,
-                angle: .random(in: 0..<360),
-                distance: .random(in: 40...90)
-            )
-        }
+    /// 다음 곡으로 넘어가면 끝. 「좋아요를 눌렀어요」 중에 바로 넘겨도 끝난 것으로 본다 — 둘 다 터치다.
+    /// 더블탭 단계에서 넘기면 코치마크는 새 카드로 옮겨 붙는다(하입은 아직 안 해 봤다).
+    private func finishCoachIfSwiped() {
+        guard showsCoach, coachStep != .doubleTap else { return }
+        finishCoach()
     }
-    
+
+    private func finishCoach() {
+        PostHogSDK.shared.capture("coach_finished", properties: ["screen": "feed", "last_step": 2])
+        withAnimation(.easeOut(duration: 0.2)) { seenFeedCoach = true }
+        coachCycleStart = nil
+    }
+
     /// 잠금화면·이어폰의 다음/이전으로 트랙을 옮긴다. 화면이 없으니 애니메이션도 없다.
     ///
     /// **`.onChange(of: currentIndex)`에 기대지 않고 부수효과를 직접 부른다** — 백그라운드에선
@@ -1214,9 +1310,7 @@ struct FeedView: View {
                 dismiss()
                 return
             }
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                offset = 0
-            }
+            snapBack()
             return
         }
         // easeOut = fast-start → 손가락이 이미 움직인 속도를 이어받아 부드럽게 감속.
@@ -1225,6 +1319,7 @@ struct FeedView: View {
         } completion: {
             currentIndex += 1
             offset = 0
+            finishCoachIfSwiped()
             Task { await loadMoreIfNeeded() }
         }
     }
@@ -1238,9 +1333,7 @@ struct FeedView: View {
                 dismiss()
                 return
             }
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                offset = 0
-            }
+            snapBack()
             return
         }
         withAnimation(.easeOut(duration: 0.26)) {
@@ -1248,6 +1341,7 @@ struct FeedView: View {
         } completion: {
             currentIndex -= 1
             offset = 0
+            finishCoachIfSwiped()
         }
     }
     
@@ -1255,24 +1349,37 @@ struct FeedView: View {
         let feed: Feed
         let screenSize: CGSize
         let safeAreaInsets: EdgeInsets
-        /// 코치마크가 가리킬 카드인가. 첫 카드에만 켠다.
-        var coachAnchors: Bool = false
+        /// 이 카드에 얹을 코치마크 단계. 지금 카드에만 온다.
+        var coach: FeedCoachStep?
+        var coachCycleStart: Date?
+        var coachOpacity: Double = 1
+        /// 오를 때마다 하입 버스트가 한 번 튄다.
+        var burstToken = 0
         let onToggleHype: () -> Void
         let onOpenDetail: () -> Void
         let onShare: () -> Void
+        /// 공유·더보기 버튼 자리(카드 좌표). 피드가 탭 제스처에서 뺀다.
+        let onActionsFrame: (CGRect) -> Void
 
+        private static let space = "trackCard"
         private var cardWidth: CGFloat { max(0, screenSize.width - 48) }
 
         var body: some View {
             VStack(spacing: 0) {
                 Spacer()
-                artwork
+                VStack(spacing: 12) {
+                    artwork
+                        .zIndex(1)   // 코치마크 캡션이 아래 버튼 줄 위로 삐져나온다.
+                    actions
+                }
                 Spacer()
-                infoAndActions
-                    .padding(.bottom, safeAreaInsets.bottom + 72)
+                info
+                    // 1.1: 72 → 92. 탭바와 간격 23 → 43.
+                    .padding(.bottom, safeAreaInsets.bottom + 92)
             }
             .padding(.top, safeAreaInsets.top + 64)
             .frame(width: screenSize.width, height: screenSize.height)
+            .coordinateSpace(.named(Self.space))
         }
 
         private var artwork: some View {
@@ -1281,6 +1388,32 @@ struct FeedView: View {
                 .frame(width: cardWidth, height: cardWidth)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
+                // 좋아요 순간 가운데 큰 하트. 코치마크 하입 단계도 이걸 본다.
+                .overlay { LikeBigHeart(token: burstToken) }
+                .overlay {
+                    if let coach {
+                        FeedCoachOverlay(step: coach, cycleStart: coachCycleStart)
+                            .id(coach)
+                            .transition(.opacity)
+                            .opacity(coachOpacity)
+                    }
+                }
+        }
+
+        /// 아트워크 바로 아래 오른쪽: 공유 · 더보기(트랙 상세).
+        private var actions: some View {
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                HStack(spacing: 16) {
+                    shareButton
+                    TrackActionButton(systemName: "ellipsis", action: onOpenDetail)
+                        .accessibilityLabel("Track details")
+                }
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.space)) } action: {
+                    onActionsFrame($0)
+                }
+            }
+            .frame(width: cardWidth)
         }
 
         /// "이 트랙이 왜 떴는지" 힌트. 무드로 뽑힌 곡이면 그 근거가 된 **내 하입 곡**을,
@@ -1293,7 +1426,7 @@ struct FeedView: View {
         private var genreLabel: some View {
             if let similar = feed.similarToTrackName {
                 chip(Text("Feels like \(similar)"))
-                    .accessibilityLabel("Because you hyped \(similar)")
+                    .accessibilityLabel("Because you liked \(similar)")
             } else if let genreName = feed.genreName {
                 chip(Text(verbatim: genreName))
                     .accessibilityLabel("Genre: \(genreName)")
@@ -1311,8 +1444,9 @@ struct FeedView: View {
                 .overlay { Capsule().stroke(.white.opacity(0.2), lineWidth: 1) }
         }
 
-        private var infoAndActions: some View {
-            VStack(alignment: .leading, spacing: 16) {
+        /// 칩·제목·아티스트 + 오른쪽 하입. 하입 아래끝을 아티스트명 아래선에 맞춘다.
+        private var info: some View {
+            HStack(alignment: .bottom, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     genreLabel
 
@@ -1328,29 +1462,33 @@ struct FeedView: View {
                             .lineLimit(1)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                HStack {
-                    Button {
-                        onToggleHype()
-                    } label: {
-                        Image("HypeIcon")
-                            .renderingMode(.template)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                    }
-                    .foregroundStyle(feed.isHyped ? DSColor.brand : DSColor.textTertiary)
-                    .animation(.easeOut, value: feed.isHyped)
-                    .accessibilityLabel(feed.isHyped ? "Unhype" : "Hype")
-                    .coachAnchor(coachAnchors ? .hype : nil)
-
-                    Spacer()
-                    TrackActionButton(systemName: "opticaldisc", action: onOpenDetail)
-                        .accessibilityLabel("Track details")
-                    shareButton
-                }
+                hypeButton
             }
             .padding(.horizontal, 20)
+        }
+
+        /// 하입 = 하트(1.1). 코드·API 이름은 hype 그대로다. 하입하는 순간 1.35배로 튀고 조각이 튄다(`LikeMotion`).
+        private var hypeButton: some View {
+            Button(action: onToggleHype) {
+                Image(systemName: feed.isHyped ? "heart.fill" : "heart")
+                    .font(.system(size: 28))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(feed.isHyped ? DSColor.brand : DSColor.textTertiary)
+            .animation(.easeOut, value: feed.isHyped)
+            .keyframeAnimator(initialValue: 1.0, trigger: burstToken) { content, scale in
+                content.scaleEffect(scale)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    LinearKeyframe(1.35, duration: LikeMotion.pop / 2, timingCurve: .easeOut)
+                    LinearKeyframe(1.0, duration: LikeMotion.pop / 2, timingCurve: .easeOut)
+                }
+            }
+            .overlay { HeartBurst(token: burstToken) }
+            .accessibilityLabel(feed.isHyped ? "Unlike" : "Like")
         }
 
         private var shareButton: some View {
@@ -1380,59 +1518,123 @@ struct FeedView: View {
             .buttonStyle(.plain)
         }
     }
-    
-    private struct HypeBurstView: View {
-        let isOn: Bool
-        let confetti: [ConfettiPiece]
-        @State private var sparkProgress: CGFloat = 0
-        @State private var iconScale: CGFloat = 0
-        @State private var iconOpacity: CGFloat = 0
+
+    /// 좋아요 순간의 시간표(feed_coachmark 1.2). 큰 하트·버튼 팡·하트 조각이 **한 트리거로 같이** 돈다.
+    ///
+    ///     0 ~ pop          큰 하트 팝(오버슈트) · 버튼 1.35배 팡 · 조각이 솟음
+    ///     ~ +hold          큰 하트 머묾 · 조각은 떨어지기 시작
+    ///     ~ +fade          큰 하트 1.08배로 커지며 페이드 · 조각도 이때 다 떨어져 사라짐
+    ///
+    /// 코치마크 「좋아요를 눌렀어요」 단계의 큰 하트도 이것이다 — 코치마크 쪽에 따로 두지 않는다.
+    enum LikeMotion {
+        static let pop = 0.3
+        static let hold = 0.3
+        static let fade = 0.4
+        /// 조각이 떨어지는 시간. 큰 하트 페이드가 끝나는 순간 같이 끝난다.
+        static var fall: Double { hold + fade }
+        /// 시안 `cubic-bezier(.2,1.4,.4,1)` — 살짝 넘쳤다 돌아오는 팝.
+        static let overshoot = UnitCurve.bezier(startControlPoint: UnitPoint(x: 0.2, y: 1.4),
+                                                endControlPoint: UnitPoint(x: 0.4, y: 1))
+    }
+
+    /// 아트워크 가운데 큰 찬 하트 160.
+    private struct LikeBigHeart: View {
+        let token: Int
+
+        private struct Pose { var scale: CGFloat = 0.3, opacity: Double = 0 }
+
+        var body: some View {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 160))
+                .foregroundStyle(DSColor.brand)
+                .shadow(color: .black.opacity(0.35), radius: 9, y: 6)
+                .keyframeAnimator(initialValue: Pose(), trigger: token) { content, p in
+                    content.scaleEffect(p.scale).opacity(p.opacity)
+                } keyframes: { _ in
+                    let m = LikeMotion.self
+                    KeyframeTrack(\.scale) {
+                        LinearKeyframe(0.3, duration: 0)
+                        LinearKeyframe(1, duration: m.pop, timingCurve: m.overshoot)
+                        LinearKeyframe(1, duration: m.hold)
+                        LinearKeyframe(1.08, duration: m.fade, timingCurve: .easeIn)
+                    }
+                    KeyframeTrack(\.opacity) {
+                        LinearKeyframe(0, duration: 0)
+                        LinearKeyframe(1, duration: m.pop, timingCurve: .easeOut)
+                        LinearKeyframe(1, duration: m.hold)
+                        LinearKeyframe(0, duration: m.fade, timingCurve: .easeIn)
+                    }
+                }
+                .allowsHitTesting(false)
+        }
+    }
+
+    /// 하트 조각 8개가 버튼에서 솟았다가 우수수 떨어진다. 시안 `feed-track.js` BURST 그대로.
+    private struct HeartBurst: View {
+        let token: Int
+
+        private struct Bit { let x: CGFloat, up: CGFloat, angle: Double, size: CGFloat }
+        private static let bits: [Bit] = [
+            Bit(x: -58, up: 70, angle: -200, size: 14), Bit(x: -34, up: 96, angle: 160, size: 18),
+            Bit(x: -10, up: 84, angle: -120, size: 12), Bit(x: 14, up: 104, angle: 220, size: 20),
+            Bit(x: 36, up: 78, angle: -160, size: 14), Bit(x: 58, up: 92, angle: 140, size: 16),
+            Bit(x: -46, up: 52, angle: 260, size: 12), Bit(x: 46, up: 58, angle: -240, size: 12),
+        ]
+
+        private struct Pose {
+            var x: CGFloat = 0, y: CGFloat = 0, scale: CGFloat = 0.3, angle: Double = 0, opacity: Double = 0
+        }
 
         var body: some View {
             ZStack {
-                ForEach(confetti) { piece in
-                    Capsule()
-                        .fill(piece.color)
-                        .frame(width: 3, height: 10)
-                        .rotationEffect(.degrees(piece.angle))
-                        .offset(
-                            x: cos(piece.angle * .pi / 180) * piece.distance * sparkProgress,
-                            y: sin(piece.angle * .pi / 180) * piece.distance * sparkProgress
-                        )
-                        .opacity(1 - sparkProgress)
+                ForEach(Self.bits.indices, id: \.self) { i in
+                    bit(Self.bits[i])
                 }
+            }
+            .allowsHitTesting(false)
+        }
 
-                Image("HypeIcon")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 96, height: 96)
-                    .foregroundStyle(isOn ? DSColor.brand : DSColor.textTertiary)
-                    .scaleEffect(iconScale)
-                    .opacity(iconOpacity)
-            }
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.22)) {
-                    sparkProgress = 1
+        private func bit(_ b: Bit) -> some View {
+            Image(systemName: "heart.fill")
+                .font(.system(size: b.size))
+                .foregroundStyle(DSColor.brand)
+                .keyframeAnimator(initialValue: Pose(), trigger: token) { content, p in
+                    content
+                        .scaleEffect(p.scale)
+                        .rotationEffect(.degrees(p.angle))
+                        .offset(x: p.x, y: p.y)
+                        .opacity(p.opacity)
+                } keyframes: { _ in
+                    // 솟기(pop, ease-out) → 떨어지기(hold + fade, ease-in).
+                    let up = LikeMotion.pop, down = LikeMotion.fall
+                    KeyframeTrack(\.x) {
+                        LinearKeyframe(0, duration: 0)
+                        LinearKeyframe(b.x * 0.7, duration: up, timingCurve: .easeOut)
+                        LinearKeyframe(b.x, duration: down, timingCurve: .easeIn)
+                    }
+                    KeyframeTrack(\.y) {
+                        LinearKeyframe(0, duration: 0)
+                        LinearKeyframe(-b.up, duration: up, timingCurve: .easeOut)
+                        LinearKeyframe(150, duration: down, timingCurve: .easeIn)
+                    }
+                    KeyframeTrack(\.scale) {
+                        LinearKeyframe(0.3, duration: 0)
+                        LinearKeyframe(1, duration: up, timingCurve: .easeOut)
+                        LinearKeyframe(0.9, duration: down, timingCurve: .easeIn)
+                    }
+                    KeyframeTrack(\.angle) {
+                        LinearKeyframe(0, duration: 0)
+                        LinearKeyframe(b.angle * 0.3, duration: up, timingCurve: .easeOut)
+                        LinearKeyframe(b.angle, duration: down, timingCurve: .easeIn)
+                    }
+                    KeyframeTrack(\.opacity) {
+                        LinearKeyframe(0, duration: 0)
+                        LinearKeyframe(1, duration: up, timingCurve: .easeOut)
+                        LinearKeyframe(0, duration: down, timingCurve: .easeIn)
+                    }
                 }
-                withAnimation(.spring(response: 0.28, dampingFraction: 0.55)) {
-                    iconScale = 1
-                    iconOpacity = 1
-                }
-                withAnimation(.easeIn(duration: 0.35).delay(0.3)) {
-                    iconScale = 0.4
-                    iconOpacity = 0
-                }
-            }
         }
     }
-}
-
-private struct ConfettiPiece: Identifiable {
-    let id = UUID()
-    let color: Color
-    let angle: Double
-    let distance: CGFloat
 }
 
 #Preview {

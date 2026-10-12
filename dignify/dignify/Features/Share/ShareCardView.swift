@@ -88,15 +88,12 @@ struct ShareCardView: View {
         .frame(width: 220, height: 220)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.35), radius: 24, y: 10)
-        // 시그니처 하입 아이콘 배지 — 모서리에 걸쳐 앱 정체성을 드러낸다.
+        // 하입 배지(찬 하트, feed_coachmark 1.1) — 모서리에 걸쳐 앱 정체성을 드러낸다.
         .overlay(alignment: .topTrailing) {
             ZStack {
                 Circle().fill(DSColor.brand)
-                Image("HypeIcon")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 20))
                     .foregroundStyle(.white)
             }
             .frame(width: 46, height: 46)

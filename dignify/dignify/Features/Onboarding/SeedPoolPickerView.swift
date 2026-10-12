@@ -15,13 +15,12 @@ import PostHog
 struct SeedPoolPickerView: View {
     let pool: [API.FeedItem]
 
-    /// 업데이트로 들어온 기존 유저인가. 자기가 요청한 적 없는 화면이 앱을 켜자마자 덮으므로
-    /// "왜 지금 이게 떴는지" 한 줄이 더 붙는다.
+    /// 업데이트로 들어온 기존 유저인가. 계측(`is_update`)에만 쓴다 — 안내 한 줄은 feed_coachmark 1.1에서 뺐다.
     var isUpdate = false
 
-    /// 다 고르고 버튼을 눌렀을 때. 인자는 실제로 고른 곡 수(건너뛰면 0).
+    /// 다 고르고 버튼을 눌렀을 때. 인자는 실제로 고른 곡(건너뛰면 빈 배열) — 온보딩이 「피드 구성 중」에 커버를 쓴다.
     /// 던지면 화면에 에러가 남고 버튼은 다시 눌린다.
-    var onFinish: (Int) async throws -> Void
+    var onFinish: ([API.FeedItem]) async throws -> Void
 
     /// 서버 `SeedTracksUpdateRequest @Size(max)` · `MoodRecommender.SEEDS` · `SeedPickerView.limit`과
     /// 같아야 한다. 더 고르게 두면 시드가 잘려서 유저가 고른 곡 일부가 조용히 버려진다.
@@ -112,22 +111,16 @@ struct SeedPoolPickerView: View {
             }
             .frame(height: 44)
 
-            Text("Which sound pulls you in?")
+            // 한국어 값에 줄바꿈이 들어 있다(「마음에 드는 노래를」 뒤). 그냥 두면 「골라주/세요.」로 끊긴다.
+            Text("Pick up to \(Self.limit) tracks you like.")
                 .font(DSTypography.title1)
                 .tracking(-0.48)
                 .foregroundStyle(DSColor.textPrimary)
-            // 한 줄만 둔다. 고르는 화면에서 규칙을 길게 설명하면 읽기 전에 넘긴다 —
-            // 하입된다는 것도, 피드가 여기서 시작한다는 것도 고르고 나면 겪어서 알게 된다.
-            Text("Tap to listen, then pick up to \(Self.limit).")
+                .fixedSize(horizontal: false, vertical: true)
+            // 한 줄만 둔다. 고르는 화면에서 규칙을 길게 설명하면 읽기 전에 넘긴다.
+            Text("We'll recommend tracks based on your picks.")
                 .font(DSTypography.body)
                 .foregroundStyle(DSColor.textSecondary)
-            // 업데이트 유저에겐 "왜 지금 이게 떴는지"만 한 줄 더 붙는다.
-            if isUpdate {
-                Text("Your feed follows the tracks you hype now.")
-                    .font(DSTypography.caption)
-                    .foregroundStyle(DSColor.textTertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
@@ -357,7 +350,7 @@ struct SeedPoolPickerView: View {
             }
             PostHogSDK.shared.capture("onboarding_seed_done", properties: ["count": picked.count])
             do {
-                try await onFinish(picked.count)
+                try await onFinish(picked)
             } catch {
                 errorMessage = String(localized: "Couldn't save. Please try again.")
             }

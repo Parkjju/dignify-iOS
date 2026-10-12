@@ -273,12 +273,12 @@
         }
       }
     },
-    "All your data, including your picks, hypes, and genres, will be deleted permanently.": {
+    "All your data, including your picks, likes, and genres, will be deleted permanently.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내가 만든 픽·하입·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
+            "value": "내가 만든 픽·좋아요·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
           }
         }
       }
@@ -357,12 +357,12 @@
         }
       }
     },
-    "Because you hyped %@": {
+    "Because you liked %@": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비슷한 하입 곡: %@"
+            "value": "좋아요한 곡과 비슷해요: %@"
           }
         }
       }
@@ -443,6 +443,17 @@
         }
       }
     },
+    "Building a feed that fits your taste": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향에 맞춰 피드를 구성하고 있어요"
+          }
+        }
+      }
+    },
     "Built from synths and machines. Often no vocals at all.": {
       "extractionState": "manual",
       "localizations": {
@@ -460,17 +471,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
-          }
-        }
-      }
-    },
-    "By default the feed follows your three most recent hypes. Open this to pin the tracks it should follow instead.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기본은 최근에 하입한 3곡이에요. 여기서 기준으로 삼을 곡을 직접 고정할 수 있어요."
           }
         }
       }
@@ -512,17 +512,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "피드의 기준이 될 곡을 최대 3곡까지 고를 수 있어요. 고르지 않으면 최근에 하입한 3곡을 기준으로 삼아요."
-          }
-        }
-      }
-    },
-    "Choose what it follows": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기준이 될 곡을 직접 골라요"
           }
         }
       }
@@ -730,17 +719,17 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld곡 더 듣고 %lld개 하입하면 확정돼요."
+            "value": "%lld곡 더 듣고 %lld곡에 좋아요를 누르면 확정돼요."
           }
         }
       }
     },
-    "Dig 10 tracks and hype 3 to reveal it.": {
+    "Dig 10 tracks and like 3 to reveal it.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "트랙 10개를 캐고 3개를 하입하면 공개돼요."
+            "value": "트랙 10개를 캐고 3개에 좋아요를 누르면 공개돼요."
           }
         }
       }
@@ -766,12 +755,12 @@
       }
     },
     "Dignify": {},
-    "Discover indie music and build your own taste.": {
+    "Discover indie music and build your taste.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "인디 음악을 발굴하고 당신만의 취향을 쌓아가세요."
+            "value": "인디 음악을 발굴하고, 취향을 쌓아가요."
           }
         }
       }
@@ -797,12 +786,12 @@
         }
       }
     },
-    "Double-tap to hype": {
+    "Double-tap to like": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "더블 탭으로 하입"
+            "value": "더블 탭으로 좋아요"
           }
         }
       }
@@ -950,6 +939,16 @@
         }
       }
     },
+    "Find my taste": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 취향 찾으러 가기"
+          }
+        }
+      }
+    },
     "Find on YouTube Music": {
       "extractionState": "manual",
       "localizations": {
@@ -972,22 +971,33 @@
         }
       }
     },
-    "Follow my hypes": {
+    "Follow my likes": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입한 곡 따라가기"
+            "value": "좋아요한 곡 따라가기"
           }
         }
       }
     },
-    "Following your hypes": {
+    "Following your likes": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입한 곡 따라가는 중"
+            "value": "좋아요한 곡 따라가는 중"
+          }
+        }
+      }
+    },
+    "Found a track you like!": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마음에 드는 노래를 찾았어요!"
           }
         }
       }
@@ -1173,53 +1183,12 @@
         }
       }
     },
-    "Hype": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입"
-          }
-        }
-      }
-    },
-    "Hype History": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입 기록"
-          }
-        }
-      }
-    },
     "Hype a track right from the lock screen.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
             "value": "잠금화면에서 바로 하입할 수 있어요."
-          }
-        }
-      }
-    },
-    "Hype what you like": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마음에 들면 하입하세요"
-          }
-        }
-      }
-    },
-    "Hyped by": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입한 유저"
           }
         }
       }
@@ -1280,17 +1249,6 @@
         }
       }
     },
-    "It saves the track to your crate, and the feed starts looking for tracks that sound like it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입한 곡은 담은 곡에 모여요. 그리고 피드가 그 곡과 비슷한 소리를 찾아 와요."
-          }
-        }
-      }
-    },
     "Just put me in a good mood": {
       "extractionState": "manual",
       "localizations": {
@@ -1344,13 +1302,32 @@
         }
       }
     },
-    "Liked it? Tap 🔥 — the person who made it sees the count.": {
-      "extractionState": "manual",
+    "Like": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "마음에 들면 🔥를 눌러주세요. 만든 사람에게 개수가 보여요."
+            "value": "좋아요"
+          }
+        }
+      }
+    },
+    "Like History": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요 기록"
+          }
+        }
+      }
+    },
+    "Liked by": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 유저"
           }
         }
       }
@@ -1407,6 +1384,17 @@
         }
       }
     },
+    "Looking for tracks that sound like your picks": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고른 곡과 비슷한 소리를 찾는 중이에요"
+          }
+        }
+      }
+    },
     "Love": {
       "extractionState": "manual",
       "localizations": {
@@ -1418,12 +1406,12 @@
         }
       }
     },
-    "Love a track? Double-tap the card to hype it instantly.": {
+    "Love a track? Double-tap the card to like it instantly.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "마음에 드는 곡이 있나요? 카드를 더블 탭하면 바로 하입할 수 있어요."
+            "value": "마음에 드는 곡이 있나요? 카드를 더블 탭하면 바로 좋아요를 누를 수 있어요."
           }
         }
       }
@@ -1467,17 +1455,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "첫 픽 만들기"
-          }
-        }
-      }
-    },
-    "Make your own": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "직접 만들어보기"
           }
         }
       }
@@ -1622,32 +1599,32 @@
         }
       }
     },
-    "No hyped tracks yet": {
+    "No liked tracks yet": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아직 하입한 트랙이 없어요"
+            "value": "아직 좋아요한 트랙이 없어요"
           }
         }
       }
     },
-    "No hyped tracks yet — search for tracks to add.": {
+    "No liked tracks yet — search for tracks to add.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아직 하입한 곡이 없어요. 검색해서 골라보세요."
+            "value": "아직 좋아요한 곡이 없어요. 검색해서 골라보세요."
           }
         }
       }
     },
-    "No hypes yet": {
+    "No likes yet": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아직 하입한 유저가 없어요"
+            "value": "아직 좋아요한 유저가 없어요"
           }
         }
       }
@@ -1771,12 +1748,12 @@
         }
       }
     },
-    "On, the feed plays tracks that sound like the ones you hyped. Off, it plays anything.": {
+    "On, the feed plays tracks that sound like the ones you liked. Off, it plays anything.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "켜면 하입한 곡과 소리가 비슷한 곡이 나오고, 끄면 조건 없이 아무 곡이나 나와요."
+            "value": "켜면 좋아요한 곡과 소리가 비슷한 곡이 나오고, 끄면 조건 없이 아무 곡이나 나와요."
           }
         }
       }
@@ -1813,12 +1790,12 @@
         }
       }
     },
-    "Or use the hype button": {
+    "Or use the heart button": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 버튼을 눌러도 돼요"
+            "value": "하트 버튼을 눌러도 돼요"
           }
         }
       }
@@ -1877,12 +1854,12 @@
         }
       }
     },
-    "Pick none and the feed follows your %lld most recent hypes, same as before.": {
+    "Pick none and the feed follows your %lld most recent likes, same as before.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아무것도 고르지 않으면 지금까지처럼 최근에 하입한 %lld곡을 기준으로 삼아요."
+            "value": "아무것도 고르지 않으면 지금까지처럼 최근에 좋아요한 %lld곡을 기준으로 삼아요."
           }
         }
       }
@@ -1894,6 +1871,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "이 곡 고르기"
+          }
+        }
+      }
+    },
+    "Pick up to %lld tracks you like.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마음에 드는 노래를\n%lld곡까지 골라주세요."
           }
         }
       }
@@ -2072,17 +2060,6 @@
         }
       }
     },
-    "Put the tracks you've kept together and send out your own pick.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담아둔 곡을 묶어서 나만의 픽을 올려보세요."
-          }
-        }
-      }
-    },
     "Random": {
       "localizations": {
         "ko": {
@@ -2104,13 +2081,13 @@
         }
       }
     },
-    "React with 🔥": {
+    "Ready for the next track?": {
       "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "🔥로 반응하기"
+            "value": "다음 노래로 넘어가 볼까요?"
           }
         }
       }
@@ -2135,12 +2112,12 @@
         }
       }
     },
-    "Remove hype": {
+    "Remove like": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 제거"
+            "value": "좋아요 취소"
           }
         }
       }
@@ -2400,12 +2377,12 @@
         }
       }
     },
-    "See all hypes": {
+    "See all likes": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 기록 전체 보기"
+            "value": "좋아요 기록 전체 보기"
           }
         }
       }
@@ -2436,17 +2413,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "업데이트할 때마다 새로운 기능을 확인할 수 있어요."
-          }
-        }
-      }
-    },
-    "See where the feed came from": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 무엇을 따라가는지"
           }
         }
       }
@@ -2514,17 +2480,6 @@
         }
       }
     },
-    "Share as a card": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "카드로 공유하기"
-          }
-        }
-      }
-    },
     "Share my taste": {
       "localizations": {
         "ko": {
@@ -2556,22 +2511,12 @@
         }
       }
     },
-    "Sign in": {
+    "Sign in to save the tracks you love and build a feed that fits your taste.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "로그인"
-          }
-        }
-      }
-    },
-    "Sign in to hype tracks, personalize your feed, and build your crate.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인하면 트랙에 하입하고, 피드를 취향에 맞추고, 담은 곡을 모아볼 수 있어요."
+            "value": "로그인하면 마음에 드는 노래를 찜하고,\n내 취향에 맞는 피드를 만들 수 있어요."
           }
         }
       }
@@ -2727,12 +2672,23 @@
         }
       }
     },
-    "Switches between hype-based and random": {
+    "Swipe up on the screen.": {
+      "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 기반과 무작위를 번갈아 바꿉니다"
+            "value": "화면을 위로 쓸어 올려보세요"
+          }
+        }
+      }
+    },
+    "Switches between like-based and random": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요 기반과 무작위를 번갈아 바꿉니다"
           }
         }
       }
@@ -2758,34 +2714,12 @@
         }
       }
     },
-    "Tap a track to pin it": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "곡을 누르면 고정돼요"
-          }
-        }
-      }
-    },
     "Tap any track in My Page to play its preview right there.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
             "value": "마이페이지에서 트랙을 누르면 미리듣기를 바로 재생할 수 있어요."
-          }
-        }
-      }
-    },
-    "Tap the cover and the tracks in this pick play one after another.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "커버를 누르면 이 픽에 담긴 곡이 이어서 재생돼요."
           }
         }
       }
@@ -2800,33 +2734,12 @@
         }
       }
     },
-    "Tap the hype button to save any track you like.": {
+    "Tap the heart to save any track you like.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 버튼을 누르면 마음에 드는 곡을 저장할 수 있어요."
-          }
-        }
-      }
-    },
-    "Tap to listen, then pick up to %lld.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "눌러서 들어보고 %lld곡까지 골라주세요."
-          }
-        }
-      }
-    },
-    "Tap to play": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "커버를 눌러 재생"
+            "value": "하트를 누르면 마음에 드는 곡을 저장할 수 있어요."
           }
         }
       }
@@ -2947,28 +2860,6 @@
         }
       }
     },
-    "The feed follows your hypes by default. Switch this off and it plays anything again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드는 기본적으로 하입한 곡을 따라가요. 이 스위치를 끄면 다시 무작위로 재생돼요."
-          }
-        }
-      }
-    },
-    "The feed rebuilds from your pick right away. Pin nothing and it goes back to your three most recent hypes.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장하면 피드가 바로 다시 만들어져요. 아무것도 고르지 않으면 최근에 하입한 3곡으로 돌아가요."
-          }
-        }
-      }
-    },
     "The flow": {
       "extractionState": "manual",
       "localizations": {
@@ -3034,34 +2925,12 @@
         }
       }
     },
-    "Then save": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "그다음 저장하세요"
-          }
-        }
-      }
-    },
     "This nickname is already in use.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
             "value": "이미 사용 중인 닉네임이에요."
-          }
-        }
-      }
-    },
-    "This says whether the feed is following your hypes or playing at random. Tap it to switch.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드가 하입을 따라가는 중인지 무작위인지 여기서 알 수 있어요. 누르면 바뀌어요."
           }
         }
       }
@@ -3171,24 +3040,13 @@
         }
       }
     },
-    "Try one now. Pick up to three, and the feed follows only those instead of your latest hypes.": {
+    "Try tapping twice, quickly.": {
       "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "지금 하나 눌러 보세요. 최대 3곡까지 고를 수 있고, 고르면 최근 하입 대신 그 곡들만 기준이 돼요."
-          }
-        }
-      }
-    },
-    "Turn a pick into an image card and post it to Instagram or anywhere else.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽을 이미지 카드로 만들어 인스타그램 같은 곳에 올릴 수 있어요."
+            "value": "빠르게 두 번 클릭해 볼까요?"
           }
         }
       }
@@ -3204,23 +3062,12 @@
         }
       }
     },
-    "Turn it off any time": {
-      "extractionState": "manual",
+    "Turn on \"Follow my likes\" for these to take effect.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언제든 끌 수 있어요"
-          }
-        }
-      }
-    },
-    "Turn on \"Follow my hypes\" for these to take effect.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "고른 곡이 적용되려면 '하입한 곡 따라가기'를 켜야 해요."
+            "value": "고른 곡이 적용되려면 '좋아요한 곡 따라가기'를 켜야 해요."
           }
         }
       }
@@ -3258,12 +3105,12 @@
         }
       }
     },
-    "Unhype": {
+    "Unlike": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "하입 취소"
+            "value": "좋아요 취소"
           }
         }
       }
@@ -3300,6 +3147,17 @@
         }
       }
     },
+    "Want to go find more tracks that catch your ear?": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "관심이 가는 노래를 더 찾으러 가볼까요?"
+          }
+        }
+      }
+    },
     "We'll confirm this once you've actually dug around a bit.": {
       "extractionState": "manual",
       "localizations": {
@@ -3328,6 +3186,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "추가되면 알림으로 알려드릴게요."
+          }
+        }
+      }
+    },
+    "We'll recommend tracks based on your picks.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 곡을 기준으로 추천해 드릴게요."
           }
         }
       }
@@ -3409,16 +3278,6 @@
         }
       }
     },
-    "Which sound pulls you in?": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어떤 소리가 끌려요?"
-          }
-        }
-      }
-    },
     "With the screen off, each track rolls into the next one on its own.": {
       "localizations": {
         "ko": {
@@ -3472,13 +3331,13 @@
         }
       }
     },
-    "You can hype it again anytime.": {
+    "You can like it again anytime.": {
       "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언제든 다시 하입할 수 있어요."
+            "value": "언제든 다시 좋아요를 누를 수 있어요."
           }
         }
       }
@@ -3553,6 +3412,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "자기 취향을 알고, 거기에 충실해요."
+          }
+        }
+      }
+    },
+    "You liked this track!": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마음에 드는 노래에 좋아요를 눌렀어요!"
           }
         }
       }
@@ -3654,16 +3524,6 @@
         }
       }
     },
-    "Your feed follows the tracks you hype now.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이제 하입한 곡을 기준으로 피드가 만들어져요."
-          }
-        }
-      }
-    },
     "Your feed now follows the tracks you hype: same sound, same mood.": {
       "extractionState": "manual",
       "localizations": {
@@ -3681,16 +3541,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "하입한 트랙을 이제 프로필에서 볼 수 있어요."
-          }
-        }
-      }
-    },
-    "Your hypes": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입한 곡"
           }
         }
       }
@@ -3724,6 +3574,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "예상 유형"
+          }
+        }
+      }
+    },
+    "Your likes": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 곡"
           }
         }
       }

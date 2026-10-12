@@ -22,10 +22,6 @@ struct HypeCollection: View {
     var selection: Binding<Set<Int>>? = nil
     /// 선택 모드에서 고를 수 있는 최대 개수. 서버의 MoodRecommender.SEEDS와 같아야 한다.
     var selectionLimit: Int = 5
-    /// 선택 모드에서 **첫 셀에 코치마크 앵커를 단다.** 유저마다 담은 곡이 달라 셀의 위치와
-    /// 날짜 묶음 수가 제각각이라, 좌표를 적어 두면 누구에게도 안 맞는다. 앵커는 레이아웃이
-    /// 끝난 뒤의 실측이라 목록이 어떻게 생겼든 첫 셀 위에 정확히 앉는다.
-    var coachAnchors: Bool = false
     /// 편집 모드. 켜지면 셀마다 제거 배지가 붙고 탭이 재생 대신 제거로 바뀐다.
     /// 롱프레스는 이 컴포넌트를 처음 쓰는 사람에게 보이지 않아서, 제거하는 길을 눈에 보이게 하나 더 둔다.
     /// 소유는 화면 쪽이다 — 편집 버튼이 네비게이션 바나 섹션 헤더에 서야 하는데 둘 다 이 뷰 바깥이다.
@@ -68,10 +64,10 @@ struct HypeCollection: View {
         // 편집 모드에선 셀 전체가 표적이라 스크롤하다 스친 손가락에도 곡이 빠진다.
         // 롱프레스 액션시트에서 온 제거는 안 묻는다 — 거긴 이미 "하입 제거"를 직접 고른 자리다.
         .alert("Remove this track?", isPresented: removeBinding, presenting: removeTarget) { track in
-            Button("Remove hype", role: .destructive) { removeHype(track) }
+            Button("Remove like", role: .destructive) { removeHype(track) }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("You can hype it again anytime.")
+            Text("You can like it again anytime.")
         }
     }
 
@@ -137,7 +133,6 @@ struct HypeCollection: View {
             guard maxGroups == nil, track.userHypeTrackId == HypeGrouping.pagingAnchor(items) else { return }
             Task { await onReachEnd?() }
         }
-        .coachAnchor(coachAnchors && track.userHypeTrackId == items.first?.userHypeTrackId ? .seedCell : nil)
     }
 
     /// 날짜 한 줄(가로 스크롤). onSeeAll이 있으면(미리보기) 끝에 See all 셀을 붙이고,
@@ -319,7 +314,7 @@ struct HypeCollection: View {
                 removeHype(track)
                 actionTarget = nil
             } label: {
-                actionRow("Remove hype", systemName: "heart.slash", destructive: true)
+                actionRow("Remove like", systemName: "heart.slash", destructive: true)
             }
         }
         .buttonStyle(.plain)

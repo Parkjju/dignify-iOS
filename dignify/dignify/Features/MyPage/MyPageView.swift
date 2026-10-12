@@ -17,10 +17,6 @@ struct MyPageView: View {
     /// 주간으로 보면 한 주 안 들었다고 정체성이 사라졌다 나타났다 한다.
     @State private var confirmedType: DiggingType?
     @State private var diggingModeFailed = false
-    /// 마이페이지 코치마크를 이미 봤는지. 피드를 바꾸는 설정 둘이 그냥 목록의 한 줄로 보인다.
-    @AppStorage("seenMyPageCoach") private var seenMyPageCoach = false
-    /// 프로필을 받아 토글이 실제 값으로 그려진 뒤에 코치마크를 띄우기 위한 표시.
-    @State private var profileLoaded = false
     /// 픽 반응 푸시로 들어왔을 때 디깅 프로필로 밀어 올리는 표시.
     /// `NavigationLink`만으로는 손가락으로 누르는 길밖에 없다. **탭마다 `NavigationStack`은
     /// `MainTabView`가 이미 씌우므로 여기서 또 감싸면 안 된다** — 경로를 들지 않고 `isPresented`를 쓰는 이유다.
@@ -32,8 +28,6 @@ struct MyPageView: View {
     @AppStorage("didSoundRounds") private var didSoundRounds = false
     @AppStorage("lastSeenVersion") private var lastSeenVersion = ""
     @AppStorage("seenFeedCoach") private var seenFeedCoach = false
-    @AppStorage("seenPicksCoach") private var seenPicksCoach = false
-    @AppStorage("seenSeedCoach") private var seenSeedCoach = false
     @State private var debugResetDone = false
     /// 앱 재시작 없이 시드 고르기 화면만 바로 띄운다. nil이면 안 뜬다.
     @State private var debugSeedPool: DebugSeedPool?
@@ -70,11 +64,6 @@ struct MyPageView: View {
             showDiggingProfile = true
         }
         .task { await loadProfile() }
-        // 피드를 바꾸는 설정 둘을 한 번만 짚어 준다. 프로필을 받은 뒤에 띄우는 이유는
-        // 그전엔 토글이 기본값(켜짐)으로 그려져 있어서, 실제 값과 다른 화면을 설명하게 되기 때문이다.
-        .coachMarks(MyPageCoach.steps, screen: "mypage", isActive: !seenMyPageCoach && profileLoaded) {
-            seenMyPageCoach = true
-        }
     }
 
     // MARK: - Profile
@@ -211,11 +200,9 @@ struct MyPageView: View {
             // 1. 기능 — 실제로 무언가를 바꾸는 행들.
             // 이 화면에서 유일하게 피드 자체를 바꾸는 설정이라 묶음 맨 위에 둔다.
             diggingModeRow
-                .coachAnchor(.followSwitch)
             // 껐을 때도 보여준다. 숨기면 기능이 사라진 것처럼 보이는데, 실제로는 다시 켜면
             // 그대로 쓰이는 설정이다. 꺼진 동안 무슨 뜻인지는 그 화면이 설명한다.
             NavigationLink { SeedPickerView() } label: { settingsRow("Recommend from") }
-                .coachAnchor(.seedRow)
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
@@ -272,7 +259,7 @@ struct MyPageView: View {
         } message: {
             // 픽을 빠뜨리면 안 된다 — FK가 ON DELETE CASCADE라 내가 만든 픽과 거기 붙은 반응까지
             // 실제로 사라진다. 남의 지면에 올린 게 없어지는 건 하입이 없어지는 것과 무게가 다르다.
-            Text("All your data, including your picks, hypes, and genres, will be deleted permanently.")
+            Text("All your data, including your picks, likes, and genres, will be deleted permanently.")
         }
     }
 
@@ -317,9 +304,6 @@ struct MyPageView: View {
             didSoundRounds = false          // 시드 고르기를 다시 태운다
             lastSeenVersion = "1.0.10"      // 지금 버전과 달라야 What's New가 뜬다
             seenFeedCoach = false
-            seenMyPageCoach = false
-            seenSeedCoach = false
-            seenPicksCoach = false
             debugResetDone = true
         } label: {
             settingsRow("업데이트 유저 상태로 초기화 (DEBUG)")
@@ -337,12 +321,12 @@ struct MyPageView: View {
     private var diggingModeRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             Toggle(isOn: Binding(get: { appSession.diggingMode }, set: { setDiggingMode($0) })) {
-                Text("Follow my hypes")
+                Text("Follow my likes")
                     .font(.system(size: 15))
                     .foregroundStyle(DSColor.textPrimary)
             }
             .tint(DSColor.brand)
-            Text("On, the feed plays tracks that sound like the ones you hyped. Off, it plays anything.")
+            Text("On, the feed plays tracks that sound like the ones you liked. Off, it plays anything.")
                 .font(DSTypography.caption)
                 .foregroundStyle(DSColor.textTertiary)
             if diggingModeFailed {
@@ -400,7 +384,6 @@ struct MyPageView: View {
             appSession.diggingMode = profile.diggingMode ?? true
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
-        profileLoaded = true
     }
 }
 

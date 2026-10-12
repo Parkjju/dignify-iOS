@@ -35,18 +35,6 @@ struct PickListView: View {
     /// 방금 픽을 올렸는가. 만들기 시트가 **완전히 닫힌 뒤** 물어보려고 잠깐 들고 있는다.
     @State private var justCreatedPick = false
 
-    /// 픽 코치마크를 이미 봤는지. 1회성이라 로컬에만 둔다.
-    /// 다시 보려면 앱을 지우고 깔면 된다.
-    @AppStorage("seenPicksCoach") private var seenPicksCoach = false
-
-    /// 코치마크는 **가리킬 게 실제로 있을 때만** 뜬다. 카드가 없으면 뚫을 자리가 없고,
-    /// 시트·재생 화면이 떠 있으면 그 위에 그려봐야 엉뚱한 자리를 가리킨다.
-    /// 조건이 안 맞으면 본 것으로 치지 않고 다음 진입에 다시 시도한다.
-    private var showsCoach: Bool {
-        !seenPicksCoach && !visiblePicks.isEmpty && !isLoading
-            && playing == nil && menuTarget == nil && blockTarget == nil && !showCompose
-            && !showPushOffer
-    }
 
 #if DEBUG
     init() {}
@@ -144,24 +132,6 @@ struct PickListView: View {
             } message: { _ in
                 Text(blockAlertMessage)
             }
-            // 코치마크는 **맨 바깥**에 올린다. 여기까지 와야 떠 있는 만들기 버튼(`.overlay`)의
-            // 앵커도 같이 읽히고, 오버레이가 그 버튼 위에 덮인다.
-            // 좌표는 한 줄도 안 적는다 — 대상 뷰가 올린 `Anchor<CGRect>`를 여기 `GeometryProxy`가
-            // 자기 좌표계로 풀어주므로 기기 크기·Dynamic Type이 달라져도 구멍이 따라간다.
-            .overlayPreferenceValue(CoachAnchorKey.self) { anchors in
-                GeometryReader { proxy in
-                    if showsCoach {
-                        CoachMarkOverlay(steps: PicksCoach.steps,
-                                         screen: "picks",
-                                         anchors: anchors,
-                                         proxy: proxy) { seenPicksCoach = true }
-                    }
-                }
-                // **`GeometryReader`에 걸어야** 어둠이 화면 끝까지 가면서 `proxy` 좌표계도
-                // 같이 넓어진다. 안쪽 오버레이에만 걸면 좌표계가 안 따라와 구멍과 카드가
-                // 상단 인셋만큼 위로 밀린다.
-                .ignoresSafeArea()
-            }
     }
 
     /// 시스템 large title 대체물. 스크롤 콘텐츠의 첫 요소라 스크롤에 그대로 밀려 올라간다.
@@ -225,8 +195,7 @@ struct PickListView: View {
                             guard requireAccount() else { return }
                             menuStage = .actions
                             menuTarget = pick
-                        },
-                        coachAnchors: index == 0
+                        }
                     )
                     .onAppear {
                         guard pick.pickId == visiblePicks.last?.pickId else { return }
@@ -316,7 +285,6 @@ struct PickListView: View {
             .frame(height: 48)
             .background(DSColor.brand, in: Capsule())
             .shadow(color: DSColor.brand.opacity(0.35), radius: 12, y: 6)
-            .coachAnchor(.compose)
         }
         .buttonStyle(.plain)
         .padding(.bottom, 16)
@@ -854,9 +822,6 @@ struct PickCard: View {
     /// nil이면 반응 버블이 **표시 전용**이 된다(프로필의 내 픽 섹션 — 할 수 있는 건 조회와 삭제뿐).
     let onReact: ((String) -> Void)?
     let onMenu: () -> Void
-    /// 코치마크가 가리킬 카드인가. 목록 첫 장에만 켠다 — 여러 장이 앵커를 올리면
-    /// 어느 카드를 뚫을지가 스크롤 위치에 따라 흔들린다.
-    var coachAnchors: Bool = false
 
     @Environment(AppSession.self) private var session
     /// 렌더가 끝난 공유 카드. 시트는 카드마다 하나씩 붙지만 뜨는 건 누른 카드 하나뿐이다
@@ -959,7 +924,6 @@ struct PickCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture(perform: onPlay)
-        .coachAnchor(coachAnchors ? .play : nil)
     }
 
     /// 버블 행 — 반응·곡 수는 왼쪽, 공유는 오른쪽 끝.
@@ -979,7 +943,6 @@ struct PickCard: View {
                 }
             }
             .animation(.easeOut(duration: 0.15), value: mine)
-            .coachAnchor(coachAnchors ? .react : nil)
             .accessibilityLabel(PickReaction.label)
             .accessibilityValue(Text(verbatim: "\(count)"))
             .accessibilityAddTraits(mine ? .isSelected : [])
@@ -1016,7 +979,6 @@ struct PickCard: View {
             }
             .buttonStyle(.plain)
             .disabled(isPreparingShare)
-            .coachAnchor(coachAnchors ? .share : nil)
             .accessibilityLabel("Share")
         }
     }
