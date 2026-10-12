@@ -30,14 +30,8 @@ struct MyPageView: View {
     @AppStorage("seenFeedCoach") private var seenFeedCoach = false
     @State private var debugResetDone = false
     /// 앱 재시작 없이 시드 고르기 화면만 바로 띄운다. nil이면 안 뜬다.
-    @State private var debugSeedPool: DebugSeedPool?
-    @State private var debugSeedLoading = false
-
-    /// `fullScreenCover(item:)`용 래퍼. 빈 풀도 띄울 수 있어야 "서버가 안 줬을 때" 화면을 본다.
-    private struct DebugSeedPool: Identifiable {
-        let id = UUID()
-        let items: [API.FeedItem]
-    }
+    /// 신규 온보딩(로딩 → 곡 고르기 → 피드 구성 중)을 계정·서버 상태 그대로 둔 채 다시 본다.
+    @State private var debugOnboarding = false
     #endif
 
     var body: some View {
@@ -239,12 +233,10 @@ struct MyPageView: View {
             TutorialView { showTutorial = false }
         }
         #if DEBUG
-        // 온보딩 화면은 신규 가입 때 한 번뿐이라 그대로는 다시 볼 수가 없다.
-        // 여기선 실제 서버 풀을 받아 띄우고, 고른 곡은 **진짜로 하입된다**(온보딩과 같은 경로).
-        .fullScreenCover(item: $debugSeedPool) { payload in
-            SeedPoolPickerView(pool: payload.items, isUpdate: true) { _ in
-                debugSeedPool = nil
-            }
+        // 온보딩은 서버가 계정을 미완료로 줄 때만 타서, 가입한 계정으론 다시 볼 수가 없다.
+        // 미리보기 모드는 완료 처리·로그인 전환을 건너뛴다. 고른 곡은 **진짜로 하입된다**(온보딩과 같은 경로).
+        .fullScreenCover(isPresented: $debugOnboarding) {
+            NewUserOnboardingView(onPreviewFinish: { debugOnboarding = false })
         }
         #endif
         // 같은 뷰에 .sheet 두 개(legalDoc)는 충돌 → 별도 노드에 부착.
@@ -275,20 +267,11 @@ struct MyPageView: View {
     }
 
     #if DEBUG
-    /// 시드 고르기 화면을 앱 재시작 없이 연다. `debugResetRow`는 앱을 껐다 켜야 하는데,
-    /// 화면 자체를 손보는 동안엔 그 왕복이 매번 든다.
+    /// 신규 온보딩을 앱 재시작·계정 삭제 없이 연다. `debugResetRow`는 앱을 껐다 켜야 하는데,
+    /// 화면 자체를 손보는 동안엔 그 왕복이 매번 든다. 피드 구성 중이 끝나면 닫힌다.
     private var debugSeedPickerRow: some View {
-        Button {
-            guard !debugSeedLoading else { return }
-            debugSeedLoading = true
-            Task {
-                let items = await SeedPoolPickerView.fetch(appSession)
-                debugSeedLoading = false
-                debugSeedPool = DebugSeedPool(items: items)
-            }
-        } label: {
-            settingsRow(debugSeedLoading ? "시드 풀 받는 중… (DEBUG)"
-                                         : "온보딩 곡 고르기 열기 (DEBUG)")
+        Button { debugOnboarding = true } label: {
+            settingsRow("신규 온보딩 열기 (DEBUG)")
         }
     }
 

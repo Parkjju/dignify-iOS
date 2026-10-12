@@ -17,6 +17,9 @@ struct NewUserOnboardingView: View {
     @State private var pool: [API.FeedItem]?
     /// 고르기를 마치고 첫 피드를 기다리는 중. 고른 곡 커버를 보여 준다.
     @State private var building: [URL?]?
+    /// DEBUG 미리보기(마이 → 디버그 행). 있으면 서버 완료 처리·로그인 상태를 건드리지 않고
+    /// 피드 구성 중까지만 보여 준 뒤 이걸 부른다. 고른 곡은 실제 온보딩처럼 진짜로 하입된다.
+    var onPreviewFinish: (() -> Void)? = nil
 
     /// 피드 구성 중을 적어도 이만큼은 보여 준다 — 응답이 먼저 와도 화면이 번쩍이고 사라지지 않게.
     private static let minBuildingTime: Duration = .seconds(2)
@@ -41,13 +44,19 @@ struct NewUserOnboardingView: View {
     /// 피드 응답은 `prefetchedFeed`로 넘긴다 — 피드가 같은 요청을 또 보내지 않는다.
     /// 피드를 못 받아도 그대로 넘어간다. 피드 화면이 자기 재시도 버튼을 갖고 있다.
     private func complete(_ picked: [API.FeedItem]) async throws {
-        try await appSession.api.send(.completeOnboarding)
+        if onPreviewFinish == nil {
+            try await appSession.api.send(.completeOnboarding)
+        }
         withAnimation(.easeOut(duration: 0.25)) {
             building = picked.map { $0.artworkUrl.itunesArtworkURL(size: 300) }
         }
         async let minimum: Void = Task.sleep(for: Self.minBuildingTime)
         let feed = try? await appSession.api.send(.feed(), as: API.FeedResponse.self)
         try? await minimum
+        if let onPreviewFinish {
+            onPreviewFinish()
+            return
+        }
         appSession.prefetchedFeed = feed
         // 업데이트 유저용 1회 트리거(MainTabView)가 이 유저에게 또 걸리지 않게 같이 내린다.
         UserDefaults.standard.set(true, forKey: "didSoundRounds")
