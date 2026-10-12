@@ -19,7 +19,7 @@ struct NewUserOnboardingView: View {
     @State private var building: [URL?]?
 
     /// 피드 구성 중을 적어도 이만큼은 보여 준다 — 응답이 먼저 와도 화면이 번쩍이고 사라지지 않게.
-    private static let minBuildingTime: Duration = .seconds(1)
+    private static let minBuildingTime: Duration = .seconds(2)
 
     var body: some View {
         Group {

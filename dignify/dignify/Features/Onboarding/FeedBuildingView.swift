@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 피드 구성 중 — 추천 기준 곡을 고른 직후 첫 피드를 받는 동안. 고른 곡이 피드를 만든다는 걸 보여 준다.
-/// 명세: dignify-design `components/feed-building/feed-building.md`. 노출 시간(최소 1초)은 부르는 쪽이 정한다.
+/// 명세: dignify-design `components/feed-building/feed-building.md`. 노출 시간(최소 2초)은 부르는 쪽이 정한다.
 struct FeedBuildingView: View {
     /// 고른 곡 커버. 앞에서 최대 3장.
     let covers: [URL?]
