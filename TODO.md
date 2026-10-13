@@ -7,13 +7,18 @@
 > 시안 버전별로 화면 id · AS-IS · TO-BE · 앱 파일 위치가 적혀 있다. 아래 버전부터 차례로 반영하고, 끝나면 그 버전 상태를 「반영됨 (iOS x.y.z)」로 바꾼다.
 > 수치·동작은 각 항목이 가리키는 `../dignify-design/components/<이름>/<이름>.md` 명세를 따른다.
 
-## 🎨 디자인 반영 대기 — feed_coachmark 1.3 (2026-10-12, 상세는 위 문서 1.3 절)
+## 🎨 1.3.1 (빌드 26) — feed_coachmark 1.3 (2026-10-12, 상세는 위 문서 1.3 절)
+
+**1.3.0(빌드 25)은 `55ae9d8`~`7c7b56d`(1.0~1.2)로 이미 올렸다. 아래는 그다음 1.3.1로 나간다.**
+버전·빌드 번호와 앱 안 노트(`Changelog` 1.3.1, 문자열 2개)는 넣어 뒀다. 스토어 노트(`marketing/appstore/copy.md`)는 아직.
+
 
 - [x] 온보딩 곡 고르기: 3곡 다 고르면 안 고른 타일 연한 회색 비활성(미리듣기는 됨) — `SeedPoolPickerView.swift`
 - [x] 온보딩 곡 고르기: 「디깅 시작」 위 고른 곡 트레이(n/3 · 커버 3칸 + 순서 번호 + ✕, 빈 칸 점선). 커버 탭 → 그 곡으로 스크롤·강조 — `SeedPoolPickerView.swift`
 - [x] 마이 「추천 기준 곡」: 같은 비활성 + 탭바 위 떠 있는 트레이(순서 번호 없음) — `SeedPickerView.swift`
 - [x] 마이 「사용법」 메뉴 삭제 — 예전 튜토리얼 카드가 열림. `MyPageView.swift` 버튼·`showTutorial`, 남는 곳 없으면 `TutorialView.swift`·문자열 키까지
-- [ ] 끝나면 `../dignify-design/app-changes.mdx` 1.3 상태에 iOS 버전 적기 — 코드는 들어갔고(공용 `Onboarding/SeedTray.swift`, `HypeCollection`에 비활성·`focusedId`) 빌드·실기기 확인 뒤 적는다. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
+- [ ] 스토어 출시 노트 1.3.1 절 쓰기
+- [ ] 끝나면 `../dignify-design/app-changes.mdx` 1.3 상태에 「iOS 1.3.1」 적기 — 코드는 들어갔고(공용 `Onboarding/SeedTray.swift`, `HypeCollection`에 비활성·`focusedId`) 빌드·실기기 확인 뒤 적는다. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
 
 ## 🚀 1.3.0 (빌드 25) 제출 전 — feed_coachmark 1.0~1.2 반영 완료 (2026-10-12)
 

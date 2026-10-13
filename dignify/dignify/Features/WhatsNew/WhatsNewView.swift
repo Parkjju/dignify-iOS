@@ -10,6 +10,10 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.3.1", notes: [
+            "Tracks you pick now sit in a tray at the bottom. Tap one to jump to it, or ✕ to remove it.",
+            "Once you've picked 3 tracks, the rest dim out.",
+        ]),
         Release(version: "1.3.0", notes: [
             "Hype is now Like. Tap the heart or double-tap a track to save it.",
             "Track details moved to the ••• button under the artwork.",

@@ -1720,6 +1720,17 @@
         }
       }
     },
+    "Once you've picked 3 tracks, the rest dim out.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3곡을 다 고르면 나머지 곡은 흐리게 바뀌어요."
+          }
+        }
+      }
+    },
     "One lane, all the way down": {
       "extractionState": "manual",
       "localizations": {
@@ -2941,6 +2952,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "앱을 나가거나 화면을 꺼도 노래가 계속 나와요."
+          }
+        }
+      }
+    },
+    "Tracks you pick now sit in a tray at the bottom. Tap one to jump to it, or ✕ to remove it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고른 곡이 아래 칸에 모여요. 누르면 그 곡으로 가고, ✕로 바로 뺄 수 있어요."
           }
         }
       }
