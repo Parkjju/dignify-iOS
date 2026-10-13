@@ -7,10 +7,23 @@
 > 시안 버전별로 화면 id · AS-IS · TO-BE · 앱 파일 위치가 적혀 있다. 아래 버전부터 차례로 반영하고, 끝나면 그 버전 상태를 「반영됨 (iOS x.y.z)」로 바꾼다.
 > 수치·동작은 각 항목이 가리키는 `../dignify-design/components/<이름>/<이름>.md` 명세를 따른다.
 
-## 🎨 디자인 반영 대기 — feed_coachmark 1.2 (2026-10-12, 상세는 위 문서 1.2 절)
+## 🎨 디자인 반영 대기 — feed_coachmark 1.3 (2026-10-12, 상세는 위 문서 1.3 절)
 
-- [ ] 좋아요 누르면 아트워크 가운데 큰 하트 팝(일반 피드·코치마크 공용 모션 하나로)
-- [ ] Picks·마이·추천 기준 곡 설명 카드 코치마크 삭제 — 남는 코치마크는 피드 제스처 하나. 플래그·디버그 리셋·`CoachMarks` 파일까지 정리
+- [x] 온보딩 곡 고르기: 3곡 다 고르면 안 고른 타일 연한 회색 비활성(미리듣기는 됨) — `SeedPoolPickerView.swift`
+- [x] 온보딩 곡 고르기: 「디깅 시작」 위 고른 곡 트레이(n/3 · 커버 3칸 + 순서 번호 + ✕, 빈 칸 점선). 커버 탭 → 그 곡으로 스크롤·강조 — `SeedPoolPickerView.swift`
+- [x] 마이 「추천 기준 곡」: 같은 비활성 + 탭바 위 떠 있는 트레이(순서 번호 없음) — `SeedPickerView.swift`
+- [x] 마이 「사용법」 메뉴 삭제 — 예전 튜토리얼 카드가 열림. `MyPageView.swift` 버튼·`showTutorial`, 남는 곳 없으면 `TutorialView.swift`·문자열 키까지
+- [ ] 끝나면 `../dignify-design/app-changes.mdx` 1.3 상태에 iOS 버전 적기 — 코드는 들어갔고(공용 `Onboarding/SeedTray.swift`, `HypeCollection`에 비활성·`focusedId`) 빌드·실기기 확인 뒤 적는다. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
+
+## 🚀 1.3.0 (빌드 25) 제출 전 — feed_coachmark 1.0~1.2 반영 완료 (2026-10-12)
+
+코드·버전·What's New·스토어 노트(`marketing/appstore/copy.md` 1.3.0 절)까지 들어갔다. 남은 것:
+
+- [ ] 빌드·테스트(유닛 + UI 게스트 경로). **Xcode를 껐다 켠 뒤** 빌드 — 카탈로그를 파일로 고쳤다. 빌드 후 `Localizable.xcstrings` diff에서 ko 값이 비면 Xcode가 덮어쓴 것
+- [ ] 실기기 확인: 제스처 코치마크 3단계(더블탭 → 좋아요 → 스와이프, 화면 힌트 중간에 잡기), 좋아요 큰 하트·조각 시간표, 피드 상단 한 줄·하단 •••, 게스트 첫 좋아요가 로그인 뒤 저장되는지
+- [ ] 신규 온보딩은 마이 → 「신규 온보딩 열기 (DEBUG)」로 본다(계정 삭제 없이). 고른 곡은 진짜로 하입된다
+- [ ] 스토어 설명 문안의 「하입」(「하입이 피드를 만듭니다」·"Your hypes build the feed") → 좋아요로 맞출지
+- [ ] PostHog: `coach_shown`/`coach_finished`가 이제 `screen: "feed"`만 남는다 — picks·mypage·seed_picker로 나눠 보던 인사이트 정리
 
 ---
 

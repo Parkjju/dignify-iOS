@@ -27,6 +27,8 @@ struct SeedPickerView: View {
     @State private var isSaving = false
     @State private var loadFailed = false
     @State private var saveFailed = false
+    /// 트레이에서 커버를 누른 곡. 0.6s 강조한 뒤 비운다.
+    @State private var focusedId: Int?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -89,13 +91,52 @@ struct SeedPickerView: View {
                 .foregroundStyle(DSColor.textSecondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                HypeCollection(items: $items,
-                               onReachEnd: { await loadMore() },
-                               selection: $selected,
-                               selectionLimit: Self.limit)
-                    .padding(.top, 8)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    HypeCollection(items: $items,
+                                   onReachEnd: { await loadMore() },
+                                   selection: $selected,
+                                   selectionLimit: Self.limit,
+                                   focusedId: focusedId)
+                        .padding(.top, 8)
+                }
+                // 인셋이라 목록 맨 아래에 트레이 높이만큼 여백이 생겨 마지막 줄이 안 가려진다.
+                .safeAreaInset(edge: .bottom) { tray(proxy) }
             }
+        }
+    }
+
+    /// 탭바 위에 떠 있는 고른 곡 카드. 체크 표시 화면이라 순서 번호는 없다.
+    private func tray(_ proxy: ScrollViewProxy) -> some View {
+        let byId = Dictionary(items.map { ($0.trackId, $0) }, uniquingKeysWith: { a, _ in a })
+        // Set이라 순서가 없다 — 목록에 보이는 순서(최신 하입 먼저)를 따른다.
+        // ponytail: 첫 페이지 밖에 고정된 곡은 커버를 모른다. 빈 커버로 두고, 페이지를 더 받으면 채워진다.
+        let known = items.map(\.trackId).filter(selected.contains)
+        let slots = (known + selected.subtracting(known).sorted()).map {
+            SeedTray.Slot(id: $0, artworkUrl: byId[$0]?.artworkUrl ?? "")
+        }
+        return SeedTray(slots: slots, limit: Self.limit, numbered: false,
+                        onTap: { focus($0, proxy) },
+                        onRemove: { selected.remove($0) })
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(DSColor.surface, in: RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+    }
+
+    /// 그 곡이 있는 날짜 줄로 세로 스크롤한 뒤, 줄 안에서 가로로 셀을 보이게 한다.
+    private func focus(_ id: Int, _ proxy: ScrollViewProxy) {
+        guard let track = items.first(where: { $0.trackId == id }) else { return }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            proxy.scrollTo(Calendar.current.startOfDay(for: track.hypedAt), anchor: .center)
+            proxy.scrollTo(id, anchor: .center)
+        }
+        focusedId = id
+        Task {
+            try? await Task.sleep(for: .seconds(0.6))
+            if focusedId == id { focusedId = nil }
         }
     }
 

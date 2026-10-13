@@ -38,8 +38,8 @@ struct SeedPoolPickerView: View {
     @State private var isSearching = false
     @State private var isSubmitting = false
     @State private var errorMessage: String?
-    /// 상한을 넘겨 눌렀을 때만 잠깐 뜬다. 아무 일도 안 일어나면 고장으로 읽힌다.
-    @State private var limitHint = false
+    /// 트레이에서 커버를 누른 곡. 그리드를 거기로 스크롤하고 0.6s 강조한 뒤 비운다.
+    @State private var focusedId: Int?
 
     /// 검색에서 고른 곡은 풀에 없을 수 있다. 앞에 붙여두지 않으면 검색어를 지우는 순간
     /// 화면에서 사라져 어디로 갔는지 알 수 없다(픽 만들기와 같은 규칙).
@@ -129,8 +129,22 @@ struct SeedPoolPickerView: View {
 
     // MARK: - Grid
 
-    @ViewBuilder
+    /// 트레이 커버 탭이 스크롤할 수 있게 감싼다. 검색 결과에서 풀로 돌아오면 ScrollView가 새로 생기므로
+    /// 한 박자 미뤄서 스크롤한다.
     private var grid: some View {
+        ScrollViewReader { proxy in
+            gridContent
+                .onChange(of: focusedId) { _, id in
+                    guard let id else { return }
+                    DispatchQueue.main.async {
+                        withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .center) }
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var gridContent: some View {
         if isSearching {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if gridItems.isEmpty {
@@ -142,7 +156,7 @@ struct SeedPoolPickerView: View {
                 }
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3),
                           spacing: 16) {
-                    ForEach(gridItems, id: \.trackId) { cell($0) }
+                    ForEach(gridItems, id: \.trackId) { cell($0).id($0.trackId) }
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
@@ -184,34 +198,44 @@ struct SeedPoolPickerView: View {
     private func cell(_ item: API.FeedItem) -> some View {
         let number = selected.firstIndex { $0.trackId == item.trackId }.map { $0 + 1 }
         let isPlaying = audio.activeTrackId == item.trackId && !audio.isPaused
+        // 3곡이 다 차면 나머지는 못 고른다는 걸 회색으로 보여 준다. 미리듣기는 그대로 된다 —
+        // 바꿀 곡을 들어 보고 트레이에서 하나를 빼면 바로 풀린다.
+        let disabled = number == nil && selected.count >= Self.limit
         return VStack(alignment: .leading, spacing: 6) {
-            artwork(item, number: number, isPlaying: isPlaying)
-            Text(verbatim: item.trackName)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(DSColor.textPrimary)
-                .lineLimit(1)
-            Text(verbatim: item.artistName)
-                .font(.system(size: 10.5))
-                .foregroundStyle(DSColor.textTertiary)
-                .lineLimit(1)
+            artwork(item, number: number, isPlaying: isPlaying, disabled: disabled)
+            Group {
+                Text(verbatim: item.trackName)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(disabled ? DSColor.textTertiary : DSColor.textPrimary)
+                Text(verbatim: item.artistName)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(DSColor.textTertiary)
+            }
+            .lineLimit(1)
+            .opacity(disabled ? 0.6 : 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: "\(item.trackName), \(item.artistName)"))
         .accessibilityAddTraits(number != nil ? .isSelected : [])
     }
 
-    private func artwork(_ item: API.FeedItem, number: Int?, isPlaying: Bool) -> some View {
+    private func artwork(_ item: API.FeedItem, number: Int?, isPlaying: Bool, disabled: Bool) -> some View {
         RemoteImage(url: item.artworkUrl.itunesArtworkURL(size: 300)) { DSColor.surface }
             .scaledToFill()
             .aspectRatio(1, contentMode: .fill)
+            .saturation(disabled ? 0 : 1)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             // 재생 표시를 재생 중일 때만 띄우면 눌러서 들어보는 자리라는 걸 아무도 모른다.
             .overlay {
                 ZStack {
-                    Color.black.opacity(isPlaying ? 0.45 : 0.22)
+                    if disabled {
+                        DSColor.background.opacity(0.6)
+                    } else {
+                        Color.black.opacity(isPlaying ? 0.45 : 0.22)
+                    }
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(.white.opacity(isPlaying ? 1 : 0.85))
+                        .foregroundStyle(disabled ? DSColor.textTertiary : .white.opacity(isPlaying ? 1 : 0.85))
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
@@ -222,11 +246,21 @@ struct SeedPoolPickerView: View {
                         .fill(DSColor.brand.opacity(0.55))
                 }
             }
+            // 트레이에서 눌러 온 곡. 스크롤이 멈춘 자리에서 어느 타일인지 바로 보이게.
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(DSColor.brand, lineWidth: 3)
+                    .opacity(focusedId == item.trackId ? 1 : 0)
+                    .animation(.easeOut(duration: 0.3), value: focusedId)
+            }
             .contentShape(Rectangle())
             .onTapGesture { play(item) }
-            .overlay(alignment: .topTrailing) { selectButton(item, number: number) }
+            .overlay(alignment: .topTrailing) {
+                if !disabled { selectButton(item, number: number) }
+            }
             .animation(.easeOut(duration: 0.12), value: number)
             .animation(.easeOut(duration: 0.12), value: isPlaying)
+            .animation(.easeOut(duration: 0.12), value: disabled)
     }
 
     private func selectButton(_ item: API.FeedItem, number: Int?) -> some View {
@@ -255,12 +289,11 @@ struct SeedPoolPickerView: View {
     // MARK: - Bottom
 
     private var bottomBar: some View {
-        VStack(spacing: 8) {
-            if limitHint {
-                Text("Up to \(Self.limit) tracks.")
-                    .font(DSTypography.caption)
-                    .foregroundStyle(DSColor.textTertiary)
-            }
+        VStack(spacing: 12) {
+            SeedTray(slots: selected.map { .init(id: $0.trackId, artworkUrl: $0.artworkUrl) },
+                     limit: Self.limit,
+                     onTap: { focus($0) },
+                     onRemove: { id in selected.removeAll { $0.trackId == id } })
             if let errorMessage {
                 Text(errorMessage)
                     .font(DSTypography.caption)
@@ -281,7 +314,7 @@ struct SeedPoolPickerView: View {
         .padding(.top, 12)
         .padding(.bottom, 24)
         .background(DSColor.background)
-        .overlay(alignment: .top) { Divider().opacity(0.6) }
+        .overlay(alignment: .top) { Rectangle().fill(DSColor.divider).frame(height: 1) }
     }
 
     // MARK: - Actions
@@ -303,11 +336,8 @@ struct SeedPoolPickerView: View {
             selected.remove(at: index)
             return
         }
-        guard selected.count < Self.limit else {
-            withAnimation { limitHint = true }
-            return
-        }
-        limitHint = false
+        // 다 차면 고르기 원이 숨으니 여기까지 오지 않는다. 막는 건 남겨 둔다.
+        guard selected.count < Self.limit else { return }
         selected.append(item)
         // **검색에서 고른 비율이 이 개편의 핵심 질문이다** — 높으면 고정 풀이 취향을 못 덮고 있다는 뜻이다.
         PostHogSDK.shared.capture("onboarding_seed_selected", properties: [
@@ -315,6 +345,19 @@ struct SeedPoolPickerView: View {
             "from": activeQuery.isEmpty ? "pool" : "search",
             "selected_count": selected.count,
         ])
+    }
+
+    /// 트레이 커버 탭. 검색 결과를 보는 중이면 풀로 돌아간다 — 고른 곡은 풀 앞에 붙어 있어서 거기 반드시 있다.
+    private func focus(_ id: Int) {
+        if !activeQuery.isEmpty {
+            searchText = ""
+            activeQuery = ""
+        }
+        focusedId = id
+        Task {
+            try? await Task.sleep(for: .seconds(0.6))
+            if focusedId == id { focusedId = nil }
+        }
     }
 
     private func runSearch() {

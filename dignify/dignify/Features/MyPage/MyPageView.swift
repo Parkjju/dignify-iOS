@@ -9,7 +9,6 @@ struct MyPageView: View {
     @State private var nickError: String?
 
     @State private var showWithdrawAlert = false
-    @State private var showTutorial = false
     @State private var showWhatsNew = false
     @State private var legalDoc: LegalDocument?
 
@@ -204,7 +203,6 @@ struct MyPageView: View {
             groupDivider
 
             // 2. 안내 — 읽기만 하는 행들. 인스타도 "우리를 더 보는" 자리라 여기 묶인다.
-            Button { showTutorial = true } label: { settingsRow("How to Use") }
             Button { showWhatsNew = true } label: { settingsRow("What's New") }
             // Link는 유니버설 링크라 인스타 앱이 있으면 앱으로, 없으면 사파리로 알아서 간다.
             Link(destination: instagramURL) { settingsRow("dignify on Instagram") }
@@ -229,9 +227,6 @@ struct MyPageView: View {
         }
         .buttonStyle(.plain)
         .sheet(item: $legalDoc) { SafariView(url: $0.url) }
-        .fullScreenCover(isPresented: $showTutorial) {
-            TutorialView { showTutorial = false }
-        }
         #if DEBUG
         // 온보딩은 서버가 계정을 미완료로 줄 때만 타서, 가입한 계정으론 다시 볼 수가 없다.
         // 미리보기 모드는 완료 처리·로그인 전환을 건너뛴다. 고른 곡은 **진짜로 하입된다**(온보딩과 같은 경로).

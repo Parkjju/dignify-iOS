@@ -786,16 +786,6 @@
         }
       }
     },
-    "Double-tap to like": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "더블 탭으로 좋아요"
-          }
-        }
-      }
-    },
     "Driving": {
       "extractionState": "manual",
       "localizations": {
@@ -1077,16 +1067,6 @@
         }
       }
     },
-    "Get started": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "시작하기"
-          }
-        }
-      }
-    },
     "Give it a few more listens first": {
       "extractionState": "manual",
       "localizations": {
@@ -1169,16 +1149,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "세는 기준"
-          }
-        }
-      }
-    },
-    "How to Use": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "사용법"
           }
         }
       }
@@ -1396,16 +1366,6 @@
         }
       }
     },
-    "Long-press a track in My Page to open details or remove it.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마이페이지에서 트랙을 길게 누르면 상세 정보를 보거나 삭제할 수 있어요."
-          }
-        }
-      }
-    },
     "Looking for tracks that sound like your picks": {
       "extractionState": "manual",
       "localizations": {
@@ -1424,16 +1384,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "좋다"
-          }
-        }
-      }
-    },
-    "Love a track? Double-tap the card to like it instantly.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마음에 드는 곡이 있나요? 카드를 더블 탭하면 바로 좋아요를 누를 수 있어요."
           }
         }
       }
@@ -1498,16 +1448,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "일단 틀어나 본다"
-          }
-        }
-      }
-    },
-    "Missing an artist?": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "찾는 아티스트가 없나요?"
           }
         }
       }
@@ -1812,16 +1752,6 @@
         }
       }
     },
-    "Or use the heart button": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하트 버튼을 눌러도 돼요"
-          }
-        }
-      }
-    },
     "Packed with hooks, switches lanes mid-song, made to be watched too.": {
       "extractionState": "manual",
       "localizations": {
@@ -1943,16 +1873,6 @@
         }
       }
     },
-    "Play from My Page": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마이페이지에서 바로 재생"
-          }
-        }
-      }
-    },
     "Please try again in a moment.": {
       "extractionState": "manual",
       "localizations": {
@@ -1992,16 +1912,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "올리는 중…"
-          }
-        }
-      }
-    },
-    "Press and hold in My Page": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마이페이지에서 길게 누르기"
           }
         }
       }
@@ -2071,17 +1981,6 @@
         }
       }
     },
-    "Put a few tracks together in the Picks tab. Other people can play it and react with 🔥.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽 탭에서 좋아하는 곡을 묶어 올릴 수 있어요. 다른 사람이 듣고 🔥로 반응해요."
-          }
-        }
-      }
-    },
     "Random": {
       "localizations": {
         "ko": {
@@ -2140,6 +2039,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "좋아요 취소"
+          }
+        }
+      }
+    },
+    "Remove one to swap": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "바꾸려면 빼 주세요"
           }
         }
       }
@@ -2379,16 +2289,6 @@
         }
       }
     },
-    "Search for them and tap Request — or add one from Artist Requests in My Page.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "검색 후 요청 버튼을 누르거나, 마이페이지의 아티스트 요청에서 추가할 수 있어요."
-          }
-        }
-      }
-    },
     "See all": {
       "localizations": {
         "ko": {
@@ -2415,16 +2315,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "많이 들은 장르와 실제로 담은 장르의 차이를 보여줘요."
-          }
-        }
-      }
-    },
-    "See track details": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "트랙 정보 보기"
           }
         }
       }
@@ -2456,6 +2346,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "곡을 선택해주세요"
+          }
+        }
+      }
+    },
+    "Selected tracks": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 곡"
           }
         }
       }
@@ -2736,32 +2637,13 @@
         }
       }
     },
-    "Tap any track in My Page to play its preview right there.": {
+    "Tap to jump to it": {
+      "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "마이페이지에서 트랙을 누르면 미리듣기를 바로 재생할 수 있어요."
-          }
-        }
-      }
-    },
-    "Tap the disc icon to view full info and where to listen.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디스크 아이콘을 누르면 상세 정보와 감상할 수 있는 곳을 볼 수 있어요."
-          }
-        }
-      }
-    },
-    "Tap the heart to save any track you like.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하트를 누르면 마음에 드는 곡을 저장할 수 있어요."
+            "value": "누르면 그 곡으로 가요"
           }
         }
       }

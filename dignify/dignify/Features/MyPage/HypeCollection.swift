@@ -26,6 +26,9 @@ struct HypeCollection: View {
     /// 롱프레스는 이 컴포넌트를 처음 쓰는 사람에게 보이지 않아서, 제거하는 길을 눈에 보이게 하나 더 둔다.
     /// 소유는 화면 쪽이다 — 편집 버튼이 네비게이션 바나 섹션 헤더에 서야 하는데 둘 다 이 뷰 바깥이다.
     var isEditing: Bool = false
+    /// 강조할 곡(추천 기준 곡 트레이에서 누른 곡). 셀·날짜 줄에 `.id`가 붙어 있어서 바깥 `ScrollViewReader`가
+    /// `trackId`로 세로·가로를 스크롤한다.
+    var focusedId: Int? = nil
 
     @State private var audio = FeedAudioController()
     @State private var detailTarget: DetailTarget?
@@ -43,9 +46,10 @@ struct HypeCollection: View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(groups) { group in
                 DayRow(group: group, onSeeAll: onSeeAll) { track in
-                    cell(track)
+                    cell(track).id(track.trackId)
                 }
                 .padding(.bottom, 20)
+                .id(group.id)
             }
         }
         .onDisappear { audio.stop() }
@@ -77,6 +81,9 @@ struct HypeCollection: View {
 
     private func cell(_ track: API.HypeItem) -> some View {
         let isPlaying = audio.activeTrackId == track.trackId && !audio.isPaused
+        // 선택 모드에서 상한이 차면 안 고른 셀은 회색 — 탭해도 안 골라진다는 걸 미리 보여 준다.
+        let isSelected = selection?.wrappedValue.contains(track.trackId) == true
+        let disabled = selection.map { !isSelected && $0.wrappedValue.count >= selectionLimit } ?? false
         return VStack(alignment: .leading, spacing: 6) {
             AsyncImage(url: URL(string: track.artworkUrl)) { image in
                 image.resizable().scaledToFill()
@@ -85,6 +92,14 @@ struct HypeCollection: View {
             }
             .frame(width: 72, height: 72)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .saturation(disabled ? 0 : 1)
+            .opacity(disabled ? 0.4 : 1)
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(DSColor.brand, lineWidth: 3)
+                    .opacity(focusedId == track.trackId ? 1 : 0)
+                    .animation(.easeOut(duration: 0.3), value: focusedId)
+            }
             .overlay {
                 if isPlaying {
                     ZStack {
@@ -97,19 +112,22 @@ struct HypeCollection: View {
                 }
             }
 
-            Text(track.trackName)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(DSColor.textPrimary)
-                .lineLimit(1)
-            Text(track.artistName)
-                .font(.system(size: 10))
-                .foregroundStyle(DSColor.textTertiary)
-                .lineLimit(1)
+            Group {
+                Text(track.trackName)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(disabled ? DSColor.textTertiary : DSColor.textPrimary)
+                Text(track.artistName)
+                    .font(.system(size: 10))
+                    .foregroundStyle(DSColor.textTertiary)
+            }
+            .lineLimit(1)
+            .opacity(disabled ? 0.6 : 1)
         }
         .frame(width: 72)
+        .animation(.easeOut(duration: 0.12), value: disabled)
         .overlay(alignment: .topLeading) {
-            if let selection {
-                selectionBadge(isOn: selection.wrappedValue.contains(track.trackId))
+            if selection != nil {
+                if !disabled { selectionBadge(isOn: isSelected) }
             } else if isEditing {
                 removeBadge
             }
