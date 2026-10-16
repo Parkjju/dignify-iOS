@@ -1106,7 +1106,10 @@ struct FeedView: View {
     ///
     /// currentIndex가 아니라 trackId 위치로 판정한다 — dwell은 트랙을 떠난 뒤에 발사돼서
     /// currentIndex가 이미 다음 트랙으로 넘어가 있다.
+    /// 픽 재생도 이 화면을 쓰므로 맨 먼저 "pick"으로 가른다(1.3.1부터). 그 전 빌드에선
+    /// 픽 청취가 "feed"로 섞여 있다.
     private func source(for trackId: Int) -> String {
+        if case .pick = mode { return "pick" }
         if !activeQuery.isEmpty { return "search" }
         guard let index = feedList.firstIndex(where: { $0.trackId == trackId }) else { return "feed" }
         return (curationCount > 0 && index < curationCount) ? "curation" : "feed"

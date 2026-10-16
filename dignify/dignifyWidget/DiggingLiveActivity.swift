@@ -25,6 +25,7 @@ struct DiggingLiveActivity: Widget {
             .padding(.vertical, 12)
             .activityBackgroundTint(.black.opacity(0.6))
             .activitySystemActionForegroundColor(.white)
+            .widgetURL(Self.openURL)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -49,8 +50,12 @@ struct DiggingLiveActivity: Widget {
             } minimal: {
                 hypeIcon(isHyped: context.state.isHyped, size: 16)
             }
+            .widgetURL(Self.openURL)
         }
     }
+
+    /// 탭해서 앱을 열면 `app_opened_now_playing`으로 갈린다. 없으면 아이콘 실행과 구분이 안 된다.
+    private static let openURL = URL(string: "dignify://now-playing")
 }
 
 /// 앱 피드 버튼과 같은 하트(feed_coachmark 1.1부터, 이전 삽)·같은 브랜드 색. SF Symbol이라 에셋 복사가 필요 없다.

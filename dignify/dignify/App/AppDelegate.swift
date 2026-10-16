@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         let type = response.notification.request.content.userInfo["type"] as? String ?? "unknown"
-        PostHogSDK.shared.capture("push_opened", properties: ["type": type])
+        Task { @MainActor in AppOpenTracker.opened(by: "app_opened_push", properties: ["type": type]) }
         switch type {
         case "curation":
             Task { @MainActor in

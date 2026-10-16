@@ -20,6 +20,14 @@
 - [x] 스토어 출시 노트 1.3.1 절 쓰기
 - [ ] 끝나면 `../dignify-design/app-changes.mdx` 1.3 상태에 「iOS 1.3.1」 적기 — 코드는 들어갔고(공용 `Onboarding/SeedTray.swift`, `HypeCollection`에 비활성·`focusedId`) 빌드·실기기 확인 뒤 적는다. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
 
+### 📊 1.3.1 계측 변경 (2026-10-16, 안드로이드와 같은 이름 — 판독 규칙은 `../09_analytics_queries.md` 규칙 18·B-2)
+
+- [x] 픽 안 청취 분리: `source(for:)`가 픽 모드면 `"pick"`(`FeedView.swift`). `track_viewed`·`track_listened`·`track_dwell`·`track_playback_started`·`track_hyped` 전부. 이전 빌드는 픽 청취가 `"feed"`에 섞여 있다
+- [x] `push_opened` 삭제 → 실행 경로 이벤트 `app_opened_push{type}`·`app_opened_now_playing`·`app_opened_link`·`app_opened_direct`(`App/AppOpenTracker.swift`). 앞으로 나온 뒤 2초 기다렸다 판정. 앱 보던 중 배너 탭은 안 센다. SDK `Application Opened`는 그대로
+  - Live Activity에 `widgetURL(dignify://now-playing)`, Info.plist에 `dignify` URL 스킴 등록. `app_opened_link`는 링크 입구가 없어 지금은 0
+- [ ] 빌드 확인(새 파일 `AppOpenTracker.swift`, 위젯 `widgetURL`)
+- [ ] 실기기: 꺼진 상태·백그라운드 각각 푸시 탭 → `app_opened_push` / 잠금화면 Live Activity 탭 → `app_opened_now_playing` / 아이콘 → `app_opened_direct` / 제어 센터 내렸다 올림 → 아무것도 안 찍힘
+
 ## 🚀 1.3.0 (빌드 25) — 2026-10-12 심사 제출(`7c7b56d`까지). feed_coachmark 1.0~1.2
 
 스토어 문안(설명·프로모션·노트)은 하입 → 좋아요로 바꾸고 fluent-korean 지침으로 다듬어 `marketing/appstore/copy.md`에 있다.

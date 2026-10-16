@@ -27,9 +27,25 @@ struct dignifyApp: App {
         PostHogSDK.shared.setup(config)
     }
 
+    @Environment(\.scenePhase) private var scenePhase
+    /// 미실행도 "앞에 없던 상태"로 친다. 제어 센터를 내렸다 올리는 건 inactive만 거쳐서 실행으로 안 센다.
+    @State private var wasInBackground = true
+
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                // dignify://now-playing은 Live Activity의 widgetURL. 다른 URL은 아직 없다.
+                .onOpenURL { url in
+                    AppOpenTracker.opened(by: url.host == "now-playing" ? "app_opened_now_playing" : "app_opened_link")
+                }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                wasInBackground = true
+            } else if phase == .active, wasInBackground {
+                wasInBackground = false
+                AppOpenTracker.cameToForeground()
+            }
         }
     }
 }
