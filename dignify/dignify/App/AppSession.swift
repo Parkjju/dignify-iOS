@@ -91,9 +91,9 @@ final class AppSession {
     // (로그인 실패가 인증 문제로 보이지만 실은 연결이 안 된 것). 시뮬레이터도 이 주소로 닿는다.
     // 네트워크가 바뀌면 갱신할 것: `ipconfig getifaddr en0`
     #if DEBUG
-    private nonisolated static let baseURL = URL(string: "http://192.168.0.166:8080")!
+    nonisolated static let baseURL = URL(string: "http://192.168.0.166:8080")!
     #else
-    private nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
+    nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
     #endif
 
     init(api: APIClient = APIClient(baseURL: AppSession.baseURL)) {

@@ -1,39 +1,36 @@
 # iOS TODO
 
 작성 2026-08-07. **2026-09-30 정리 — 완료된 P5 작업·P6·P7을 맨 아래 이력으로 접었다.**
-현재 스토어 버전 1.2.1(빌드 24).
+현재 스토어 버전 1.3.0(빌드 25).
 
 > 🎨 **디자인 반영할 것은 `../dignify-design/app-changes.mdx`가 정본이다**(배포본: 디자인 Storybook 「가이드 › 앱 반영 목록」).
 > 시안 버전별로 화면 id · AS-IS · TO-BE · 앱 파일 위치가 적혀 있다. 아래 버전부터 차례로 반영하고, 끝나면 그 버전 상태를 「반영됨 (iOS x.y.z)」로 바꾼다.
 > 수치·동작은 각 항목이 가리키는 `../dignify-design/components/<이름>/<이름>.md` 명세를 따른다.
 
-## 🎨 1.3.1 (빌드 26) — feed_coachmark 1.3 (2026-10-12, 상세는 위 문서 1.3 절)
+## 🎨 1.3.1 (빌드 26) — feed_coachmark 1.3 + 계측 변경 (2026-10-12~19) · 확인 완료, 제출 대기
 
 **1.3.0(빌드 25)은 `55ae9d8`~`7c7b56d`(1.0~1.2)로 이미 올렸다. 아래는 그다음 1.3.1로 나간다.**
 버전·빌드 번호(앱·위젯)와 앱 안 노트(`Changelog` 1.3.1, 문자열 2개), 스토어 노트(`marketing/appstore/copy.md` 1.3.1 절)까지 들어갔다.
 
+**코드는 다 들어갔다** (상세는 디자인 문서 1.3 절 · `../09_analytics_queries.md` 규칙 18·B-2·A-14):
+- 디자인: 곡 고르기 3곡 다 고르면 나머지 비활성 + 고른 곡 트레이(온보딩 `SeedPoolPickerView`, 마이 `SeedPickerView`, 공용 `Onboarding/SeedTray.swift`), 마이 「사용법」 삭제. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
+- 계측(안드로이드와 같은 이름): 픽 안 청취는 `source: "pick"`(이전 빌드는 `"feed"`에 섞임) · `push_opened` 삭제 → `app_opened_push{type, push_id}`·`app_opened_now_playing`·`app_opened_link`·`app_opened_direct`(`App/AppOpenTracker.swift`, 앞으로 나온 뒤 2초 판정). `push_id`는 서버 배포(2026-10-19) 전 알림이면 키째 빠진다. Live Activity `widgetURL(dignify://now-playing)`, `dignify` URL 스킴 등록. `app_opened_link`는 입구가 없어 지금은 0
 
-- [x] 온보딩 곡 고르기: 3곡 다 고르면 안 고른 타일 연한 회색 비활성(미리듣기는 됨) — `SeedPoolPickerView.swift`
-- [x] 온보딩 곡 고르기: 「디깅 시작」 위 고른 곡 트레이(n/3 · 커버 3칸 + 순서 번호 + ✕, 빈 칸 점선). 커버 탭 → 그 곡으로 스크롤·강조 — `SeedPoolPickerView.swift`
-- [x] 마이 「추천 기준 곡」: 같은 비활성 + 탭바 위 떠 있는 트레이(순서 번호 없음) — `SeedPickerView.swift`
-- [x] 마이 「사용법」 메뉴 삭제 — 예전 튜토리얼 카드가 열림. `MyPageView.swift` 버튼·`showTutorial`, 남는 곳 없으면 `TutorialView.swift`·문자열 키까지
-- [x] 스토어 출시 노트 1.3.1 절 쓰기
-- [ ] 끝나면 `../dignify-design/app-changes.mdx` 1.3 상태에 「iOS 1.3.1」 적기 — 코드는 들어갔고(공용 `Onboarding/SeedTray.swift`, `HypeCollection`에 비활성·`focusedId`) 빌드·실기기 확인 뒤 적는다. 새 문자열 3개를 카탈로그에 파일로 넣었다(Xcode 껐다 켜고 빌드)
+- [x] 빌드 확인(새 파일 `AppOpenTracker.swift`·`SeedTray.swift`, 위젯 `widgetURL`)
+- [x] 실기기: 꺼진 상태·백그라운드 각각 푸시 탭 → `app_opened_push` / 잠금화면 Live Activity 탭 → `app_opened_now_playing` / 아이콘 → `app_opened_direct` / 제어 센터 내렸다 올림 → 아무것도 안 찍힘
+- [x] 실기기: 어드민에서 본인 uid로 지정 발송 → 탭 → PostHog `app_opened_push`의 `push_id`가 발송 이력 값과 같은지
+- 알림 탭을 서버에도 직접 알린다: `POST /push/{pushId}/opened`(인증 헤더 없이, `AppDelegate.reportOpened`). 어드민 발송 이력의 **열람·열람률**이 된다(서버 `fbd95ff`). PostHog와 달리 앱을 보던 중 누른 배너도 센다
+- [x] 실기기: 지정 발송 → 탭 → 어드민 발송 이력 그 행의 열람이 1 오르는지(2026-10-19 확인)
+- [x] `../dignify-design/app-changes.mdx` 1.3 상태에 「iOS 1.3.1」 적기
 
-### 📊 1.3.1 계측 변경 (2026-10-16, 안드로이드와 같은 이름 — 판독 규칙은 `../09_analytics_queries.md` 규칙 18·B-2)
+**빌드·실기기 확인 끝(2026-10-19). 남은 건 1.3.0 심사 결과 뒤 1.3.1 아카이브·제출.**
 
-- [x] 픽 안 청취 분리: `source(for:)`가 픽 모드면 `"pick"`(`FeedView.swift`). `track_viewed`·`track_listened`·`track_dwell`·`track_playback_started`·`track_hyped` 전부. 이전 빌드는 픽 청취가 `"feed"`에 섞여 있다
-- [x] `push_opened` 삭제 → 실행 경로 이벤트 `app_opened_push{type}`·`app_opened_now_playing`·`app_opened_link`·`app_opened_direct`(`App/AppOpenTracker.swift`). 앞으로 나온 뒤 2초 기다렸다 판정. 앱 보던 중 배너 탭은 안 센다. SDK `Application Opened`는 그대로
-  - Live Activity에 `widgetURL(dignify://now-playing)`, Info.plist에 `dignify` URL 스킴 등록. `app_opened_link`는 링크 입구가 없어 지금은 0
-- [ ] 빌드 확인(새 파일 `AppOpenTracker.swift`, 위젯 `widgetURL`)
-- [ ] 실기기: 꺼진 상태·백그라운드 각각 푸시 탭 → `app_opened_push` / 잠금화면 Live Activity 탭 → `app_opened_now_playing` / 아이콘 → `app_opened_direct` / 제어 센터 내렸다 올림 → 아무것도 안 찍힘
-
-## 🚀 1.3.0 (빌드 25) — 2026-10-12 심사 제출(`7c7b56d`까지). feed_coachmark 1.0~1.2
+## 🚀 1.3.0 (빌드 25) — 2026-10-12 심사 제출(`7c7b56d`까지), 출시됨. feed_coachmark 1.0~1.2
 
 스토어 문안(설명·프로모션·노트)은 하입 → 좋아요로 바꾸고 fluent-korean 지침으로 다듬어 `marketing/appstore/copy.md`에 있다.
 스크린샷은 다른 세션에서 새로 뽑았다. 앱 안 1.3.0 노트(한국어)는 다듬기 전 문구라 스토어 노트와 조금 다르다.
 
-- [ ] 심사 결과 확인 → 출시되면 맨 위 「현재 스토어 버전」 줄과 메모리 갱신
+- [x] 심사 결과 확인 → 출시되면 맨 위 「현재 스토어 버전」 줄과 메모리 갱신
 - [ ] 출시 후 PostHog: `coach_shown`/`coach_finished`가 이제 `screen: "feed"`만 남는다. picks·mypage·seed_picker로 나눠 보던 인사이트를 정리한다
 
 ## ⏳ 나중 (App Store Connect 개편분, 2026-10-12 점검)

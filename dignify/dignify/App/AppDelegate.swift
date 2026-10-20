@@ -27,8 +27,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        let type = response.notification.request.content.userInfo["type"] as? String ?? "unknown"
-        Task { @MainActor in AppOpenTracker.opened(by: "app_opened_push", properties: ["type": type]) }
+        let userInfo = response.notification.request.content.userInfo
+        let type = userInfo["type"] as? String ?? "unknown"
+        // 서버 배포(2026-10-19) 전 알림엔 없다 — 그땐 키째 뺀다
+        let pushId = userInfo["push_id"] as? String
+        Task { @MainActor in
+            var properties: [String: Any] = ["type": type]
+            if let pushId { properties["push_id"] = pushId }
+            AppOpenTracker.opened(by: "app_opened_push", properties: properties)
+        }
+        // 어드민 발송 이력의 열람 수. 위 이벤트와 달리 앱을 보던 중 누른 배너도 센다.
+        if let pushId { Self.reportOpened(pushId) }
         switch type {
         case "curation":
             Task { @MainActor in
@@ -46,6 +55,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             break
         }
         completionHandler()
+    }
+
+    /// 알림을 눌렀다고 서버에 알린다. AppSession을 거치지 않는 건 콜드 스타트에 아직 없을 수 있어서고,
+    /// 토큰을 안 붙이는 건 만료 토큰이면 permitAll 경로에서도 서버가 401을 내서다. 실패는 버린다.
+    private static func reportOpened(_ pushId: String) {
+        var request = URLRequest(url: AppSession.baseURL.appending(path: "push/\(pushId)/opened"))
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request).resume()
     }
 
     func application(_ application: UIApplication,
