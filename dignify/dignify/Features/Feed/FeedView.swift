@@ -313,6 +313,10 @@ struct FeedView: View {
     var body: some View {
         content
             .task { await loadInitialFeed() }
+            // iPhone Duo를 펴고 접으면 창 크기와 함께 inset이 바뀐다(접힘: 오른쪽 세로 막대 84).
+            // body에선 못 읽으니(위 `safeInsets` 주석) 크기가 바뀐 뒤 콜백에서 다시 읽는다.
+            // `feed` 체인은 타입체커 한계라 여기에 단다.
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { _ in resolveSafeInsets() }
             // 게스트로 본 피드는 하입 제외가 안 된 상태(userId 없이 요청). 로그인되면
             // 새 시드로 다시 받아 교체한다. FeedView가 이미 떠 있는 게스트→signedIn만 해당
             // (정상 로그인 진입은 마운트 전 전환이라 여기 안 걸리고 .task가 처리).
@@ -366,7 +370,7 @@ struct FeedView: View {
     /// 데이터 도착 시 전환이 튀지 않게 한다.
     private var loadingView: some View {
         GeometryReader { geo in
-            let side = max(0, geo.size.width - 48)
+            let side = TrackCardView.artworkSide(screen: geo.size, insets: safeInsets)
             ZStack {
                 Color.black
                 DSShimmerView()
@@ -430,9 +434,10 @@ struct FeedView: View {
                         .padding(.top, safeInsets.top + 56)
                 }
 
-                searchOverlay(fullWidth: size.width - 32)
-                    .padding(.horizontal, 16)
-                    .padding(.top, safeInsets.top + 8)
+                // 좌우 inset은 iPhone Duo처럼 한쪽에만 있을 수 있다(세로 막대). 따로 뺀다.
+                searchOverlay(fullWidth: size.width - safeInsets.leading - safeInsets.trailing - 32)
+                    .padding(EdgeInsets(top: safeInsets.top + 8, leading: safeInsets.leading + 16,
+                                        bottom: 0, trailing: safeInsets.trailing + 16))
 
                 contextBadge
 
@@ -811,8 +816,9 @@ struct FeedView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
+        // 좌우 inset은 따로(iPhone Duo 세로 막대는 한쪽에만 있다).
+        .padding(EdgeInsets(top: 16, leading: safeInsets.leading + 20,
+                            bottom: 0, trailing: safeInsets.trailing + 20))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.white)
         // 리스트 행(각자 버튼)을 제외한 여백 탭 → 검색 닫고 피드로 복귀.
@@ -1365,7 +1371,18 @@ struct FeedView: View {
         let onActionsFrame: (CGRect) -> Void
 
         private static let space = "trackCard"
-        private var cardWidth: CGFloat { max(0, screenSize.width - 48) }
+        private var cardWidth: CGFloat { Self.artworkSide(screen: screenSize, insets: safeAreaInsets) }
+
+        /// 아트워크 한 변. 보통은 좌우 24씩 뺀 폭이고, 화면이 가로로 긴 곳(iPhone Duo 펼침 951×669)에선
+        /// 높이에 맞춘다 — 폭만 보면 903 정사각형이 위아래를 뚫고 정보 줄이 화면 밖으로 밀린다.
+        /// 세로 여유 = 위(top+64) · 아래(bottom+92) · 버튼 줄 44(12+32) · 정보 줄 약 78 · 숨 쉴 틈 18.
+        /// 일반 아이폰(SE 포함)은 폭 쪽이 작아서 지금과 같다.
+        /// ponytail: 정보 줄 높이는 실측 대신 어림값. 칩·제목 크기를 키우면 140을 같이 올린다.
+        static func artworkSide(screen: CGSize, insets: EdgeInsets) -> CGFloat {
+            let byWidth = screen.width - insets.leading - insets.trailing - 48
+            let byHeight = screen.height - insets.top - 64 - insets.bottom - 92 - 140
+            return max(0, min(byWidth, byHeight))
+        }
 
         var body: some View {
             VStack(spacing: 0) {
@@ -1380,7 +1397,8 @@ struct FeedView: View {
                     // 1.1: 72 → 92. 탭바와 간격 23 → 43.
                     .padding(.bottom, safeAreaInsets.bottom + 92)
             }
-            .padding(.top, safeAreaInsets.top + 64)
+            .padding(EdgeInsets(top: safeAreaInsets.top + 64, leading: safeAreaInsets.leading,
+                                bottom: 0, trailing: safeAreaInsets.trailing))
             .frame(width: screenSize.width, height: screenSize.height)
             .coordinateSpace(.named(Self.space))
         }
