@@ -134,7 +134,8 @@ struct SeedPickerView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .padding(.vertical, -13)   // 44 표적이 제목 줄 높이를 밀지 않게.
+                // 44 표적이 제목 줄 높이를 밀지 않게, 왼쪽 빈 13은 제목에 겹쳐 아이콘이 글자 옆 4에 붙게.
+                .padding(EdgeInsets(top: -13, leading: -13, bottom: -13, trailing: 0))
                 // 말풍선은 2초라 VoiceOver가 못 읽는다. 같은 문장을 버튼 라벨에 둔다.
                 .accessibilityLabel(Text(tipText))
             }
