@@ -575,12 +575,12 @@ struct FeedView: View {
                     PostHogSDK.shared.capture("push_optin_accepted",
                                               properties: ["source": "curation_done"])
                     session.requestPushAuthorization(source: "curation_done")
-                    withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                    withAnimation { showPushOffer = false }
                 },
                 onDecline: {
                     PostHogSDK.shared.capture("push_optin_declined",
                                               properties: ["source": "curation_done"])
-                    withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                    withAnimation { showPushOffer = false }
                 }
             )
         }

@@ -11,7 +11,8 @@ struct Release: Identifiable {
 enum Changelog {
     static let releases: [Release] = [
         Release(version: "1.3.1", notes: [
-            "Tracks you pick now sit in a tray at the bottom. Tap one to jump to it, or ✕ to remove it.",
+            "\"Recommend from\" got a redo: all your likes in one list, and you can filter by genre.",
+            "Tracks you pick sit in a tray at the bottom. Tap one to remove it.",
             "Once you've picked 3 tracks, the rest dim out.",
         ]),
         Release(version: "1.3.0", notes: [

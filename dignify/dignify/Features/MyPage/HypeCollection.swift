@@ -17,18 +17,10 @@ struct HypeCollection: View {
     var onReloadNeeded: (() async -> Void)? = nil
     /// 미리보기에서 날짜 행 끝을 오른쪽으로 당기거나 See all 셀을 탭하면 호출(전체 화면 이동).
     var onSeeAll: (() -> Void)? = nil
-    /// 선택 모드. 값이 있으면 **편집 모드보다 우선하고** 탭이 선택 토글이 된다(시드 고르기).
-    /// 셋을 한 컴포넌트에 두는 이유는 날짜 그룹·페이지네이션·썸네일 셀을 그대로 쓰기 위해서다.
-    var selection: Binding<Set<Int>>? = nil
-    /// 선택 모드에서 고를 수 있는 최대 개수. 서버의 MoodRecommender.SEEDS와 같아야 한다.
-    var selectionLimit: Int = 5
     /// 편집 모드. 켜지면 셀마다 제거 배지가 붙고 탭이 재생 대신 제거로 바뀐다.
     /// 롱프레스는 이 컴포넌트를 처음 쓰는 사람에게 보이지 않아서, 제거하는 길을 눈에 보이게 하나 더 둔다.
     /// 소유는 화면 쪽이다 — 편집 버튼이 네비게이션 바나 섹션 헤더에 서야 하는데 둘 다 이 뷰 바깥이다.
     var isEditing: Bool = false
-    /// 강조할 곡(추천 기준 곡 트레이에서 누른 곡). 셀·날짜 줄에 `.id`가 붙어 있어서 바깥 `ScrollViewReader`가
-    /// `trackId`로 세로·가로를 스크롤한다.
-    var focusedId: Int? = nil
 
     @State private var audio = FeedAudioController()
     @State private var detailTarget: DetailTarget?
@@ -46,10 +38,9 @@ struct HypeCollection: View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(groups) { group in
                 DayRow(group: group, onSeeAll: onSeeAll) { track in
-                    cell(track).id(track.trackId)
+                    cell(track)
                 }
                 .padding(.bottom, 20)
-                .id(group.id)
             }
         }
         .onDisappear { audio.stop() }
@@ -81,9 +72,6 @@ struct HypeCollection: View {
 
     private func cell(_ track: API.HypeItem) -> some View {
         let isPlaying = audio.activeTrackId == track.trackId && !audio.isPaused
-        // 선택 모드에서 상한이 차면 안 고른 셀은 회색 — 탭해도 안 골라진다는 걸 미리 보여 준다.
-        let isSelected = selection?.wrappedValue.contains(track.trackId) == true
-        let disabled = selection.map { !isSelected && $0.wrappedValue.count >= selectionLimit } ?? false
         return VStack(alignment: .leading, spacing: 6) {
             AsyncImage(url: URL(string: track.artworkUrl)) { image in
                 image.resizable().scaledToFill()
@@ -92,14 +80,6 @@ struct HypeCollection: View {
             }
             .frame(width: 72, height: 72)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .saturation(disabled ? 0 : 1)
-            .opacity(disabled ? 0.4 : 1)
-            .overlay {
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(DSColor.brand, lineWidth: 3)
-                    .opacity(focusedId == track.trackId ? 1 : 0)
-                    .animation(.easeOut(duration: 0.3), value: focusedId)
-            }
             .overlay {
                 if isPlaying {
                     ZStack {
@@ -115,35 +95,27 @@ struct HypeCollection: View {
             Group {
                 Text(track.trackName)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(disabled ? DSColor.textTertiary : DSColor.textPrimary)
+                    .foregroundStyle(DSColor.textPrimary)
                 Text(track.artistName)
                     .font(.system(size: 10))
                     .foregroundStyle(DSColor.textTertiary)
             }
             .lineLimit(1)
-            .opacity(disabled ? 0.6 : 1)
         }
         .frame(width: 72)
-        .animation(.easeOut(duration: 0.12), value: disabled)
         .overlay(alignment: .topLeading) {
-            if selection != nil {
-                if !disabled { selectionBadge(isOn: isSelected) }
-            } else if isEditing {
-                removeBadge
-            }
+            if isEditing { removeBadge }
         }
         .contentShape(Rectangle())
         // 배지만 눌러 지우게 하면 표적이 20pt라 자꾸 빗나간다. 편집 모드에선 셀 전체가 제거다.
         .onTapGesture {
-            if let selection {
-                toggleSelection(track, selection)
-            } else if isEditing {
+            if isEditing {
                 removeTarget = track
             } else {
                 playPreview(track)
             }
         }
-        .onLongPressGesture { if !isEditing && selection == nil { actionTarget = track } }
+        .onLongPressGesture { if !isEditing { actionTarget = track } }
         // 페이지네이션 트리거는 날짜 그룹이 아니라 **마지막 셀**에 건다.
         // 그룹 id는 startOfDay라 새 페이지 10개가 전부 같은 날이면 id가 그대로 →
         // onAppear가 다시 안 불려 그 뒤 하입이 영영 안 보였다.
@@ -257,38 +229,6 @@ struct HypeCollection: View {
             .foregroundStyle(.white, DSColor.destructive)
             .offset(x: -6, y: -6)
             .allowsHitTesting(false)   // 탭은 셀 전체가 받는다.
-    }
-
-    /// 선택 모드 배지. 고른 것은 브랜드색 원에 흰 체크, 안 고른 것은 **흰 원에 회색 테두리**다.
-    /// 빈 원이 없으면 여기서 무엇을 할 수 있는지가 안 보여서 유저가 그냥 재생인 줄 안다.
-    ///
-    /// 테두리를 흰색으로 두면 배지가 아트워크 밖으로 나간 절반이 밝은 지면에 묻혀서 원이
-    /// 잘린 것처럼 보인다. 아트워크와 지면 양쪽에서 다 읽히려면 **면은 흰색, 선은 회색**이어야 한다.
-    private func selectionBadge(isOn: Bool) -> some View {
-        Circle()
-            .fill(isOn ? DSColor.brand : .white)
-            .frame(width: 20, height: 20)
-            .overlay {
-                if isOn {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                } else {
-                    Circle().strokeBorder(DSColor.textTertiary, lineWidth: 1.5)
-                }
-            }
-            .offset(x: -6, y: -6)
-            .allowsHitTesting(false)
-    }
-
-    /// 상한을 넘으면 **아무 일도 일어나지 않는다.** 가장 오래 고른 것을 밀어내면 방금 무엇이
-    /// 빠졌는지 화면에서 안 보이고, 유저는 자기가 고른 곡이 사라진 줄 안다.
-    private func toggleSelection(_ track: API.HypeItem, _ selection: Binding<Set<Int>>) {
-        if selection.wrappedValue.contains(track.trackId) {
-            selection.wrappedValue.remove(track.trackId)
-        } else if selection.wrappedValue.count < selectionLimit {
-            selection.wrappedValue.insert(track.trackId)
-        }
     }
 
     /// 하입 트랙 롱프레스 모달 — 상세 보기 / 하입 제거.

@@ -104,12 +104,12 @@ struct PickListView: View {
                             PostHogSDK.shared.capture("push_optin_accepted",
                                                       properties: ["source": "pick_created"])
                             session.requestPushAuthorization(source: "pick_created")
-                            withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                            withAnimation { showPushOffer = false }
                         },
                         onDecline: {
                             PostHogSDK.shared.capture("push_optin_declined",
                                                       properties: ["source": "pick_created"])
-                            withAnimation(.easeIn(duration: 0.15)) { showPushOffer = false }
+                            withAnimation { showPushOffer = false }
                         }
                     )
                 }

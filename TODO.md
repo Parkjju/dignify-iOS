@@ -7,27 +7,32 @@
 > 시안 버전별로 화면 id · AS-IS · TO-BE · 앱 파일 위치가 적혀 있다. 아래 버전부터 차례로 반영하고, 끝나면 그 버전 상태를 「반영됨 (iOS x.y.z)」로 바꾼다.
 > 수치·동작은 각 항목이 가리키는 `../dignify-design/components/<이름>/<이름>.md` 명세를 따른다.
 
-## 🎨 다음 버전 — seed_picker_opened 1.0 (마이 「추천 기준 곡」 개편) · 시안 확정 2026-10-20, 착수 전
+## 🎨 seed_picker_opened 1.0 (마이 「추천 기준 곡」 개편) · 1.3.1 빌드 27에 합침 · 실기기 확인 완료(2026-10-20)
 
 정본은 `../dignify-design/app-changes.mdx` 「seed_picker_opened 1.0」 1~8번(AS-IS·TO-BE·수치 전부 거기). 1.3의 마이 쪽(가로 CrateCell·비활성·커버 탭 스크롤)을 이 버전이 덮는다.
 **장르(3번, 1번의 「· 장르」)는 서버 `dignify-backend/TODO.md` P2-c가 먼저다.** 서버가 오기 전엔 장르 칩·장르 표시만 숨기고 나머지를 먼저 낼 수 있다.
 
 1차 — 서버 없이:
-- [ ] 1. 세로 목록: `SeedPickerView.swift`에서 `HypeCollection` 대신 `LazyVStack`, 행 = 커버 52 · 제목 / 아티스트 · 체크 원 24(고르면 brand 원 안 흰 체크 **12**), 행 탭 = 고르기/풀기. 「좋아요한 곡 N」. 하입 기록·디깅 프로필의 `HypeCollection`은 손대지 않는다
-- [ ] 2. 제목 `title2` 두 줄 + ⓘ → 말풍선(Tooltip 신규, 2초 뒤 페이드·바깥 탭 닫힘). 기존 캡션 삭제. 「따라가기」 꺼짐 안내·저장 실패 문구는 그대로
-- [ ] 4. 3곡 다 고르면 안 고른 행 비활성(커버 흑백 40%, 글자 60%, **원은 60%로 남김**) + 탭 → 확인형 팝업 「선택한 곡 중 1개를 해제해 주세요 / 3개까지 선택할 수 있어요」
-- [ ] 5. 트레이: 지면 `background` + 그림자, 남은 칸 수 안내(0·1·2·3곡 문구 — 3곡은 「3곡을 다 골랐어요」), **커버 탭 = 빼기**(1.3 「커버 탭 → 스크롤」 삭제). 공용 `Onboarding/SeedTray.swift`라 온보딩 쪽 동작이 안 바뀌는지 확인
-- [ ] 6. 저장 활성 규칙은 지금 그대로(`selected != savedSelection`, 0곡 저장 허용)
-- [ ] 7. 빈 화면(EmptyState 신규): 아이콘 원 + 문구 2줄 + 「곡 찾으러 가기」 → 피드 탭
-- [ ] 8. 팝업 모션 — 앱 팝업 전부: `Features/Feed/PushOptInPopup.swift`의 `.transition`을 딤(0.25s 페이드)·카드(scale 1.2→1 + 페이드, `.spring(duration: 0.3, bounce: 0)`)로 나눔, 닫힘 0.2s 페이드. 새 확인 팝업도 같게. 동작 줄이기면 페이드만
-- [ ] 새 문자열 영어 값(한국어 뜻에 맞춰), 카탈로그에 파일로 넣었으면 Xcode 껐다 켜고 빌드
-- [ ] 실기기: 3곡 꽉 참 → 회색 행 탭 팝업 → 하나 풀면 비활성 바로 풀림 / 다 빼고 0곡 저장 → 피드가 최근 좋아요 3곡 기준으로 / 좋아요 0 계정 빈 화면 → 피드 이동
+- [x] 1. 세로 목록: `SeedPickerView.swift`에서 `HypeCollection` 대신 `LazyVStack`, 행 = 커버 52 · 제목 / 아티스트 · 체크 원 24(고르면 brand 원 안 흰 체크 **12**), 행 탭 = 고르기/풀기. 「좋아요한 곡 N」. 하입 기록·디깅 프로필의 `HypeCollection`은 손대지 않는다
+- [x] 2. 제목 `title2` 두 줄 + ⓘ → 말풍선(Tooltip 신규, 2초 뒤 페이드·바깥 탭 닫힘). 기존 캡션 삭제. 「따라가기」 꺼짐 안내·저장 실패 문구는 그대로
+- [x] 4. 3곡 다 고르면 안 고른 행 비활성(커버 흑백 40%, 글자 60%, **원은 60%로 남김**) + 탭 → 확인형 팝업 「선택한 곡 중 1개를 해제해 주세요 / 3개까지 선택할 수 있어요」
+- [x] 5. 트레이: 지면 `background` + 그림자, 남은 칸 수 안내(0·1·2·3곡 문구 — 3곡은 「3곡을 다 골랐어요」), **커버 탭 = 빼기**(1.3 「커버 탭 → 스크롤」 삭제). 공용 `Onboarding/SeedTray.swift`라 온보딩 쪽 동작이 안 바뀌는지 확인
+- [x] 6. 저장 활성 규칙은 지금 그대로(`selected != savedSelection`, 0곡 저장 허용)
+- [x] 7. 빈 화면(EmptyState 신규): 아이콘 원 + 문구 2줄 + 「곡 찾으러 가기」 → 피드 탭
+- [x] 8. 팝업 모션 — 앱 팝업 전부: `Features/Feed/PushOptInPopup.swift`의 `.transition`을 딤(0.25s 페이드)·카드(scale 1.2→1 + 페이드, `.spring(duration: 0.3, bounce: 0)`)로 나눔, 닫힘 0.2s 페이드. 새 확인 팝업도 같게. 동작 줄이기면 페이드만
+- 1차 코드 메모: 팝업 공용 틀은 `Core/DesignSystem/DSPopup.swift`(`DSPopupHost` 딤·카드 모션, `DSNoticePopup` 확인형). 「좋아요한 곡 N」은 `GET /users/me/stats?range=all`의 `hypeCount`(못 받으면 줄 숨김). `HypeCollection` 선택 모드·`focusedId`는 쓰는 곳이 없어져 삭제
+- [x] 새 문자열 10개 + 「아직 좋아요한 곡이 없어요」(2026-10-20 카탈로그에 파일로 넣음, 옛 제목·캡션 키 2개 삭제)
+- [x] Xcode 껐다 켜고 빌드
+- [x] 실기기: 3곡 꽉 참 → 회색 행 탭 팝업 → 하나 풀면 비활성 바로 풀림 / 다 빼고 0곡 저장 → 피드가 최근 좋아요 3곡 기준으로 / 좋아요 0 계정 빈 화면 → 피드 이동
 
 2차 — 서버 P2-c 배포 뒤:
-- [ ] 3. 장르 칩(FilterChip 신규, 「전체」 + 좋아요한 장르만 많은 순, 장르 바꿔도 고른 곡 유지) · 행의 「아티스트 · 장르」 · 「좋아요한 곡 N」이 장르 곡 수로
-- [ ] 끝나면 `../dignify-design/app-changes.mdx` seed_picker_opened 1.0 상태에 「반영됨 (iOS x.y.z)」
+- [x] (2026-10-20 연동, 서버 `8423757`) 3. 장르 칩(FilterChip 신규, 「전체」 + 좋아요한 장르만 많은 순, 장르 바꿔도 고른 곡 유지) · 행의 「아티스트 · 장르」 · 「좋아요한 곡 N」이 장르 곡 수로
+  - **서버 배포됨 (2026-10-20 `8423757`, 리비전 00083):** `HypeItem.genreId`·`genreName`(로케일 ko/en) · `GET /users/me/hypes/genres` → `{total, genres:[{genreId, genreName, count}]}`(많은 순, total = 장르별 합) · `GET /users/me/hypes?genreId=`(커서 그대로, 없는 장르면 빈 목록). 스펙은 `dignify-backend/openapi.yaml`
+- 2차 코드 메모: 칩·「좋아요한 곡 N」은 `GET /users/me/hypes/genres`(진입 때 한 번), 목록은 `GET /users/me/hypes?genreId=`(`.task(id: genreId)`라 칩을 빠르게 바꾸면 이전 요청 취소). 트레이 커버는 장르를 오가며 받은 곡(`seen`)에서 그린다. 1차의 `/users/me/stats` 호출은 뺐다. 「전체」 문자열 추가
+- [x] 실기기: 장르 바꿔도 트레이 그대로 / 다른 장르에 있는 고른 곡도 커버가 보임 / 칩 숫자 = 「좋아요한 곡 N」 / 영어 로케일이면 장르 이름 영어
+- [x] `../dignify-design/app-changes.mdx` seed_picker_opened 1.0 상태에 「반영됨 (iOS 1.3.1)」
 
-## 🎨 1.3.1 (빌드 26) — feed_coachmark 1.3 + 계측 변경 (2026-10-12~19) · 확인 완료, 제출 대기
+## 🎨 1.3.1 (빌드 27) — feed_coachmark 1.3 + 계측 변경 + seed_picker_opened 1.0 · 확인 완료, 제출 대기
 
 **1.3.0(빌드 25)은 `55ae9d8`~`7c7b56d`(1.0~1.2)로 이미 올렸다. 아래는 그다음 1.3.1로 나간다.**
 버전·빌드 번호(앱·위젯)와 앱 안 노트(`Changelog` 1.3.1, 문자열 2개), 스토어 노트(`marketing/appstore/copy.md` 1.3.1 절)까지 들어갔다.
@@ -43,7 +48,7 @@
 - [x] 실기기: 지정 발송 → 탭 → 어드민 발송 이력 그 행의 열람이 1 오르는지(2026-10-19 확인)
 - [x] `../dignify-design/app-changes.mdx` 1.3 상태에 「iOS 1.3.1」 적기
 
-**빌드·실기기 확인 끝(2026-10-19). 남은 건 1.3.0 심사 결과 뒤 1.3.1 아카이브·제출.**
+**빌드·실기기 확인 끝(2026-10-19). 2026-10-20 seed_picker_opened 1.0을 합치며 빌드 26 → 27, 앱 안 노트·스토어 노트(`marketing/appstore/copy.md`)를 3줄로 다시 썼다. 남은 건 아카이브·제출.**
 
 ## 🚀 1.3.0 (빌드 25) — 2026-10-12 심사 제출(`7c7b56d`까지), 출시됨. feed_coachmark 1.0~1.2
 

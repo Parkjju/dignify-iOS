@@ -165,9 +165,16 @@ nonisolated extension Endpoint {
         Endpoint(method: .post, path: "/users/me/onboarding/complete")
     }
 
-    static func myHypes(cursor: Int? = nil) -> Endpoint {
+    /// `genreId`는 `myHypeGenres`의 id. nil이면 전체.
+    static func myHypes(cursor: Int? = nil, genreId: Int? = nil) -> Endpoint {
         Endpoint(method: .get, path: "/users/me/hypes",
-                 query: cursor.map(String.init).queryItems(name: "cursor"))
+                 query: cursor.map(String.init).queryItems(name: "cursor")
+                     + genreId.map(String.init).queryItems(name: "genreId"))
+    }
+
+    /// 하입한 곡의 장르별 수(많은 순) + 전체 수. 필터를 바꿔도 다시 부를 필요 없다.
+    static var myHypeGenres: Endpoint {
+        Endpoint(method: .get, path: "/users/me/hypes/genres")
     }
 
     static func setDiggingMode(_ enabled: Bool) -> Endpoint {

@@ -15,6 +15,8 @@ struct SeedTray: View {
     let limit: Int
     /// 온보딩은 고른 순서가 타일 번호라 같은 번호를 단다. 마이는 체크 표시라 순서가 없다.
     var numbered = true
+    /// 이름 아래 안내. nil이면 온보딩 문구(커버 탭 = 그 곡으로 가기). 마이는 남은 칸 수를 넘긴다.
+    var hint: LocalizedStringKey? = nil
     let onTap: (Int) -> Void
     let onRemove: (Int) -> Void
 
@@ -27,7 +29,7 @@ struct SeedTray: View {
                 }
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(DSColor.textPrimary)
-                Text(slots.count >= limit ? "Remove one to swap" : "Tap to jump to it")
+                Text(hint ?? (slots.count >= limit ? "Remove one to swap" : "Tap to jump to it"))
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.textTertiary)
             }

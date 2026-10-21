@@ -2,6 +2,17 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "\"Recommend from\" got a redo: all your likes in one list, and you can filter by genre.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "'추천 기준 곡' 화면이 바뀌었어요. 좋아요한 곡이 한 줄씩 보이고, 장르별로 골라 볼 수 있어요."
+          }
+        }
+      }
+    },
     "%@ %@ · not confirmed yet": {
       "extractionState": "manual",
       "localizations": {
@@ -79,6 +90,16 @@
       }
     },
     "%lld": {},
+    "%lld more to go": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld개 더 선택할 수 있어요"
+          }
+        }
+      }
+    },
     "%lld plays": {
       "localizations": {
         "ko": {
@@ -232,6 +253,16 @@
         }
       }
     },
+    "Add up to %lld tracks": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최대 %lld곡까지 담을 수 있어요"
+          }
+        }
+      }
+    },
     "Added": {
       "localizations": {
         "ko": {
@@ -248,6 +279,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "검색에서 추가한 곡"
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체"
+          }
+        }
+      }
+    },
+    "All %lld picked": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld곡을 다 골랐어요"
           }
         }
       }
@@ -713,6 +764,16 @@
         }
       }
     },
+    "Deselect one of your picks": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 곡 중 1개를 해제해 주세요"
+          }
+        }
+      }
+    },
     "Dig %lld more and hype %lld to lock it in.": {
       "extractionState": "manual",
       "localizations": {
@@ -946,6 +1007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "YouTube Music에서 찾기"
+          }
+        }
+      }
+    },
+    "Find tracks": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "곡 찾으러 가기"
           }
         }
       }
@@ -1314,12 +1385,32 @@
         }
       }
     },
+    "Like tracks you dig in the feed": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피드에서 마음에 드는 곡을 골라주세요"
+          }
+        }
+      }
+    },
     "Liked by": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
             "value": "좋아요한 유저"
+          }
+        }
+      }
+    },
+    "Liked tracks %lld": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 곡 %lld"
           }
         }
       }
@@ -1566,7 +1657,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아직 좋아요한 트랙이 없어요"
+            "value": "아직 좋아요한 곡이 없어요"
           }
         }
       }
@@ -1817,12 +1908,12 @@
         }
       }
     },
-    "Pick none and the feed follows your %lld most recent likes, same as before.": {
+    "Pick none and we'll find music based on your %lld most recent likes.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아무것도 고르지 않으면 지금까지처럼 최근에 좋아요한 %lld곡을 기준으로 삼아요."
+            "value": "아무것도 고르지 않으면 최근 좋아요한 %lld곡을 기준으로 노래를 찾을게요."
           }
         }
       }
@@ -1849,12 +1940,12 @@
         }
       }
     },
-    "Pick up to %lld tracks. The feed then follows only these.": {
+    "Pick up to %lld tracks.\nWe'll find music based on these.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최대 %lld곡까지 고를 수 있어요. 고른 곡만 기준으로 피드가 만들어져요."
+            "value": "%lld곡까지 고를 수 있어요.\n고른 곡을 기준으로 노래를 찾을게요."
           }
         }
       }
@@ -2956,13 +3047,13 @@
         }
       }
     },
-    "Tracks you pick now sit in a tray at the bottom. Tap one to jump to it, or ✕ to remove it.": {
+    "Tracks you pick sit in a tray at the bottom. Tap one to remove it.": {
       "extractionState": "manual",
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "'추천 기준 곡' 화면에서 고른 곡이 화면 아래 칸에 모여요. 칸에 있는 곡을 누르면 목록에서 그 곡이 있는 위치로 이동하고, ✕를 누르면 선택이 해제돼요."
+            "value": "고른 곡은 화면 아래 칸에 모여요. 칸에 있는 곡을 누르면 선택이 해제돼요."
           }
         }
       }
@@ -3275,6 +3366,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "언제든 다시 좋아요를 누를 수 있어요."
+          }
+        }
+      }
+    },
+    "You can pick up to %lld.": {
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld개까지 선택할 수 있어요"
           }
         }
       }

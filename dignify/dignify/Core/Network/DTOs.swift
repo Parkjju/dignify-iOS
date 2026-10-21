@@ -111,6 +111,22 @@ nonisolated enum API {
         let hypedAt: Date   // date-time(ISO8601) — 클라 날짜 섹션 그룹핑용
         /// 추천 기준으로 고정한 곡인지. 시드 선택 화면이 현재 선택을 그리는 데 쓴다.
         let isSeed: Bool?
+        /// Accept-Language 로케일(ko/en). 2026-10-20 서버(`8423757`)부터.
+        let genreId: Int?
+        let genreName: String?
+    }
+
+    /// 추천 기준 곡 장르 칩. `total` = `genres` count 합 = 하입한 곡 전체 수.
+    struct HypeGenresResponse: Decodable {
+        let total: Int
+        let genres: [Genre]
+
+        struct Genre: Decodable, Identifiable {
+            let genreId: Int
+            let genreName: String
+            let count: Int
+            var id: Int { genreId }
+        }
     }
 
     /// 마이페이지 하입 목록. 커서는 마지막 userHypeTrackId(Int).

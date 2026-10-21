@@ -21,20 +21,10 @@ struct PushOptInPopup: View {
     let onDecline: () -> Void
 
     var body: some View {
-        ZStack {
-            // 딤 탭 = 거절. 시스템 알럿이 공짜로 주던 동작이라 직접 붙인다.
-            // contentShape로 히트테스트를 먹어야 뒤 피드의 스와이프로 새지 않는다.
-            Color.black.opacity(0.55)
-                .ignoresSafeArea()
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onDecline)
-
-            card
-                .padding(.horizontal, 32)
+        // 딤 탭 = 거절.
+        DSPopupHost(onDismiss: onDecline) {
+            card.padding(.horizontal, 32)
         }
-        // 팝업이 뜬 동안 VoiceOver 포커스가 뒤 피드로 새지 않게 가둔다.
-        .accessibilityAddTraits(.isModal)
-        .transition(.opacity)
     }
 
     private var card: some View {
