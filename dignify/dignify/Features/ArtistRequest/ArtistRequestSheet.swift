@@ -101,6 +101,8 @@ struct ArtistRequestSheet: View {
                 submitted = true
                 // "추가되면 알려드릴게요" 맥락에서 알림 권한을 요청한다.
                 session.requestPushAuthorization(source: "artist_request")
+                // 시스템 팝업이 떴을 수 있다. 같은 실행에 좋아요 알림 팝업이 또 뜨지 않게.
+                session.didShowPermissionPopup = true
             } catch {
                 submitting = false   // 실패 시 그대로 두고 재시도 가능하게.
             }

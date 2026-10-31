@@ -58,9 +58,19 @@ final class AppSession {
     /// 뷰에 두면 같은 세션의 디깅이 두 통으로 갈린다.
     var sessionTrackViews = 0
 
-    /// 큐레이션 푸시로 진입했음을 피드에 알리는 1회성 플래그. 피드가 읽고 즉시 내린다.
-    /// 이미 완주한 세트라도 이때는 다시 앞세운다 — 푸시를 눌렀는데 없으면 안 되므로.
-    var pendingCurationOpen = false
+    /// 알림을 눌러 들어왔음을 피드에 알리는 대기 항목. 피드가 읽고 즉시 비운다.
+    /// **탭할 때마다 덮어쓴다** — 신곡·주간 추천을 차례로 누르면 나중 것이 앞에 와야 한다.
+    /// 큐레이션은 곡 id 없이 오고(세트를 서버에서 받는다), 이미 완주한 세트라도 이때는 다시 앞세운다.
+    var pendingPushOpen: PushOpen?
+
+    /// 이번 실행에 알림 권한·광고성 동의 팝업을 이미 띄웠는가. 메모리라 실행마다 꺼진다.
+    /// 피드·픽·아티스트 요청이 같은 값을 본다 — 한 실행에 팝업이 두 번 뜨지 않게.
+    /// **노출 기록(`didOfferAdConsent` 등)과 섞지 말 것.** 그건 팝업마다 따로라야 한쪽을 본 유저에게
+    /// 다른 쪽이 영영 안 뜨는 일이 없다.
+    var didShowPermissionPopup = false
+
+    /// 광고성 동의·거부를 처리한 결과 통지 문구(제50조 7항). MainTabView가 확인 팝업으로 띄운다.
+    var consentNotice: String?
 
     /// 픽 반응 푸시로 진입했음. 마이페이지가 읽고 디깅 프로필(= 내 픽 목록)로 밀어 올린다.
     /// **여기까지가 지금 페이로드로 갈 수 있는 최선이다** — 어느 픽인지가 안 실려 온다.
@@ -108,11 +118,60 @@ final class AppSession {
     /// async notificationSettings()를 그대로 await 하면 non-Sendable인 UNNotificationSettings가
     /// MainActor 경계를 넘는다. 콜백 안에서 Bool로 접어 넘기면 건너오는 값이 Sendable뿐이다.
     func pushAuthorizationUndecided() async -> Bool {
+        await pushAuthorizationStatus() == .notDetermined
+    }
+
+    func pushAuthorizationStatus() async -> UNAuthorizationStatus {
         await withCheckedContinuation { continuation in
             UNUserNotificationCenter.current().getNotificationSettings { settings in
-                continuation.resume(returning: settings.authorizationStatus == .notDetermined)
+                continuation.resume(returning: settings.authorizationStatus)
             }
         }
+    }
+
+    // MARK: - 광고성 알림 수신 동의
+
+    /// 서버가 마지막으로 알려 준 동의 값. 설정 화면 토글이 `@AppStorage`로 같은 키를 본다.
+    /// 실행마다 `/users/me`의 `adPushConsent`로 덮어쓴다(`refreshAuthState`) — 다른 기기·어드민에서 바뀐 것도 따라온다.
+    static let adPushConsentKey = "adPushConsent"
+
+    /// 동의·거부를 서버에 올리고 결과를 통지한다. 실패하면 false — 통지도 안 띄운다(처리되지 않았으니).
+    @discardableResult
+    func setAdPushConsent(_ adPush: Bool) async -> Bool {
+        guard let res = try? await api.send(.setAdPushConsent(adPush), as: API.AdPushConsent.self) else { return false }
+        UserDefaults.standard.set(res.adPush, forKey: Self.adPushConsentKey)
+        consentNotice = Self.consentNoticeText(adPush: res.adPush, processedAt: res.processedAt)
+        return true
+    }
+
+    /// 광고성 동의 + OS 알림 권한. 권한이 거부돼 있으면 시스템 팝업이 다시 안 뜨므로 설정 앱으로 보낸다.
+    /// OS 권한은 광고 수신 동의가 아니라서(KISA Q&A 02-03) 둘을 따로 처리한다.
+    @discardableResult
+    func acceptAdPush(source: String) async -> Bool {
+        let saved = await setAdPushConsent(true)
+        if await pushAuthorizationStatus() == .denied {
+            _ = await UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
+        } else {
+            requestPushAuthorization(source: source)
+        }
+        return saved
+    }
+
+    /// 「귀하가 요청하신 Dignify의 광고성 정보 [수신동의/수신거부]가 YYYY-MM-DD에 처리되었습니다.」
+    /// 날짜는 서버 처리 시각을 기기 시간대로 — 한국 0~9시 처리분이 UTC 날짜로 하루 밀리지 않게.
+    /// 파싱이 안 되면 앞 10자(UTC 날짜)로 물러선다.
+    nonisolated static func consentNoticeText(adPush: Bool, processedAt: String) -> String {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = iso.date(from: processedAt)
+            ?? { iso.formatOptions = [.withInternetDateTime]; return iso.date(from: processedAt) }()
+        let out = DateFormatter()
+        out.locale = Locale(identifier: "en_US_POSIX")
+        out.dateFormat = "yyyy-MM-dd"
+        let day = date.map(out.string(from:)) ?? String(processedAt.prefix(10))
+        return adPush
+            ? String(localized: "Dignify processed your opt-in to ad notifications on \(day).")
+            : String(localized: "Dignify processed your opt-out from ad notifications on \(day).")
     }
 
     /// 아티스트 요청 직후, 그리고 PushOptInView에서 "알림 받기"를 누를 때 호출.
@@ -242,7 +301,7 @@ final class AppSession {
     /// 로그인했을 때 이전 사람의 값이 그대로 보인다(피드 위치·최근 검색어).
     /// `lastSeenVersion`은 기기 단위 기록(What's New 표시 이력)이라 남긴다.
     private func clearAccountLocalState() {
-        for key in ["feedCursor", "recentSearches"] {
+        for key in ["feedCursor", "recentSearches", Self.adPushConsentKey] {
             UserDefaults.standard.removeObject(forKey: key)
         }
     }
@@ -278,6 +337,7 @@ final class AppSession {
         authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
         // 옛 서버는 이 필드를 안 내려준다. 그때는 지금 동작(켜짐)을 유지한다.
         diggingMode = profile.diggingMode ?? true
+        if let adPush = profile.adPushConsent { UserDefaults.standard.set(adPush, forKey: Self.adPushConsentKey) }
 
         // 실행마다 토큰을 다시 올린다. 서버의 app_build/time_zone은 이 등록 요청의 부산물이라,
         // 여기서 안 올리면 하입이나 아티스트 요청을 하기 전까지 옛날 빌드·옛날 타임존으로 남고
@@ -302,6 +362,12 @@ extension AppSession {
         UserDefaults.standard.removeObject(forKey: Self.guestHypeKey)
         hypeState[trackId] = true
     }
+}
+
+/// 알림 탭으로 피드 앞에 붙일 것. `type`은 페이로드 그대로(`curation`·`new_release`·`weekly_pick`).
+struct PushOpen: Equatable {
+    let type: String
+    let trackIds: [Int]
 }
 
 enum AuthState {

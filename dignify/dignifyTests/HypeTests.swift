@@ -20,7 +20,8 @@ struct HypeGroupingTests {
                     // day는 "며칠 전". 시각을 정오로 고정해 로컬 타임존이 날짜를 넘기지 않게 한다.
                     hypedAt: Calendar.current.date(byAdding: .day, value: -day,
                                                    to: Calendar.current.startOfDay(for: Date())
-                                                       .addingTimeInterval(12 * 3600))!))
+                                                       .addingTimeInterval(12 * 3600))!,
+                    isSeed: nil, genreId: nil, genreName: nil))
             }
         }
         return out

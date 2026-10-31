@@ -1,0 +1,18 @@
+{
+  "Simulator Target Bundle": "parkjju.dignify",
+  "aps": {
+    "alert": {
+      "title": "(광고) Leo Kottke 신곡",
+      "body": "좋아요한 아티스트의 신곡 3곡이 나왔어요"
+    },
+    "sound": "default",
+    "category": "AD_PUSH"
+  },
+  "type": "new_release",
+  "push_id": "test-new_release",
+  "trackIds": [
+    1,
+    2,
+    3
+  ]
+}

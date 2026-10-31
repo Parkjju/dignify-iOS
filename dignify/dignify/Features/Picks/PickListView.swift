@@ -476,12 +476,13 @@ struct PickListView: View {
     private func offerPushIfNeeded() {
         guard justCreatedPick else { return }
         justCreatedPick = false
-        guard !didOfferPush, session.authState == .signedIn else { return }
+        guard !didOfferPush, session.authState == .signedIn, !session.didShowPermissionPopup else { return }
         Task {
             // 이미 답한 유저(.notDetermined 아님)에겐 물어봐야 소용이 없다.
             guard await session.pushAuthorizationUndecided() else { return }
             PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "pick_created"])
             didOfferPush = true
+            session.didShowPermissionPopup = true
             withAnimation(.easeOut(duration: 0.2)) { showPushOffer = true }
         }
     }

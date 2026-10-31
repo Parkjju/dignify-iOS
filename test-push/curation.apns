@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "parkjju.dignify",
+  "aps": {
+    "alert": {
+      "title": "(광고) 이번 주 특집",
+      "body": "큐레이션 세트"
+    },
+    "sound": "default",
+    "category": "AD_PUSH"
+  },
+  "type": "curation",
+  "push_id": "test-curation"
+}

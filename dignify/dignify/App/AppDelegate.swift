@@ -9,8 +9,24 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        // 좋아요 알림 팝업은 두 번째 실행부터다(첫 실행엔 동의 팝업이 따로 뜬다).
+        // ponytail: 백그라운드 실행(알림 액션 등)도 한 번으로 센다. "두 번째 이상"만 보므로 상관없다.
+        let defaults = UserDefaults.standard
+        defaults.set(defaults.integer(forKey: Self.launchCountKey) + 1, forKey: Self.launchCountKey)
+        // 광고성 알림(서버 `category = AD_PUSH`)에 「수신거부」 버튼. 경로를 글로만 안내하거나 로그인을
+        // 요구하면 위반이라(KISA 안내서 44쪽) 알림에서 바로 처리한다. 앱을 열지 않는다(옵션 없음 = 백그라운드).
+        let optOut = UNNotificationAction(identifier: Self.optOutAction, title: String(localized: "Unsubscribe"),
+                                          options: [.destructive])
+        UNUserNotificationCenter.current().setNotificationCategories([
+            UNNotificationCategory(identifier: "AD_PUSH", actions: [optOut], intentIdentifiers: []),
+        ])
         return true
     }
+
+    static let launchCountKey = "launchCount"
+    private static let optOutAction = "OPT_OUT"
+    /// 수신거부는 로그인 없이 기기 토큰으로 처리한다. 콜드 스타트엔 APNs 토큰이 아직 안 와 있을 수 있어 둔다.
+    private static let deviceTokenKey = "apnsDeviceToken"
 
     /// 앱이 포그라운드일 때 도착한 푸시도 배너·소리로 보여준다(기본은 안 뜸).
     func userNotificationCenter(_ center: UNUserNotificationCenter,
@@ -31,6 +47,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         let type = userInfo["type"] as? String ?? "unknown"
         // 서버 배포(2026-10-19) 전 알림엔 없다 — 그땐 키째 뺀다
         let pushId = userInfo["push_id"] as? String
+        // 「수신거부」는 앱을 연 게 아니다 — 열람으로도 안 세고 피드도 안 건드린다.
+        if response.actionIdentifier == Self.optOutAction {
+            Task {
+                await Self.optOut(pushId: pushId)
+                completionHandler()
+            }
+            return
+        }
         Task { @MainActor in
             var properties: [String: Any] = ["type": type]
             if let pushId { properties["push_id"] = pushId }
@@ -39,9 +63,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         // 어드민 발송 이력의 열람 수. 위 이벤트와 달리 앱을 보던 중 누른 배너도 센다.
         if let pushId { Self.reportOpened(pushId) }
         switch type {
-        case "curation":
+        case "curation", "new_release", "weekly_pick":
+            // 피드 앞 구간을 이 알림의 곡으로 갈아 끼운다. APNs 숫자 배열은 NSNumber로 온다.
+            let trackIds = (userInfo["trackIds"] as? [NSNumber])?.map(\.intValue) ?? []
             Task { @MainActor in
-                AppSession.current?.pendingCurationOpen = true
+                AppSession.current?.pendingPushOpen = PushOpen(type: type, trackIds: trackIds)
                 AppSession.current?.selectedTab = .feed
             }
         case "pick_reaction":
@@ -65,9 +91,33 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         URLSession.shared.dataTask(with: request).resume()
     }
 
+    /// 알림의 「수신거부」. 인증 없이 기기 토큰으로 서버 동의를 거두고, 결과를 로컬 알림으로 통지한다(제50조 7항) —
+    /// 앱이 안 떠 있을 수 있어 앱 안 팝업으로는 못 보여 준다. 실패해도 알린다(거부가 안 됐는데 된 줄 알면 안 된다).
+    private static func optOut(pushId: String?) async {
+        var body = String(localized: "Couldn't unsubscribe. Turn off ad notifications in My Page › Notifications.")
+        if let pushId, let token = UserDefaults.standard.string(forKey: deviceTokenKey) {
+            var request = URLRequest(url: AppSession.baseURL.appending(path: "push/\(pushId)/opt-out"))
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONEncoder().encode(["deviceToken": token])
+            if let (data, response) = try? await URLSession.shared.data(for: request),
+               (response as? HTTPURLResponse)?.statusCode == 200,
+               let res = try? JSONDecoder().decode(API.AdPushConsent.self, from: data) {
+                UserDefaults.standard.set(res.adPush, forKey: AppSession.adPushConsentKey)
+                body = AppSession.consentNoticeText(adPush: res.adPush, processedAt: res.processedAt)
+            }
+        }
+        let content = UNMutableNotificationContent()
+        content.body = body
+        content.userInfo = ["type": "consent_notice"]
+        try? await UNUserNotificationCenter.current()
+            .add(UNNotificationRequest(identifier: "consent_notice", content: content, trigger: nil))
+    }
+
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
+        UserDefaults.standard.set(hex, forKey: Self.deviceTokenKey)
         print("[Push] APNs 디바이스 토큰 수신: \(hex.prefix(12))…")
         Task { @MainActor in AppSession.current?.registerDeviceToken(hex) }
     }

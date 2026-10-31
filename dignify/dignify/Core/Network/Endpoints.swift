@@ -18,6 +18,7 @@ private nonisolated struct PickTitleBody: Encodable { let title: String? }
 private nonisolated struct DiggingModeBody: Encodable { let enabled: Bool }
 private nonisolated struct SeedTracksBody: Encodable { let trackIds: [Int] }
 private nonisolated struct ReactionBody: Encodable { let emoji: String }
+private nonisolated struct AdPushConsentBody: Encodable { let adPush: Bool }
 /// `detail`은 `OTHER`일 때만 채워진다(유저가 직접 쓴 사유). 빈 문자열은 넘기지 않는다 —
 /// 빈 값과 null이 둘 다 "안 씀"이면 서버에서 판정이 두 갈래로 갈린다.
 private nonisolated struct ReportBody: Encodable {
@@ -59,6 +60,21 @@ nonisolated extension Endpoint {
 
     /// 이번 주 큐레이션 세트. 전 유저 동일 내용이라 개인화 파라미터도 커서도 없다.
     static var curation: Endpoint { Endpoint(method: .get, path: "/feed/curation") }
+
+    /// 좋아요한 아티스트의 최근 7일 신곡(안 들은 것). 게스트는 빈 목록. 한 페이지로 끝난다.
+    static var newReleases: Endpoint { Endpoint(method: .get, path: "/feed/new-releases") }
+
+    /// 이 곡들과 무드가 가까운 곡. 평소 피드의 진행 위치(feedState)는 안 바뀐다.
+    static func related(seeds: [Int]) -> Endpoint {
+        Endpoint(method: .get, path: "/feed/related",
+                 query: [URLQueryItem(name: "seeds", value: seeds.map(String.init).joined(separator: ","))])
+    }
+
+    /// 알림에 실려 온 곡을 그 순서대로. 신곡·주간 추천 알림 탭이 쓴다.
+    static func tracks(ids: [Int]) -> Endpoint {
+        Endpoint(method: .get, path: "/feed/tracks",
+                 query: [URLQueryItem(name: "ids", value: ids.map(String.init).joined(separator: ","))])
+    }
 
     static func search(query: String, cursor: String? = nil) -> Endpoint {
         var items = [URLQueryItem(name: "q", value: query)]
@@ -155,6 +171,11 @@ nonisolated extension Endpoint {
     static func deviceToken(token: String, environment: String, timeZone: String) -> Endpoint {
         Endpoint(method: .post, path: "/users/me/device-token",
                  body: DeviceTokenBody(token: token, environment: environment, timeZone: timeZone))
+    }
+
+    /// 광고성 알림 수신 동의·거부. 응답의 처리 시각으로 결과를 통지한다(정보통신망법 제50조 7항).
+    static func setAdPushConsent(_ adPush: Bool) -> Endpoint {
+        Endpoint(method: .put, path: "/users/me/push-consent", body: AdPushConsentBody(adPush: adPush))
     }
 
     static func updateNickname(_ nickname: String) -> Endpoint {

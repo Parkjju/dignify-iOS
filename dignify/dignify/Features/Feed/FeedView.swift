@@ -42,15 +42,33 @@ struct FeedView: View {
     @State private var isPaging = false
     /// 앱 재구동 후 이어보기용으로 마지막 일반 피드 커서를 저장. 비면 처음부터(새 시드).
     @AppStorage("feedCursor") private var savedFeedCursor = ""
-    /// 피드 맨 앞에 붙은 이번 주 큐레이션 곡 수. 0이면 세트가 없거나 이미 완주한 세트.
-    @State private var curationCount = 0
+    /// 피드 맨 앞에 붙은 구간(큐레이션 세트·신곡·주간 추천)의 곡 수. 0이면 앞 구간이 없다.
+    @State private var prefixCount = 0
+    /// 앞 구간의 출처. 계측 `source` 값 그대로다(`curation`·`new_release`·`weekly`).
+    @State private var prefixSource = "curation"
+    /// 신곡 구간 뒤에 붙은 연관 곡 자리. 계측은 `new_release_related`.
+    @State private var relatedRange: Range<Int>?
+    /// 연관 구간에서 연달아 넘긴 수. 5가 되면 남은 연관 곡을 버리고 평소 피드로 간다.
+    /// 좋아요하거나 끝까지 들으면 0.
+    @State private var relatedSkips = 0
+    /// 방금 떠난 곡을 끝까지 들었는가. 체류는 카드 전환(`updateWindow`) 중에 먼저 발사돼서 여기 남는다.
+    @State private var fullListenTrackId: Int?
+    /// 앞에 세워 본 신곡 id. 5초 안에 넘긴 곡은 서버 청취 기록에 없어 다시 오기 때문에 기기가 거른다.
+    @AppStorage("seenNewReleases") private var seenNewReleasesRaw = ""
     /// 지금 앞세운 세트의 식별자. 완주 시점에 seenCurationSet으로 옮겨 적는다.
     @State private var curationSetKey = ""
     /// 완주한 세트 키. 같은 세트를 매 진입마다 다시 앞세우지 않기 위한 기억.
     @AppStorage("seenCurationSet") private var seenCurationSet = ""
-    /// 푸시 권한 자체 안내를 이미 한 번 보여줬는지. 시스템 팝업과 달리 이건 우리가 센다.
-    @AppStorage("didOfferPush") private var didOfferPush = false
-    @State private var showPushOffer = false
+    /// 첫 실행 광고성 정보 수신 동의 팝업을 띄웠는지(큐레이션·신곡·주간 추천 공통).
+    @AppStorage("didOfferAdConsent") private var didOfferAdConsent = false
+    @State private var showAdConsent = false
+    @AppStorage(AppDelegate.launchCountKey) private var launchCount = 0
+    /// 좋아요 알림 팝업을 띄운 아티스트(띄운 순서대로). 「나중에」 뒤엔 같은 아티스트 곡을 또 좋아요할 때 한 번 더.
+    /// ponytail: 피드 응답에 artistId가 없어 이름으로 센다. `recentRaw`처럼 개행으로 잇는다.
+    @AppStorage("hypeOfferArtists") private var hypeOfferArtistsRaw = ""
+    /// 좋아요가 서버에 반영된 뒤 다음 카드로 넘어가면 띄울 아티스트. 좋아요 모션과 겹치지 않게 미룬다.
+    @State private var pendingHypeOffer: String?
+    @State private var hypeOfferArtist: String?
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
@@ -126,7 +144,8 @@ struct FeedView: View {
                 savedFeedCursor = ""
                 res = try await session.api.send(.feed(), as: API.FeedResponse.self)
             }
-            feedList = await curationPrefix() + res.items.map(Feed.init)
+            let head = await prefix()
+            feedList = head + FeedView.upcoming(after: head, from: res.items.map(Feed.init))
             currentIndex = 0
             nextCursor = res.hasMore ? res.nextCursor : nil
             savedFeedCursor = nextCursor ?? ""   // 소진되면 비워 다음 세션은 새 시드로.
@@ -136,6 +155,9 @@ struct FeedView: View {
             // 여기서 재생하면 안 되고, 탭 복귀 시 onChange(selectedTab)가 새 리스트로 세팅한다.
             if isOnScreen {
                 audio.updateWindow(feeds: feedList, current: currentIndex)
+                // 다시 받으면 currentIndex가 0 그대로라 onChange가 안 터진다. 알림 탭으로 다시 짠 앞 구간의
+                // 첫 곡도 노출·신곡 기록·연관 곡 요청을 타야 한다(같은 곡이면 lastViewedTrackId가 거른다).
+                logTrackViewed()
             }
         } catch {
             loadFailed = true
@@ -146,6 +168,7 @@ struct FeedView: View {
             coachShownLogged = true
             PostHogSDK.shared.capture("coach_shown", properties: ["screen": "feed"])
         }
+        offerAdConsentIfNeeded()
     }
 
     /// 픽 재생. 30곡 상한 덕에 한 응답에 다 오므로 커서도 페이지네이션도 없다.
@@ -177,24 +200,63 @@ struct FeedView: View {
         return session.selectedTab == .feed
     }
 
-    /// 이번 주 큐레이션 세트를 일반 피드 앞에 붙인다. 세트가 끝나면 그대로 일반 피드로
-    /// 이어지므로 별도 화면도 종료 처리도 없다.
+    /// 일반 피드 앞에 붙일 구간 하나. 구간이 끝나면 그대로 일반 피드로 이어지므로 별도 화면도 종료 처리도 없다.
     ///
-    /// 도달을 푸시에 의존하지 않는 게 핵심 — 푸시 권한이 없는 유저도 앱을 열면 세트부터 본다.
-    /// 푸시로 들어온 경우엔 이미 완주한 세트라도 다시 앞세운다(눌렀는데 없으면 안 되므로).
-    /// ponytail: 실패하면 그냥 일반 피드 — 큐레이션이 없다고 피드가 비면 안 된다.
-    private func curationPrefix() async -> [Feed] {
-        curationCount = 0
+    /// 우선순위: 알림 탭(그 알림의 곡) > 안 본 신곡 > 이번 주 큐레이션 세트.
+    /// 도달을 푸시에 의존하지 않는 게 핵심 — 알림을 안 받는 유저도 앱을 열면 신곡·세트부터 본다
+    /// (앱 안 표시는 법상 "전송"이 아니라 광고성 동의와 무관하다).
+    /// ponytail: 한 번에 한 구간. 신곡이 있으면 세트는 신곡을 다 본 다음 실행에 앞에 온다.
+    /// 실패하면 그냥 일반 피드 — 앞 구간이 없다고 피드가 비면 안 된다.
+    private func prefix() async -> [Feed] {
+        prefixCount = 0
+        prefixSource = "curation"
         curationSetKey = ""
-        let fromPush = session.pendingCurationOpen
-        session.pendingCurationOpen = false
-        guard let set = try? await session.api.send(.curation, as: API.CurationResponse.self),
-              !set.items.isEmpty,
-              fromPush || set.setKey != seenCurationSet
+        relatedRange = nil
+        relatedSkips = 0
+        let open = session.pendingPushOpen
+        session.pendingPushOpen = nil
+
+        // 신곡·주간 추천 알림. 내려간 곡은 응답에서 빠지고, 다 빠졌으면 조용히 평소 피드.
+        if let open, !open.trackIds.isEmpty {
+            let items = (try? await session.api.send(.tracks(ids: open.trackIds), as: API.FeedResponse.self))?.items ?? []
+            return setPrefix(items.map(Feed.init), source: open.type == "weekly_pick" ? "weekly" : "new_release")
+        }
+
+        // 둘을 나란히 받는다 — 앞 구간 때문에 첫 카드가 늦게 뜨면 안 된다.
+        let api = session.api
+        let wantsReleases = session.authState == .signedIn && open == nil   // 큐레이션 알림이면 세트가 먼저
+        async let releases: API.FeedResponse? = wantsReleases
+            ? (try? await api.send(.newReleases, as: API.FeedResponse.self)) : nil
+        async let curation = try? await api.send(.curation, as: API.CurationResponse.self)
+
+        let seen = seenNewReleases
+        let fresh = (await releases)?.items.filter { !seen.contains($0.trackId) } ?? []
+        if !fresh.isEmpty { return setPrefix(fresh.map(Feed.init), source: "new_release") }
+
+        // 큐레이션 알림으로 왔으면 이미 완주한 세트라도 다시 앞세운다(눌렀는데 없으면 안 되므로).
+        guard let set = await curation, !set.items.isEmpty,
+              open?.type == "curation" || set.setKey != seenCurationSet
         else { return [] }
-        curationCount = set.items.count
         curationSetKey = set.setKey
-        return set.items.map(Feed.init)
+        return setPrefix(set.items.map(Feed.init), source: "curation")
+    }
+
+    private func setPrefix(_ feeds: [Feed], source: String) -> [Feed] {
+        prefixCount = feeds.count
+        prefixSource = source
+        return feeds
+    }
+
+    private var seenNewReleases: Set<Int> {
+        Set(seenNewReleasesRaw.split(separator: ",").compactMap { Int($0) })
+    }
+
+    /// ponytail: 최근 300개만 남긴다. 신곡은 7일이면 서버 목록에서 빠지니 그보다 오래 들고 있을 이유가 없다.
+    private func markNewReleaseSeen(_ trackId: Int) {
+        var ids = seenNewReleasesRaw.split(separator: ",").map(String.init)
+        guard !ids.contains(String(trackId)) else { return }
+        ids.append(String(trackId))
+        seenNewReleasesRaw = ids.suffix(300).joined(separator: ",")
     }
 
     /// 끝 3장 이내로 접근하면 다음 페이지를 붙인다. 커서 소진 시 정지.
@@ -259,7 +321,8 @@ struct FeedView: View {
     /// 큐레이션 배지도 완주 판정도 성립하지 않는다. 검색 종료 시 그대로 되돌린다.
     private struct FeedSnapshot {
         var list: [Feed]; var index: Int; var cursor: String?
-        var curationCount: Int; var curationSetKey: String
+        var prefixCount: Int; var prefixSource: String; var curationSetKey: String
+        var relatedRange: Range<Int>?
     }
 
     private var recentSearches: [String] {
@@ -327,8 +390,6 @@ struct FeedView: View {
                 savedFeedCursor = ""
                 Task { await loadInitialFeed(force: true) }
             }
-            // 앱이 떠 있는 채로 큐레이션 푸시를 탭한 경우. .task는 이미 끝났으므로
-            // 여기서 다시 받아야 세트가 앞으로 온다(플래그는 curationPrefix가 내린다).
             // 소리를 내는 커버가 뜨고 지는 순간. 뜨면 멈추고, 닫히면 원래 트랙으로 되돌린다.
             .onChange(of: session.modalAudioActive) { _, active in
                 if active {
@@ -345,8 +406,11 @@ struct FeedView: View {
                 savedFeedCursor = ""
                 Task { await loadInitialFeed(force: true) }
             }
-            .onChange(of: session.pendingCurationOpen) { _, pending in
-                guard mode == .normal, pending else { return }
+            // 앱이 떠 있는 채로 알림을 탭한 경우. .task는 이미 끝났으므로 여기서 다시 받아야
+            // 그 알림의 곡이 앞으로 온다(대기 항목은 prefix()가 비운다). 나중 탭이 앞 구간을 덮어쓴다.
+            // 포그라운드 수신(`willPresent`)은 여기 안 온다 — 배너를 눌러야 온다.
+            .onChange(of: session.pendingPushOpen) { _, pending in
+                guard mode == .normal, pending != nil else { return }
                 activeQuery = ""
                 savedFeed = nil
                 Task { await loadInitialFeed(force: true) }
@@ -500,11 +564,8 @@ struct FeedView: View {
                 audio.stop()
             }
         }
-        .onChange(of: currentIndex) { _, _ in
-            audio.updateWindow(feeds: feedList, current: currentIndex)
-            prefetchArtwork(from: currentIndex)
-            logTrackViewed()
-        }
+        // 클로저 본문은 메서드로 — `feed` 체인은 타입체커 한계라 여기서 늘리면 안 된다.
+        .onChange(of: currentIndex) { old, new in currentIndexChanged(from: old, to: new) }
         // 백그라운드 일시정지는 없앴다 — 피드 디깅은 앱을 벗어나도 이어진다.
         // 미리듣기 정지와 체류 시간 표시는 컨트롤러가 didEnterBackground에서 직접 한다.
         // 다른 화면(마이페이지)에서 하입이 바뀌면 살아있는 피드 카드에도 반영.
@@ -548,9 +609,8 @@ struct FeedView: View {
         .simultaneousGesture(tapGestures(height: size.height))
     }
 
-    /// 특집 세트 완주 직후의 푸시 권한 안내. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
+    /// 광고성 동의(첫 실행)·좋아요 알림 팝업. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
     /// 가운데 다이얼로그 형태를 유지한다 — 한 번의 대화가 두 단계로 이어지는 모양이 된다.
-    /// 거절은 아무것도 호출하지 않아 .notDetermined가 남고, 하입 시점에 기회가 다시 온다.
     @ViewBuilder
     private var pushOptInOverlay: some View {
         // 픽 닫기 버튼. `.overlay`는 콘텐츠 전체 위에 얹혀 히트 테스트를 먼저 가져가므로,
@@ -574,18 +634,38 @@ struct FeedView: View {
             .padding(.top, 8)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        if showPushOffer {
+        if showAdConsent {
             PushOptInPopup(
+                title: "Get new music by notification?",
+                message: "New tracks from artists you like, weekly picks, and our curated sets. Tapping Notify me means you agree to receive advertising information.",
                 onAccept: {
-                    PostHogSDK.shared.capture("push_optin_accepted",
-                                              properties: ["source": "curation_done"])
-                    session.requestPushAuthorization(source: "curation_done")
-                    withAnimation { showPushOffer = false }
+                    PostHogSDK.shared.capture("ad_consent_accepted", properties: ["source": "first_run"])
+                    Task { await session.acceptAdPush(source: "first_run") }
+                    withAnimation { showAdConsent = false }
                 },
                 onDecline: {
-                    PostHogSDK.shared.capture("push_optin_declined",
-                                              properties: ["source": "curation_done"])
-                    withAnimation { showPushOffer = false }
+                    // 거부도 처리 결과를 통지한다(제50조 7항). 서버 기본값과 같지만 처리 시각이 남는다.
+                    PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "first_run"])
+                    Task { await session.setAdPushConsent(false) }
+                    withAnimation { showAdConsent = false }
+                }
+            )
+        }
+        if let artist = hypeOfferArtist {
+            PushOptInPopup(
+                title: "Want a heads-up when \(artist) drops something new?",
+                message: "Tapping Notify me means you agree to receive advertising information.",
+                onAccept: {
+                    PostHogSDK.shared.capture("push_optin_accepted", properties: ["source": "hype"])
+                    PostHogSDK.shared.capture("ad_consent_accepted", properties: ["source": "hype"])
+                    Task { await session.acceptAdPush(source: "hype") }
+                    withAnimation { hypeOfferArtist = nil }
+                },
+                onDecline: {
+                    // 앱 팝업만 닫는다. 시스템 권한은 .notDetermined로 남아 다음 기회가 있다.
+                    PostHogSDK.shared.capture("push_optin_declined", properties: ["source": "hype"])
+                    PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "hype"])
+                    withAnimation { hypeOfferArtist = nil }
                 }
             )
         }
@@ -630,8 +710,12 @@ struct FeedView: View {
     private var contextBadge: some View {
         switch mode {
         case .normal:
-            if !isSearching, curationCount > 0, currentIndex < curationCount {
-                badgePill("This week's set \(currentIndex + 1)/\(curationCount)")
+            if !isSearching, prefixCount > 0, currentIndex < prefixCount {
+                switch prefixSource {
+                case "new_release": badgePill("New from artists you like \(currentIndex + 1)/\(prefixCount)")
+                case "weekly": badgePill("Your picks this week \(currentIndex + 1)/\(prefixCount)")
+                default: badgePill("This week's set \(currentIndex + 1)/\(prefixCount)")
+                }
             }
         case .pick(_, let nickname):
             badgePill("@\(nickname)'s pick \(currentIndex + 1)/\(feedList.count)")
@@ -847,12 +931,14 @@ struct FeedView: View {
         addRecentSearch(query)
         if savedFeed == nil {             // 일반 피드에서 첫 진입 → 상태 보관.
             savedFeed = FeedSnapshot(list: feedList, index: currentIndex, cursor: nextCursor,
-                                     curationCount: curationCount, curationSetKey: curationSetKey)
+                                     prefixCount: prefixCount, prefixSource: prefixSource,
+                                     curationSetKey: curationSetKey, relatedRange: relatedRange)
         }
         // 검색 결과엔 큐레이션 세트가 없다. 안 내리면 배지가 검색 결과에 그대로 남고,
         // 결과를 세트 길이만큼 넘기면 세트를 완주한 것으로 기록된다(logTrackViewed).
-        curationCount = 0
+        prefixCount = 0
         curationSetKey = ""
+        relatedRange = nil
         isSearching = false
         searchFocused = false
         searchText = query
@@ -895,8 +981,10 @@ struct FeedView: View {
         feedList = saved.list
         currentIndex = saved.index
         nextCursor = saved.cursor
-        curationCount = saved.curationCount
+        prefixCount = saved.prefixCount
+        prefixSource = saved.prefixSource
         curationSetKey = saved.curationSetKey
+        relatedRange = saved.relatedRange
         savedFeed = nil
         audio.updateWindow(feeds: feedList, current: currentIndex)   // 원래 피드로 오디오 윈도우 복원
     }
@@ -1027,12 +1115,13 @@ struct FeedView: View {
         guard feed.trackId != lastViewedTrackId else { return }
         lastViewedTrackId = feed.trackId
         // 세트를 지나 일반 피드로 넘어온 시점 = 완주. 다음 진입부터는 이 세트를 안 앞세운다.
-        if curationCount > 0, currentIndex >= curationCount, !curationSetKey.isEmpty {
-            // 이 블록은 세트 이후 모든 트랙에서 돌기 때문에, 기록 전 값으로 "방금 넘었는지"를
-            // 가른다. 안 그러면 완주 후 스와이프할 때마다 권한 안내를 다시 검사하게 된다.
-            let justFinished = seenCurationSet != curationSetKey
+        if prefixCount > 0, currentIndex >= prefixCount, !curationSetKey.isEmpty {
             seenCurationSet = curationSetKey
-            if justFinished { offerPushIfNeeded() }
+        }
+        if prefixSource == "new_release", currentIndex < prefixCount {
+            markNewReleaseSeen(feed.trackId)
+            // 신곡 구간의 마지막 곡에 왔다 = 기준 곡(이 구간에서 좋아요한 곡)이 거의 정해졌다.
+            if currentIndex == prefixCount - 1 { Task { await loadRelated() } }
         }
         // genre는 로케일 무관한 영문명으로 보낸다 — 표시용 라벨을 보내면 Rock/록이
         // 서로 다른 값으로 집계돼 장르별 스킵률을 볼 수 없다.
@@ -1060,7 +1149,7 @@ struct FeedView: View {
         guard !didAskReview,
               session.sessionTrackViews >= Self.reviewViewThreshold,
               // 다른 요청이 떠 있는 순간은 피한다. 겹치면 둘 다 거절당한다.
-              !showPushOffer, !session.pendingSignIn else { return }
+              !session.didShowPermissionPopup, !session.pendingSignIn else { return }
         didAskReview = true   // 1초 안에 또 넘겨도 두 번 예약되지 않게 먼저 세운다.
         PostHogSDK.shared.capture("review_prompt_requested",
                                   properties: ["views": session.sessionTrackViews])
@@ -1073,17 +1162,108 @@ struct FeedView: View {
         }
     }
 
-    /// 특집 세트 완주 직후 푸시 권한 안내를 띄운다. 알림이 알리는 대상이 방금 본 세트라
-    /// 여기가 물어보기 가장 좋은 지점이다. 이미 답한 유저(.notDetermined 아님)에겐
-    /// 보여줄 이유가 없으므로 그 경우엔 조용히 넘어간다.
-    private func offerPushIfNeeded() {
-        guard !didOfferPush, session.authState == .signedIn else { return }
+    /// 첫 실행 광고성 정보 수신 동의. 코치마크를 마친 순간(`finishCoach`)과 피드를 받은 직후 두 곳에서 부른다 —
+    /// 코치마크를 이미 본 기존 유저는 마치는 순간이 없어서 실행 직후에 뜬다(예전에 권한을 거부한 유저 포함).
+    /// 게스트에겐 안 띄운다(2026-10-29 확정). 게스트로 코치마크를 끝내고 방금 로그인했으면 다음 실행에 뜬다.
+    /// 큐레이션 완주 뒤 권한 팝업(`didOfferPush`)은 이걸로 대체됐다.
+    private func offerAdConsentIfNeeded() {
+        guard mode == .normal, !didOfferAdConsent, seenFeedCoach,
+              session.authState == .signedIn, !session.signedInFromGuest,
+              !session.didShowPermissionPopup, !session.pendingSignIn else { return }
+        didOfferAdConsent = true
+        session.didShowPermissionPopup = true
+        PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "first_run"])
+        withAnimation { showAdConsent = true }
+    }
+
+    /// 좋아요가 서버에 반영된 직후. 띄우는 건 다음 카드로 넘어간 뒤다(`onChange(of: currentIndex)`).
+    /// 잠금화면 좋아요(백그라운드)·코치마크·첫 실행은 빼고, 시스템 권한을 아직 안 정한 유저에게만.
+    private func queueHypeOffer(trackId: Int) {
+        guard session.authState == .signedIn, seenFeedCoach, launchCount >= 2,
+              !audio.isBackground, !session.didShowPermissionPopup,
+              let feed = feedList.first(where: { $0.trackId == trackId }),
+              FeedView.shouldOfferHypePush(offered: hypeOfferArtists, artist: feed.artistName)
+        else { return }
         Task {
             guard await session.pushAuthorizationUndecided() else { return }
-            PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "curation_done"])
-            didOfferPush = true
-            withAnimation(.easeOut(duration: 0.2)) { showPushOffer = true }
+            pendingHypeOffer = feed.artistName
         }
+    }
+
+    private func offerHypePush(artist: String) {
+        // 넘기는 사이 다른 게 떴으면 이번엔 건너뛴다. 기록을 안 남기니 다음 좋아요에 다시 기회가 있다.
+        guard !session.didShowPermissionPopup, !session.pendingSignIn, !showsCoach,
+              detailTarget == nil, shareItem == nil else { return }
+        session.didShowPermissionPopup = true
+        hypeOfferArtistsRaw = (hypeOfferArtists + [artist]).joined(separator: "\n")
+        PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "hype"])
+        PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "hype"])
+        withAnimation { hypeOfferArtist = artist }
+    }
+
+    private var hypeOfferArtists: [String] {
+        hypeOfferArtistsRaw.split(separator: "\n").map(String.init)
+    }
+
+    /// 처음엔 어느 아티스트든 한 번. 「나중에」 뒤엔 **그 아티스트** 곡을 다시 좋아요할 때 한 번 더. 그 뒤로는 안 묻는다.
+    static func shouldOfferHypePush(offered: [String], artist: String) -> Bool {
+        offered.isEmpty || (offered.count == 1 && offered[0] == artist)
+    }
+
+    // MARK: - New release related
+
+    /// 신곡 구간 뒤에 연관 곡을 붙인다. 기준 = 구간에서 좋아요한 곡, 없으면 신곡 중 무작위 1곡.
+    /// 마지막 신곡에 왔을 때, 그리고 구간 안에서 좋아요할 때마다 다시 짠다(기준 곡이 바뀌었으니).
+    /// 지금 카드는 안 건드린다 — 구간 안에 있을 때만 돌고, 바꾸는 건 구간 뒤쪽뿐이다.
+    private func loadRelated() async {
+        guard prefixSource == "new_release", currentIndex < prefixCount, !isPaging,
+              let random = feedList.prefix(prefixCount).randomElement() else { return }
+        let liked = feedList.prefix(prefixCount).filter(\.isHyped).map(\.trackId)
+        isPaging = true      // 페이지네이션과 서로 리스트를 덮지 않게(refreshUpcoming과 같은 플래그).
+        defer { isPaging = false }
+        guard let res = try? await session.api.send(.related(seeds: liked.isEmpty ? [random.trackId] : liked),
+                                                    as: API.FeedResponse.self),
+              // 응답이 오는 사이 구간을 벗어났으면 버린다. 지금 듣는 곡 뒤를 갈아치우게 된다.
+              currentIndex < prefixCount else { return }
+        let head = Array(feedList.prefix(prefixCount))
+        let rest = Array(feedList[min(relatedRange?.upperBound ?? prefixCount, feedList.count)...])
+        let related = FeedView.upcoming(after: head, from: res.items.map(Feed.init))
+        feedList = head + related + FeedView.upcoming(after: head + related, from: rest)
+        relatedRange = prefixCount..<(prefixCount + related.count)
+        relatedSkips = 0
+        prefetchArtwork(from: currentIndex)
+        if isOnScreen { audio.updateWindow(feeds: feedList, current: currentIndex) }
+    }
+
+    private func currentIndexChanged(from old: Int, to new: Int) {
+        audio.updateWindow(feeds: feedList, current: currentIndex)   // 떠난 곡의 체류가 여기서 먼저 발사된다.
+        countRelatedSkip(from: old, to: new)
+        prefetchArtwork(from: currentIndex)
+        logTrackViewed()
+        if let artist = pendingHypeOffer {
+            pendingHypeOffer = nil
+            offerHypePush(artist: artist)
+        }
+    }
+
+    /// 연관 구간에서 앞으로 넘길 때마다 센다. 다섯 번 연달아면 남은 연관 곡을 버린다 — 이 유저에겐 안 맞는 줄이다.
+    /// 지금 카드(이미 떠 있다)는 그대로 두고 그 뒤부터 평소 피드다.
+    private func countRelatedSkip(from old: Int, to new: Int) {
+        guard let range = relatedRange, new == old + 1, range.contains(old),
+              feedList.indices.contains(old) else { return }
+        let left = feedList[old]
+        if left.isHyped || fullListenTrackId == left.trackId {
+            relatedSkips = 0
+            return
+        }
+        relatedSkips += 1
+        guard relatedSkips >= 5 else { return }
+        relatedSkips = 0
+        if new + 1 < range.upperBound {
+            feedList.removeSubrange((new + 1)..<range.upperBound)
+            audio.updateWindow(feeds: feedList, current: currentIndex)
+        }
+        relatedRange = range.lowerBound..<min(new + 1, range.upperBound)
     }
 
     private func recordListen(trackId: Int) {
@@ -1097,6 +1277,8 @@ struct FeedView: View {
     /// 트랙을 떠날 때 실제 재생 시간을 남긴다. 청취 임계값(5초) 튜닝용 원시 분포 —
     /// track_listened는 임계값 통과 여부만 알려줘서 임계선을 어디로 옮길지 못 본다.
     private func logDwell(trackId: Int, seconds: Double) {
+        // ponytail: 미리듣기가 30초라 28초 이상이면 끝까지 들은 것으로 본다(연관 구간 넘김 카운터가 쓴다).
+        if seconds >= 28 { fullListenTrackId = trackId }
         PostHogSDK.shared.capture("track_dwell", properties: [
             "track_id": trackId, "seconds": (seconds * 10).rounded() / 10,
             "source": source(for: trackId),
@@ -1118,7 +1300,9 @@ struct FeedView: View {
         if case .pick = mode { return "pick" }
         if !activeQuery.isEmpty { return "search" }
         guard let index = feedList.firstIndex(where: { $0.trackId == trackId }) else { return "feed" }
-        return (curationCount > 0 && index < curationCount) ? "curation" : "feed"
+        if index < prefixCount { return prefixSource }
+        if relatedRange?.contains(index) == true { return "new_release_related" }
+        return "feed"
     }
 
     /// play()부터 실제로 소리가 나기까지의 지연. 스와이프가 이보다 빨랐으면 발사되지 않으므로,
@@ -1175,7 +1359,14 @@ struct FeedView: View {
                 return   // 서버가 안 받았으니 시드도 안 바뀐다. 재구성할 이유가 없다.
             }
             session.hypeChangeToken += 1   // 디깅 프로필 통계가 다시 받아간다.
-            if target { await refreshUpcoming() }
+            guard target else { return }
+            queueHypeOffer(trackId: trackId)
+            // 신곡 구간에선 기준 곡이 바뀐 것이라 연관 곡을 다시 짠다. 평소 피드 재정렬은 구간을 다 지난 뒤에.
+            if prefixSource == "new_release", currentIndex < prefixCount {
+                await loadRelated()
+            } else {
+                await refreshUpcoming()
+            }
         }
     }
 
@@ -1194,9 +1385,10 @@ struct FeedView: View {
     private func refreshUpcoming() async {
         guard mode == .normal, activeQuery.isEmpty, !isPaging,
               feedList.indices.contains(currentIndex),
-              // 큐레이션 세트를 지나기 전이면 손대지 않는다. 뒤를 갈아치우면 아직 안 들은
-              // 세트 곡이 사라지고 완주 판정(curationCount)도 깨진다.
-              currentIndex + 1 >= curationCount
+              // 앞 구간을 지나기 전이면 손대지 않는다. 뒤를 갈아치우면 아직 안 들은
+              // 구간 곡이 사라지고 완주 판정(prefixCount)도 깨진다. 신곡 연관 구간도 같다.
+              currentIndex + 1 >= prefixCount,
+              currentIndex + 1 >= relatedRange?.upperBound ?? 0
         else { return }
         isPaging = true      // 같은 플래그로 페이지네이션과 상호 배제 — 서로 리스트를 덮지 않는다.
         defer { isPaging = false }
@@ -1293,6 +1485,7 @@ struct FeedView: View {
         PostHogSDK.shared.capture("coach_finished", properties: ["screen": "feed", "last_step": 2])
         withAnimation(.easeOut(duration: 0.2)) { seenFeedCoach = true }
         coachCycleStart = nil
+        offerAdConsentIfNeeded()
     }
 
     /// 잠금화면·이어폰의 다음/이전으로 트랙을 옮긴다. 화면이 없으니 애니메이션도 없다.

@@ -1,0 +1,20 @@
+{
+  "Simulator Target Bundle": "parkjju.dignify",
+  "aps": {
+    "alert": {
+      "title": "(광고) 이번 주 추천",
+      "body": "좋아요한 곡을 바탕으로 고른 5곡"
+    },
+    "sound": "default",
+    "category": "AD_PUSH"
+  },
+  "type": "weekly_pick",
+  "push_id": "test-weekly_pick",
+  "trackIds": [
+    6,
+    7,
+    8,
+    9,
+    10
+  ]
+}

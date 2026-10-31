@@ -242,6 +242,17 @@
         }
       }
     },
+    "Ad notifications": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "광고성 정보 알림 수신"
+          }
+        }
+      }
+    },
     "Add reaction": {
       "extractionState": "manual",
       "localizations": {
@@ -683,6 +694,17 @@
         }
       }
     },
+    "Couldn't unsubscribe. Turn off ad notifications in My Page › Notifications.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수신거부를 처리하지 못했어요. 마이 › 알림에서 광고성 알림을 꺼 주세요."
+          }
+        }
+      }
+    },
     "Couldn't update. Please try again.": {
       "localizations": {
         "ko": {
@@ -816,6 +838,28 @@
       }
     },
     "Dignify": {},
+    "Dignify processed your opt-in to ad notifications on %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "귀하가 요청하신 Dignify의 광고성 정보 수신동의가 %@에 처리되었습니다."
+          }
+        }
+      }
+    },
+    "Dignify processed your opt-out from ad notifications on %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "귀하가 요청하신 Dignify의 광고성 정보 수신거부가 %@에 처리되었습니다."
+          }
+        }
+      }
+    },
     "Discover indie music and build your taste.": {
       "localizations": {
         "ko": {
@@ -1124,6 +1168,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "텐션을 올려준다"
+          }
+        }
+      }
+    },
+    "Get new music by notification?": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 음악 소식, 알림으로 받을까요?"
           }
         }
       }
@@ -1577,6 +1632,17 @@
         }
       }
     },
+    "New from artists you like %lld/%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 아티스트의 신곡 %lld/%lld"
+          }
+        }
+      }
+    },
     "New here? Play a few tracks and pick the ones you like — your feed starts there.": {
       "localizations": {
         "ko": {
@@ -1627,6 +1693,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "처음 본다"
+          }
+        }
+      }
+    },
+    "New tracks from artists you like, weekly picks, and our curated sets. Tapping Notify me means you agree to receive advertising information.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 아티스트의 신곡, 주간 추천, 이번 주 특집을 알려 드려요. 「알림 받기」를 누르면 광고성 정보 수신에 동의하게 돼요."
+          }
+        }
+      }
+    },
+    "New tracks from artists you like, weekly picks, and our curated sets. These are advertising information.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 아티스트의 신곡, 주간 추천, 이번 주 특집 알림이에요. 모두 광고성 정보예요."
           }
         }
       }
@@ -1745,6 +1833,17 @@
         }
       }
     },
+    "Not set": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 전"
+          }
+        }
+      }
+    },
     "Not sure what to pick?": {
       "extractionState": "manual",
       "localizations": {
@@ -1752,6 +1851,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "무엇을 고를지 모르겠다면"
+          }
+        }
+      }
+    },
+    "Notification settings saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알림 설정을 저장했어요"
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알림"
           }
         }
       }
@@ -1774,6 +1895,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "확인"
+          }
+        }
+      }
+    },
+    "Off": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "꺼짐"
           }
         }
       }
@@ -1801,12 +1933,67 @@
         }
       }
     },
+    "On": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "켜짐"
+          }
+        }
+      }
+    },
     "On, the feed plays tracks that sound like the ones you liked. Off, it plays anything.": {
       "localizations": {
         "ko": {
           "stringUnit": {
             "state": "translated",
             "value": "켜면 좋아요한 곡과 소리가 비슷한 곡이 나오고, 끄면 조건 없이 아무 곡이나 나와요."
+          }
+        }
+      }
+    },
+    "New tracks from artists you like now show up first in your feed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요한 아티스트의 신곡이 나오면 피드 맨 앞에 먼저 보여 드려요."
+          }
+        }
+      }
+    },
+    "Turn on notifications and we'll let you know when they drop new tracks.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알림을 켜 두면 좋아요한 아티스트의 신곡 소식을 바로 알려 드려요."
+          }
+        }
+      }
+    },
+    "Every Monday, get 5 picks based on the tracks you like.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "매주 월요일, 좋아요한 곡을 바탕으로 고른 5곡을 보내 드려요."
+          }
+        }
+      }
+    },
+    "Turn notifications on or off anytime in My Page › Notifications.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알림은 마이 › 알림에서 언제든 켜고 끌 수 있어요."
           }
         }
       }
@@ -2718,6 +2905,17 @@
         }
       }
     },
+    "System notifications": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기 알림 권한"
+          }
+        }
+      }
+    },
     "Take the taste test": {
       "extractionState": "manual",
       "localizations": {
@@ -2746,6 +2944,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "누르면 그 곡으로 가요"
+          }
+        }
+      }
+    },
+    "Tapping Notify me means you agree to receive advertising information.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「알림 받기」를 누르면 광고성 정보 수신에 동의하게 돼요."
           }
         }
       }
@@ -3100,6 +3309,17 @@
         }
       }
     },
+    "Turn on in Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정에서 켜기"
+          }
+        }
+      }
+    },
     "Turn on notifications and we'll tell you when the next one drops.": {
       "extractionState": "manual",
       "localizations": {
@@ -3143,6 +3363,17 @@
         }
       }
     },
+    "Unsubscribe": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수신거부"
+          }
+        }
+      }
+    },
     "Up to %lld tracks.": {
       "extractionState": "manual",
       "localizations": {
@@ -3171,6 +3402,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "버전 %@"
+          }
+        }
+      }
+    },
+    "Want a heads-up when %@ drops something new?": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 신곡이 나오면 알려 드릴까요?"
           }
         }
       }
@@ -3653,6 +3895,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "내가 만든 픽이 몇 번 재생됐는지 볼 수 있어요."
+          }
+        }
+      }
+    },
+    "Your picks this week %lld/%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 주 추천 %lld/%lld"
           }
         }
       }

@@ -194,6 +194,27 @@ struct dignifyTests {
         #expect(FeedView.upcoming(after: [], from: [feed(5), feed(6)]).map(\.trackId) == [5, 6])
     }
 
+    /// 좋아요 알림 팝업: 처음엔 아무 아티스트나 한 번, 「나중에」 뒤엔 같은 아티스트일 때만 한 번 더, 그 뒤로는 끝.
+    @MainActor @Test func hypePushOfferAsksAtMostTwiceForTheSameArtist() {
+        let offer = FeedView.shouldOfferHypePush
+        #expect(offer([], "혁오"))
+        #expect(offer(["혁오"], "혁오"))
+        #expect(!offer(["혁오"], "잔나비"))
+        #expect(!offer(["혁오", "혁오"], "혁오"))
+    }
+
+    /// 결과 통지 날짜는 서버 처리 시각(UTC)을 기기 시간대로 바꾼 날이다. 한국 새벽 처리분이 전날로 찍히면 안 된다.
+    @Test func consentNoticeUsesLocalDate() {
+        let utcEvening = "2026-10-29T20:30:00.123456Z"   // 한국 10-30 05:30
+        let text = AppSession.consentNoticeText(adPush: true, processedAt: utcEvening)
+        let local = DateFormatter()
+        local.locale = Locale(identifier: "en_US_POSIX")
+        local.dateFormat = "yyyy-MM-dd"
+        #expect(text.contains(local.string(from: Date(timeIntervalSince1970: 1_793_305_800))))
+        // 파싱이 안 되는 값이면 앞 10자로 물러선다.
+        #expect(AppSession.consentNoticeText(adPush: false, processedAt: "2026-10-30 junk").contains("2026-10-30"))
+    }
+
     /// 백그라운드 재생분이 섞인 체류는 발사 시점이 포그라운드여도 그렇게 표시돼야 한다.
     /// 발사 시점만 보면 "주머니에서 10분 듣고 복귀해 스와이프"가 포그라운드 체류로 기록되고,
     /// 중앙값 2.0초짜리 분포에 600초 표본이 섞인다.

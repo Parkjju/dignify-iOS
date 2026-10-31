@@ -1,0 +1,16 @@
+{
+  "Simulator Target Bundle": "parkjju.dignify",
+  "aps": {
+    "alert": {
+      "title": "(광고) 없는 곡",
+      "body": "내려간 곡만 담긴 알림"
+    },
+    "sound": "default",
+    "category": "AD_PUSH"
+  },
+  "type": "new_release",
+  "push_id": "test-new_release_missing",
+  "trackIds": [
+    999999999
+  ]
+}

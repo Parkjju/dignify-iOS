@@ -1,7 +1,7 @@
 # iOS TODO
 
 작성 2026-08-07. **2026-09-30 정리 — 완료된 P5 작업·P6·P7을 맨 아래 이력으로 접었다.**
-현재 스토어 버전 1.3.0(빌드 25). 1.3.1(빌드 28) 2026-10-20 심사 중.
+현재 스토어 버전 1.3.1(빌드 28, 2026-10-30 확인). 다음은 1.3.2(빌드 29) — 재방문 푸시 2종. 테스트 끝, **UX Writing 확정 문구 반영 전엔 심사 제출 금지**.
 
 > 🎨 **디자인 반영할 것은 `../dignify-design/app-changes.mdx`가 정본이다**(배포본: 디자인 Storybook 「가이드 › 앱 반영 목록」).
 > 시안 버전별로 화면 id · AS-IS · TO-BE · 앱 파일 위치가 적혀 있다. 아래 버전부터 차례로 반영하고, 끝나면 그 버전 상태를 「반영됨 (iOS x.y.z)」로 바꾼다.
@@ -58,7 +58,7 @@
 - [x] 심사 결과 확인 → 출시되면 맨 위 「현재 스토어 버전」 줄과 메모리 갱신
 - [ ] 출시 후 PostHog: `coach_shown`/`coach_finished`가 이제 `screen: "feed"`만 남는다. picks·mypage·seed_picker로 나눠 보던 인사이트를 정리한다
 
-- [ ] 1.3.1 심사 결과 확인 → 출시되면 맨 위 「현재 스토어 버전」 줄·메모리 갱신, 프로모션 텍스트·설명 불릿을 `marketing/appstore/copy.md` 1.3.1 문구로(심사 없이 수정 가능)
+- [ ] 1.3.1 출시됨(2026-10-30 확인). 남은 것: 프로모션 텍스트·설명 불릿을 `marketing/appstore/copy.md` 1.3.1 문구로(심사 없이 수정 가능)
 
 ## ⏳ 나중 (App Store Connect 개편분, 2026-10-12 점검)
 
@@ -67,6 +67,64 @@
   - 2026-10-20 깨지는 곳만 코드로 대응(`FeedView.swift`): 아트워크 한 변이 폭 기준이라 펼침(951×669)에서 903 정사각형이 위아래를 뚫던 것 → `TrackCardView.artworkSide`가 높이도 본다(일반 아이폰은 그대로). 카드·검색 줄·검색 패널이 좌우 inset을 따로 뺀다(접힘: 오른쪽 세로 막대 84). 펴고 접을 때 inset을 다시 읽는다(`body`의 `onGeometryChange`)
   - 일부러 안 한 것: 온보딩 3열 그리드는 펼침에서 타일이 커지지만 스크롤돼서 안 깨진다. 안쪽 화면 사이드바(`.defaultTabBarPlacement(.sidebar)`)·두 칸 배치는 기능 추가라 뺐다
   - [ ] Xcode 27.1 Duo 시뮬레이터(Device Hub)로 접힘·펼침·펼침 세로·Split View 왼쪽/오른쪽에서 피드·픽 재생 확인. 특히 펴고 접는 순간 카드 위치가 따라오는지(창 inset이 크기보다 늦게 바뀌면 한 번 어긋난다)
+
+## ⏳ 재방문 푸시 2종 — 신곡 알림 · 주간 추천 (2026-10-29 확정 반영)
+
+정본은 Confluence 03. Dev 「재방문 푸시 기능 2종: 기능 명세」(13074433)와 하위 「개발 참고: 신곡 알림」(13008898)·「개발 참고: 주간 추천 푸시」(12681240).
+**Claude Docs 초안(Rf2t9FTE…)과 이 절의 10-27판(`didOfferPushHype`)은 낡았다 — 아래로 대체.** 서버 몫은 `dignify-backend/TODO.md` P1-b.
+세 푸시(큐레이션·신곡·주간) 모두 **광고성**이다. 서버 동의 필터는 이 앱의 동의 팝업이 나간 뒤에 켠다 — **이 절 0이 서버보다 먼저 나가야 한다.**
+
+**2026-10-30 코드 들어감(빌드·실기기 전).** 서버 `2866463`으로 `GET /feed/tracks?ids=`(알림 곡 조회)와 `/users/me`의 `adPushConsent`가 붙었다 — 앱이 쓰는 계약이 전부 배포됐다.
+- `/feed/tracks`의 `isHyped`는 항상 false다. 발송 뒤에 좋아요한 곡은 카드에 빈 하트로 보인다(누르면 409 → 성공 처리라 동작은 맞다)
+
+### 0. 광고성 정보 수신 동의 (서버 P1-b 0 배포됨 `489f43d`)
+
+- [x] 첫 실행 동의 팝업: `seenFeedCoach`가 true로 바뀌는 시점에 1회(세 푸시 공통). 수락 → `PUT /users/me/push-consent` + 시스템 권한 요청 + 결과 통지. 기록 `didOfferAdConsent`(신규 `@AppStorage`)
+  - 코치마크를 이미 본 기존 유저(예전 권한 거부 포함)는 업데이트 후 앱 실행 시점에 1회
+  - 권한 상태별: `.notDetermined` → 시스템 요청 / `.denied` → 설정 앱(`openSettingsURLString`) / `.authorized` → 동의만
+  - 문구에 **「광고성 정보 수신동의」 명시**("혜택 알림"·"마케팅"이면 무효)
+- [x] 큐레이션 완주 팝업 삭제: `offerPushIfNeeded()`(`FeedView.swift:1079`)와 호출부(1035). `didOfferPush` 키는 안 써도 지우지 않음
+- [x] 결과 통지(14일 내): 동의·거부·철회 처리 후 「귀하가 요청하신 Dignify의 광고성 정보 [수신동의/수신거부]가 YYYY-MM-DD에 처리되었습니다.」 — 날짜는 서버 응답값
+- [x] 수신거부 액션: `UNNotificationCategory("AD_PUSH")`에 「수신거부」 등록 → `POST /push/{pushId}/opt-out {deviceToken}`(인증 없음) → 결과 통지. 이 액션이면 피드 안 건드림
+- [x] 마이페이지 알림 설정 화면(신규): 광고성 수신 토글(서버 값) + OS 권한 상태, `.denied`면 「설정에서 켜기」
+- **게스트에게는 동의 팝업을 띄우지 않는다**(2026-10-29 확정). 첫 실행 팝업도 `authState == .signedIn`일 때만 — 게스트로 코치마크를 끝낸 유저는 로그인 후 첫 실행 때 뜬다(`didOfferAdConsent`가 없으므로)
+- 계측 `ad_consent_shown/accepted/declined{source: first_run|hype|settings}`
+- 코드 메모: 팝업은 `FeedView.offerAdConsentIfNeeded`(피드 받은 직후 + `finishCoach`). 첫 실행 「나중에」도 `PUT false` + 결과 통지. 통지는 `AppSession.consentNotice` → `MainTabView` 확인 팝업 한 곳. 「수신거부」는 앱을 안 열고(`AppDelegate.optOut`) 결과를 **로컬 알림**으로 통지한다(앱이 안 떠 있을 수 있다). 기기 토큰은 `apnsDeviceToken`에 둔다. 게스트로 코치마크를 끝내고 로그인한 실행엔 안 뜨고(`signedInFromGuest`) 다음 실행에 뜬다
+
+### 1. 좋아요 직후 팝업 「혁오 신곡이 나오면 알려 드릴까요?」
+
+- [x] 조건: 로그인 + `pushAuthorizationUndecided()` + `launchCount >= 2`(신규 `@AppStorage`) + 세션 플래그 꺼짐 → 좋아요 후 **다음 카드 전환 직후**(`onChange(of: currentIndex)`, `burst()`와 안 겹치게). 광고성 동의가 없으면 여기서 같이 받는다
+- [x] 겹침 7건(문서 표): 코치마크 / 로그인 시트·`pendingSignIn` / 좋아요 모션 / 첫 실행 동의 팝업 / `maybeAskReview()` guard / 온보딩 곡 고르기(`SeedPoolPickerView` 좋아요 제외) / 잠금화면 `ToggleHypeIntent`(`audio.isBackground`면 제외). 업데이트 소식 등 시트가 떠 있으면 건너뜀
+- [x] 「나중에」 후 재질문: 같은 아티스트 곡을 두 번째 좋아요할 때 1회 — `hypeOfferArtistIds`(`@AppStorage` JSON)
+- [x] 세션 중복 방지 플래그는 `AppSession`(메모리). 픽 작성·아티스트 요청 경로도 같은 값을 본다. **팝업별 플래그를 공유하지 말 것**(공유하면 한쪽 본 유저에게 다른 쪽이 영영 안 뜬다)
+- [x] `PushOptInPopup` 재사용, 계측 `push_optin_*{source: "hype"}`
+- 코드 메모: 세션 플래그 `AppSession.didShowPermissionPopup`(리뷰 요청 guard·픽 팝업도 봄, 아티스트 요청은 올리기만). 아티스트는 피드 응답에 id가 없어 **이름**으로 센다(`hypeOfferArtists`, 개행 join). 실행 횟수 `launchCount`는 `AppDelegate` didFinishLaunching
+- [x] 1.0.6 "권한 요청을 첫 하입 직후로 이동" 기록이 지금 코드에 없는 이유를 git 이력으로 먼저 확인
+  - `c5fb442`(2026-08-04)에서 뺐다. 그때는 하입하는 순간 **시스템 팝업을 바로** 띄웠고, 곡을 저장하는 손 위로 알림이 떠서 걷어냈다. 이번 설계(다음 카드로 넘어간 뒤 자체 팝업 → 수락하면 시스템 팝업)가 그 문제를 피한다
+
+### 2. 알림 탭 → 피드 앞 구간 (신곡·주간 공통)
+
+- [x] `AppSession.pendingCurationOpen`을 `{type, trackIds}` 대기 항목 하나로 일반화. **탭(`didReceive`)마다 앞 구간 교체**, 나중 탭이 덮어씀. **포그라운드 수신(`willPresent`)은 피드 재구성 안 함**
+- [x] `new_release`: 신곡 전부 → 끝나면 `GET /feed/related?seeds=`(신곡 구간에서 좋아요한 곡, 없으면 신곡 중 무작위 1곡 — 신곡 벡터는 운영에서 보장, 10-29 확정) → 연관 구간에서 **연속 5번 넘기면** 평소 피드(좋아요·끝까지 듣기면 카운터 0)
+- [x] `weekly_pick`: 5곡 → 평소 피드. 앞에서 본 곡은 `upcoming(after:from:)`로 빠짐
+- [x] 곡이 내려갔으면 남은 곡만, 없으면 조용히 평소 피드
+- [x] 계측 `source(for:)`(`FeedView.swift`) 확장 — 지금은 `curationCount` 범위면 무조건 `curation`. 앞 구간 출처를 기억해 `new_release`·`new_release_related`·`weekly`·`curation`
+
+- 코드 메모: `curationCount` → `prefixCount` + `prefixSource`, 연관 구간은 `relatedRange`. 연관 곡은 마지막 신곡에 왔을 때 + 신곡 구간에서 좋아요할 때마다 다시 받는다. 끝까지 듣기 = 체류 28초 이상. 다시 받은 뒤 첫 카드도 `logTrackViewed`를 탄다(전엔 강제 재로드 뒤 첫 곡 `track_viewed`가 빠졌다)
+
+### 3. 알림 미허용 유저도 신곡 받기 (안 A)
+
+- [x] 로그인 유저가 앱을 열면 `GET /feed/new-releases`를 피드 앞에. 본 신곡 id는 기기 기록(`seenCurationSet` 방식, 5초 미만 스킵은 서버가 못 거름)
+- [x] 카드에 「좋아요한 아티스트의 신곡」 표시 — 큐레이션 배지 자리 재사용이 최소(시안 대기) — 배지 「좋아요한 아티스트의 신곡 n/N」, 주간은 「이번 주 추천 n/N」으로 우선 넣음. 앞 구간은 한 번에 하나(알림 탭 > 안 본 신곡 > 큐레이션)
+- [ ] 구간 뒤 「다음 신곡도 알림으로 받기」 제안 — `.denied`·동의 false면 무엇을 켜야 하는지 안내
+
+### 4. 마무리
+
+- [ ] 수신 처리 빌드 번호를 서버 `meetsMinBuild`에 알려 줄 것(이전 빌드엔 광고성 푸시 미발송)
+- [ ] ⚠️ **심사 제출 전 필수 — UX Writing 확정 문구 반영.** 문자열(동의·좋아요 팝업·결과 통지·설정 화면·수신거부 액션·신곡 배지·What's New 1.3.2 4줄)은 전부 초안이다(2026-10-30 카탈로그에 파일로 넣음). 확정되면 `Localizable.xcstrings` 값만 바꾸고 Xcode 껐다 켜고 빌드. 안드로이드 `strings.xml`도 같은 값으로
+- [x] 시뮬레이터 테스트 끝(2026-10-30) — `test-push/README.md` 1~6. 동의 팝업·좋아요 팝업·알림 탭 5종·마이 › 알림·게스트
+- [x] 실기기 + 운영 플래그 잠깐 켜기 끝(2026-10-30) — `test-push/README.md` 7. 주간 추천 실제 수신·탭(`app_opened_push{weekly_pick}`, `source: weekly`) / 「수신거부」 → 동의 false → 재발송 안 옴
+- [x] 1.3.2(29) 준비 — 버전·위젯 버전·What's New 4줄(ko 포함). 기존 계정은 코치마크·시드 고르기 생략(`MainTabView`), 디버그 초기화 행 2개(신규·업데이트)
 
 ---
 

@@ -22,12 +22,7 @@ struct MyPageView: View {
     @State private var showDiggingProfile = false
 
     #if DEBUG
-    // 업데이트 유저 흐름을 다시 보기 위한 것들. 릴리즈 빌드엔 이 화면에서 아예 빠진다.
-    @AppStorage("didJustOnboard") private var didJustOnboard = false
-    @AppStorage("didSoundRounds") private var didSoundRounds = false
-    @AppStorage("lastSeenVersion") private var lastSeenVersion = ""
-    @AppStorage("seenFeedCoach") private var seenFeedCoach = false
-    @State private var debugResetDone = false
+    @State private var debugResetMessage: String?
     /// 앱 재시작 없이 시드 고르기 화면만 바로 띄운다. nil이면 안 뜬다.
     /// 신규 온보딩(로딩 → 곡 고르기 → 피드 구성 중)을 계정·서버 상태 그대로 둔 채 다시 본다.
     @State private var debugOnboarding = false
@@ -197,6 +192,7 @@ struct MyPageView: View {
             // 그대로 쓰이는 설정이다. 꺼진 동안 무슨 뜻인지는 그 화면이 설명한다.
             NavigationLink { SeedPickerView() } label: { settingsRow("Recommend from") }
             NavigationLink { ArtistRequestHistoryView() } label: { settingsRow("Artist Requests") }
+            NavigationLink { NotificationSettingsView() } label: { settingsRow("Notifications") }
             // 차단은 로컬 저장이라 해제 경로가 여기밖에 없다. 되돌릴 수 없는 차단은 유저를 가둔다.
             NavigationLink { BlockedUsersView() } label: { settingsRow("Blocked Users") }
 
@@ -222,7 +218,18 @@ struct MyPageView: View {
             #if DEBUG
             groupDivider
             debugSeedPickerRow
-            debugResetRow
+            // 계정 삭제 알림과 같은 뷰에 .alert를 겹치지 않게 행 묶음에 단다.
+            // Group이면 .alert가 행마다 붙는다 — 하나로 묶으려고 VStack.
+            VStack(spacing: 0) {
+                debugResetRow(newUser: false)
+                debugResetRow(newUser: true)
+            }
+            .alert("초기화했어요", isPresented: Binding(get: { debugResetMessage != nil },
+                                                       set: { if !$0 { debugResetMessage = nil } })) {
+                Button("확인", role: .cancel) {}
+            } message: {
+                Text(verbatim: debugResetMessage ?? "")
+            }
             #endif
         }
         .buttonStyle(.plain)
@@ -270,26 +277,34 @@ struct MyPageView: View {
         }
     }
 
-    /// **디버그 빌드에만 있다.** 로그인 상태는 그대로 두고 "방금 업데이트한 기존 유저"의
-    /// 플래그만 되돌린다. 앱을 지우면 신규 설치가 되어 온보딩을 타므로 그 경로로는
-    /// 업데이트 유저 흐름(라운드 → What's New → 코치마크)을 볼 수가 없다.
+    /// **디버그 빌드에만 있다.** 로그인은 그대로 두고 기기 기록만 되돌린다. 계정을 지우지 않고 두 흐름을 본다.
+    /// - 업데이트 유저: 1.3.1에서 막 올라온 기존 유저. What's New → 동의 팝업
+    /// - 신규 유저: 온보딩을 막 마친 유저. 코치마크 → 동의 팝업. 곡 고르기 화면은 위 「신규 온보딩 열기」로 따로 본다
     ///
-    /// `MainTabView`의 판정은 실행 직후 `.task`에서 한 번만 돌기 때문에 **앱을 껐다 켜야** 보인다.
-    /// 화면만 보려면 위의 `debugSeedPickerRow`가 빠르다 — 이건 **순서까지** 확인할 때 쓴다.
-    private var debugResetRow: some View {
+    /// 둘 다 서버 광고성 동의를 거부(서버 기본값)로 돌리고, 결과 통지는 안 띄운다.
+    /// 시스템 알림 권한은 앱에서 못 되돌린다 — 「설정 전」이 필요하면 앱을 지우고 다시 깐다.
+    /// `MainTabView`·`FeedView`의 판정은 실행 직후에 돌기 때문에 **앱을 완전히 껐다 켜야** 보인다.
+    private func debugResetRow(newUser: Bool) -> some View {
         Button {
-            didJustOnboard = false          // 신규 가입이 아니라 기존 유저로 본다
-            didSoundRounds = false          // 시드 고르기를 다시 태운다
-            lastSeenVersion = "1.0.10"      // 지금 버전과 달라야 What's New가 뜬다
-            seenFeedCoach = false
-            debugResetDone = true
+            let d = UserDefaults.standard
+            d.set(newUser, forKey: "didJustOnboard")
+            // 업데이트 유저는 지금 버전과 달라야 What's New가 뜨고, 신규 유저는 같아야 안 뜬다.
+            let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            d.set(newUser ? current : "1.3.1", forKey: "lastSeenVersion")
+            d.set(!newUser, forKey: "seenFeedCoach")
+            // 1.3.2에서 새로 생긴 기록 — 업데이트 직후·가입 직후엔 전부 비어 있다.
+            for key in ["didOfferAdConsent", AppDelegate.launchCountKey, "hypeOfferArtists",
+                        "seenNewReleases", AppSession.adPushConsentKey] {
+                d.removeObject(forKey: key)
+            }
+            Task {
+                _ = try? await appSession.api.send(.setAdPushConsent(false), as: API.AdPushConsent.self)
+                debugResetMessage = newUser
+                    ? "앱을 완전히 껐다 켜면 코치마크 → 광고성 알림 동의 팝업 순서로 뜹니다."
+                    : "앱을 완전히 껐다 켜면 What's New → 광고성 알림 동의 팝업 순서로 뜹니다."
+            }
         } label: {
-            settingsRow("업데이트 유저 상태로 초기화 (DEBUG)")
-        }
-        .alert("초기화했어요", isPresented: $debugResetDone) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text(verbatim: "앱을 완전히 껐다 켜면 곡 고르기 → What's New → 코치마크 순서로 뜹니다.")
+            settingsRow(newUser ? "신규 유저 상태로 초기화 (DEBUG)" : "업데이트 유저 상태로 초기화 (DEBUG)")
         }
     }
     #endif
@@ -360,6 +375,8 @@ struct MyPageView: View {
         if let profile = await profileResult {
             nickname = profile.nickname
             appSession.diggingMode = profile.diggingMode ?? true
+            // 알림 설정 화면 토글이 이 값으로 열린다(`@AppStorage` 같은 키).
+            if let adPush = profile.adPushConsent { UserDefaults.standard.set(adPush, forKey: AppSession.adPushConsentKey) }
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
     }

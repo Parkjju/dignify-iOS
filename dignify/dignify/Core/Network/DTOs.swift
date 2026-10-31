@@ -88,12 +88,21 @@ nonisolated enum API {
 
     // MARK: Users
 
+    /// `PUT /users/me/push-consent`·`POST /push/{id}/opt-out` 공통 응답.
+    /// `processedAt`은 ISO-8601 문자열(Instant)이다 — 결과 통지 문구의 날짜가 된다.
+    struct AdPushConsent: Decodable {
+        let adPush: Bool
+        let processedAt: String
+    }
+
     struct UserProfile: Decodable {
         let nickname: String
         let isOnboardingComplete: Bool
         /// 디깅 성향. 켜져 있으면 하입한 곡과 비슷한 순으로, 꺼져 있으면 제약 없는 무작위로 온다.
         /// 옛 서버가 안 내려주는 경우를 대비해 옵셔널로 두고 읽는 쪽에서 켜짐으로 본다.
         let diggingMode: Bool?
+        /// 광고성 알림 수신 동의(서버 `2866463`부터). 옛 서버엔 없어서 옵셔널 — 그땐 기기에 둔 마지막 응답값을 쓴다.
+        let adPushConsent: Bool?
         // 서버는 genres도 같이 내려주지만 앱이 읽을 데가 없어졌다(장르 설정 화면 삭제).
     }
 

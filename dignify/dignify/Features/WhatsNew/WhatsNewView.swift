@@ -10,6 +10,12 @@ struct Release: Identifiable {
 
 enum Changelog {
     static let releases: [Release] = [
+        Release(version: "1.3.2", notes: [
+            "New tracks from artists you like now show up first in your feed.",
+            "Turn on notifications and we'll let you know when they drop new tracks.",
+            "Every Monday, get 5 picks based on the tracks you like.",
+            "Turn notifications on or off anytime in My Page › Notifications.",
+        ]),
         Release(version: "1.3.1", notes: [
             "\"Recommend from\" got a redo: all your likes in one list, and you can filter by genre.",
             "Tracks you pick sit in a tray at the bottom. Tap one to remove it.",
