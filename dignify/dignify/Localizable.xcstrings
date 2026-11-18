@@ -1052,7 +1052,13 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "매주 월요일, 좋아요한 곡을 바탕으로 고른 5곡을 보내 드려요."
+            "value" : "매주 월요일, 좋아요한 곡을 바탕으로 고른 최대 5곡을 보내 드려요."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every Monday, get up to 5 picks based on the tracks you like."
           }
         }
       }
@@ -1311,6 +1317,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "밤에도 아티스트 소식을 알려드릴까요?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get artist news at night, too?"
           }
         }
       }
@@ -1751,6 +1763,12 @@
             "state" : "translated",
             "value" : "%@ 신곡\n소식을 받아보세요!"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New from %@\nGet notified when they drop"
+          }
         }
       }
     },
@@ -1782,7 +1800,13 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "아티스트 신곡, 특집 알림을 보내드려요\n(오전 8:00 ~ 오후 9:00)"
+            "value" : "아티스트 신곡, 특집 알림을 보내드려요\n(오후 9:00 ~ 오전 8:00)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New tracks from artists and this week's set, even at night\n(9:00 PM – 8:00 AM)"
           }
         }
       }
@@ -1837,6 +1861,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "야간 광고성 정보 알림 수신"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nighttime ad notifications"
           }
         }
       }
@@ -3137,6 +3167,12 @@
             "state" : "translated",
             "value" : "'알림 받기'를 누르면 광고성 정보 수신에 동의해요."
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By tapping 'Notify me', you agree to receive promotional notifications from Dignify."
+          }
         }
       }
     },
@@ -3146,7 +3182,13 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "'알림 받기'를 누르면 야간(오전 8:00 ~ 오후9:00)\n광고성 정보 수신에 동의해요."
+            "value" : "'알림 받기'를 누르면 야간(오후 9:00 ~ 오전 8:00)\n광고성 정보 수신에 동의해요."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By tapping 'Notify me', you agree to receive promotional notifications at night (9:00 PM – 8:00 AM)."
           }
         }
       }
@@ -3394,6 +3436,12 @@
             "state" : "translated",
             "value" : "소식을 받으려면 **기기 설정 > 알림**을 켜주세요."
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on **Settings › Notifications** to get them."
+          }
         }
       }
     },
@@ -3543,6 +3591,12 @@
             "state" : "translated",
             "value" : "광고성 정보 알림을 먼저 동의해야해요."
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on ad notifications first"
+          }
         }
       }
     },
@@ -3661,6 +3715,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "좋아하는 %@의 신곡,\n바로 알려드릴까요?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Want new tracks from %@\nthe moment they drop?"
           }
         }
       }
@@ -3974,6 +4034,12 @@
             "state" : "translated",
             "value" : "광고성 정보 알림 수신을 동의해야 야간 알림을 설정할 수 있어요."
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night notifications need ad notifications to be on."
+          }
         }
       }
     },
@@ -3984,6 +4050,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dignify의 광고성 정보를 %@에 동의했어요"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You agreed to promotional notifications from Dignify on %@"
           }
         }
       }
@@ -3996,6 +4068,12 @@
             "state" : "translated",
             "value" : "Dignify의 야간 광고성 정보를 %@에 동의했어요"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You agreed to nighttime promotional notifications from Dignify on %@"
+          }
         }
       }
     },
@@ -4007,6 +4085,12 @@
             "state" : "translated",
             "value" : "Dignify의 광고성 정보를 %@에 거부했어요"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You declined promotional notifications from Dignify on %@"
+          }
         }
       }
     },
@@ -4017,6 +4101,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dignify의 야간 광고성 정보를 %@에 거부했어요"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You declined nighttime promotional notifications from Dignify on %@"
           }
         }
       }
@@ -4267,6 +4357,39 @@
     },
     "확인" : {
 
+    },
+    "Notifications are off on this device" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 알림이 꺼져 있어요"
+          }
+        }
+      }
+    },
+    "Turn on notifications for Dignify in Settings to get them." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정에서 Dignify 알림을 켜야 받을 수 있어요."
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 열기"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

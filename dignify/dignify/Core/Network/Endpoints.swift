@@ -10,6 +10,7 @@ import Foundation
 // 요청 바디 (이 파일에서만 사용).
 private nonisolated struct IdentityTokenBody: Encodable { let identityToken: String }
 private nonisolated struct RefreshTokenBody: Encodable { let refreshToken: String }
+private nonisolated struct LogoutBody: Encodable { let refreshToken: String; let deviceToken: String? }
 private nonisolated struct NicknameBody: Encodable { let nickname: String }
 private nonisolated struct ArtistRequestBody: Encodable { let artistName: String }
 private nonisolated struct DeviceTokenBody: Encodable { let token: String; let environment: String; let timeZone: String }
@@ -43,9 +44,11 @@ nonisolated extension Endpoint {
                  body: RefreshTokenBody(refreshToken: refreshToken), needsAuth: false)
     }
 
-    static func logout(refreshToken: String) -> Endpoint {
+    /// deviceToken: 이 기기의 APNs 토큰. 서버가 이 토큰을 로그아웃 상태로 표시해 발송에서 뺀다.
+    /// 권한을 안 받아 토큰이 없으면 nil(키 생략) — 그 기기는 애초에 등록된 행이 없다.
+    static func logout(refreshToken: String, deviceToken: String?) -> Endpoint {
         Endpoint(method: .post, path: "/auth/logout",
-                 body: RefreshTokenBody(refreshToken: refreshToken))
+                 body: LogoutBody(refreshToken: refreshToken, deviceToken: deviceToken))
     }
 
     static func withdraw(refreshToken: String) -> Endpoint {

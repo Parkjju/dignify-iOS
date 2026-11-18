@@ -81,6 +81,10 @@ final class AppSession {
     var acceptedAdPushThisLaunch = false
     /// 업데이트 소식 시트가 떠 있는가. 첫 실행 동의 팝업은 이게 닫힌 직후에 뜬다(기존 유저).
     var showingWhatsNew = false
+    /// 광고성 동의는 받았는데 기기 알림이 거부 상태 — 「설정 열기」 안내 팝업(MainTabView).
+    /// 시스템 권한 팝업은 거부 뒤엔 다시 안 뜨니 설정 앱으로 보낸다. 자동으로 열지 않고 유저가 누를 때만.
+    /// 값 = 계측 source.
+    var pushSettingsGuideSource: String?
 
     /// 픽 반응 푸시로 진입했음. 마이페이지가 읽고 디깅 프로필(= 내 픽 목록)로 밀어 올린다.
     /// **여기까지가 지금 페이로드로 갈 수 있는 최선이다** — 어느 픽인지가 안 실려 온다.
@@ -180,11 +184,16 @@ final class AppSession {
             applyAdPushConsent(res)
             saved = res
         }
-        if await pushAuthorizationStatus() == .notDetermined {
+        let status = await pushAuthorizationStatus()
+        if status == .notDetermined {
             let granted = (try? await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound, .badge])) ?? false
             PostHogSDK.shared.capture("push_permission_result", properties: ["granted": granted, "source": source])
             if granted { UIApplication.shared.registerForRemoteNotifications() }
+        } else if status == .denied {
+            // 기획 0-5: OS 거부 + 동의 → 「설정에서 알림 켜기」 안내. 결과 토스트는 아래에서 같이 뜬다.
+            pushSettingsGuideSource = source
+            PostHogSDK.shared.capture("push_settings_guide_shown", properties: ["source": source])
         } else {
             requestPushAuthorization(source: source, promptIfUndecided: false)
         }
@@ -352,7 +361,10 @@ final class AppSession {
     /// 로그아웃 — 서버에 refresh token revoke 요청(best-effort) 후 로컬 토큰을 폐기한다.
     func logout() async {
         if let token = await api.currentRefreshToken {
-            try? await api.send(.logout(refreshToken: token))   // 실패해도 로컬은 정리.
+            // 기기 토큰을 같이 보내야 로그아웃한 기기에 광고성 알림이 안 간다(동의가 계정 기준이라).
+            // 키는 AppDelegate.deviceTokenKey와 같다. 다시 로그인하면 토큰 등록이 표시를 푼다.
+            let deviceToken = UserDefaults.standard.string(forKey: "apnsDeviceToken")
+            try? await api.send(.logout(refreshToken: token, deviceToken: deviceToken))   // 실패해도 로컬은 정리.
         }
         await api.setTokens(nil)
         clearAccountLocalState()

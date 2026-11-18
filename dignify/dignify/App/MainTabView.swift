@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 struct MainTabView: View {
     @Environment(AppSession.self) private var session
@@ -42,6 +43,21 @@ struct MainTabView: View {
                 DSToast(item: toast) {
                     if session.toast?.id == toast.id { session.toast = nil }
                 }
+            }
+        }
+        // 광고성 동의 + 기기 알림 거부 → 설정 앱 안내. 토스트보다 뒤에 붙여 위에 그린다.
+        .overlay {
+            if let source = session.pushSettingsGuideSource {
+                DSConsentPopup(title: String(localized: "Notifications are off on this device"),
+                               message: "Turn on notifications for Dignify in Settings to get them.",
+                               declineLabel: "Close",
+                               acceptLabel: "Open Settings",
+                               onAccept: {
+                                   PostHogSDK.shared.capture("push_settings_guide_opened", properties: ["source": source])
+                                   UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
+                                   withAnimation { session.pushSettingsGuideSource = nil }
+                               },
+                               onDecline: { withAnimation { session.pushSettingsGuideSource = nil } })
             }
         }
         .task {

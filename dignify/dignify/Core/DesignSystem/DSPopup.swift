@@ -85,6 +85,7 @@ struct DSConsentPopup: View {
     var highlight: String?
     let message: LocalizedStringKey
     let declineLabel: LocalizedStringKey
+    var acceptLabel: LocalizedStringKey = "Notify me"
     let onAccept: () -> Void
     let onDecline: () -> Void
 
@@ -122,7 +123,7 @@ struct DSConsentPopup: View {
                     }
                     .buttonStyle(.plain)
                     Button(action: onAccept) {
-                        Text("Notify me")
+                        Text(acceptLabel)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity, minHeight: 48)
