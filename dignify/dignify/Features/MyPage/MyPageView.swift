@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 struct MyPageView: View {
@@ -21,8 +22,14 @@ struct MyPageView: View {
     /// `MainTabView`가 이미 씌우므로 여기서 또 감싸면 안 된다** — 경로를 들지 않고 `isPresented`를 쓰는 이유다.
     @State private var showDiggingProfile = false
 
-    #if DEBUG
     @State private var debugResetMessage: String?
+    /// 초기화 행을 보일지. 디버그 빌드는 처음부터, TestFlight는 버전 표시를 5번 눌러야 true.
+    /// 스토어 빌드는 `.production`이라 절대 안 보인다. 심사 빌드도 `.sandbox`라 탭으로 한 번 더 숨긴다.
+    @State private var showsTestTools = false
+    @State private var isSandbox = false
+    @State private var versionTaps = 0
+
+    #if DEBUG
     /// 앱 재시작 없이 시드 고르기 화면만 바로 띄운다. nil이면 안 뜬다.
     /// 신규 온보딩(로딩 → 곡 고르기 → 피드 구성 중)을 계정·서버 상태 그대로 둔 채 다시 본다.
     @State private var debugOnboarding = false
@@ -31,6 +38,13 @@ struct MyPageView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
+                // 제목 24 bold(푸시알림 기획 1.0 #9). 시스템 large title(34)은 크기를 못 바꿔 네비바를 숨기고 직접 그린다.
+                Text("My Page")
+                    .font(DSTypography.title1)
+                    .foregroundStyle(DSColor.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 profileHeader
                 diggingProfileEntry
                 groupDivider
@@ -39,10 +53,18 @@ struct MyPageView: View {
                     .font(DSTypography.caption)
                     .foregroundStyle(DSColor.border)
                     .padding(.vertical, 24)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        guard isSandbox else { return }
+                        versionTaps += 1
+                        if versionTaps >= 5 { withAnimation { showsTestTools = true } }
+                    }
             }
         }
         .background(DSColor.background)
+        // 제목은 밀어 넣은 화면의 뒤로 버튼 이름으로만 쓴다.
         .navigationTitle("My Page")
+        .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(isPresented: $showDiggingProfile) { DiggingProfileView() }
         // 픽 반응 푸시로 들어왔으면 내 픽이 있는 화면까지 밀어 올린다. 탭만 바꿔 놓으면
         // 알림을 누른 사람이 마이페이지 첫 화면에서 자기 픽을 다시 찾아 들어가야 한다.
@@ -52,6 +74,14 @@ struct MyPageView: View {
             showDiggingProfile = true
         }
         .task { await loadProfile() }
+        .task {
+            #if DEBUG
+            showsTestTools = true
+            #else
+            // TestFlight·심사 빌드는 `.sandbox`. 서명 검증은 안 본다 — 숨은 탭을 열지 말지만 정하는 값이다.
+            isSandbox = (try? await AppTransaction.shared)?.unsafePayloadValue.environment == .sandbox
+            #endif
+        }
     }
 
     // MARK: - Profile
@@ -92,8 +122,7 @@ struct MyPageView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.top, 32)
-        .padding(.bottom, 24)
+        .padding(.vertical, 20)
     }
 
     private func commitNickname() {
@@ -174,7 +203,6 @@ struct MyPageView: View {
             .padding(12)
             .background(DSColor.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .padding(.horizontal, 20)
-            .padding(.bottom, 12)
         }
         .buttonStyle(.plain)
     }
@@ -215,21 +243,23 @@ struct MyPageView: View {
             Button { logout() } label: { settingsRow("Log Out") }
             Button { showWithdrawAlert = true } label: { settingsRow("Delete Account", destructive: true) }
 
+            if showsTestTools {
+                groupDivider
+                // 계정 삭제 알림과 같은 뷰에 .alert를 겹치지 않게 행 묶음에 단다.
+                // Group이면 .alert가 행마다 붙는다 — 하나로 묶으려고 VStack.
+                VStack(spacing: 0) {
+                    debugResetRow(newUser: false)
+                    debugResetRow(newUser: true)
+                }
+                .alert("초기화했어요", isPresented: Binding(get: { debugResetMessage != nil },
+                                                           set: { if !$0 { debugResetMessage = nil } })) {
+                    Button("확인", role: .cancel) {}
+                } message: {
+                    Text(verbatim: debugResetMessage ?? "")
+                }
+            }
             #if DEBUG
-            groupDivider
             debugSeedPickerRow
-            // 계정 삭제 알림과 같은 뷰에 .alert를 겹치지 않게 행 묶음에 단다.
-            // Group이면 .alert가 행마다 붙는다 — 하나로 묶으려고 VStack.
-            VStack(spacing: 0) {
-                debugResetRow(newUser: false)
-                debugResetRow(newUser: true)
-            }
-            .alert("초기화했어요", isPresented: Binding(get: { debugResetMessage != nil },
-                                                       set: { if !$0 { debugResetMessage = nil } })) {
-                Button("확인", role: .cancel) {}
-            } message: {
-                Text(verbatim: debugResetMessage ?? "")
-            }
             #endif
         }
         .buttonStyle(.plain)
@@ -265,7 +295,7 @@ struct MyPageView: View {
     }
 
     private var groupDivider: some View {
-        Divider().padding(.horizontal, 20).padding(.vertical, 8)
+        Divider().padding(.horizontal, 20).padding(.vertical, 12)
     }
 
     #if DEBUG
@@ -276,12 +306,15 @@ struct MyPageView: View {
             settingsRow("신규 온보딩 열기 (DEBUG)")
         }
     }
+    #endif
 
-    /// **디버그 빌드에만 있다.** 로그인은 그대로 두고 기기 기록만 되돌린다. 계정을 지우지 않고 두 흐름을 본다.
+    /// **디버그 빌드, 그리고 TestFlight에서 버전 표시를 5번 누르면 보인다**(`showsTestTools`). 로그인은 그대로 두고 기기 기록만 되돌린다. 계정을 지우지 않고 두 흐름을 본다.
     /// - 업데이트 유저: 1.3.1에서 막 올라온 기존 유저. What's New → 동의 팝업
     /// - 신규 유저: 온보딩을 막 마친 유저. 코치마크 → 동의 팝업. 곡 고르기 화면은 위 「신규 온보딩 열기」로 따로 본다
     ///
-    /// 둘 다 서버 광고성 동의를 거부(서버 기본값)로 돌리고, 결과 통지는 안 띄운다.
+    /// 둘 다 서버 광고성 동의를 거부로 돌리고, 결과 통지는 안 띄운다.
+    /// ⚠️ 동의 팝업은 서버 `adPushConsentAt`이 null(미응답)이어야 뜨는데, 앱으로는 null로 못 돌린다(거부도 응답이다).
+    /// 다시 보려면 어드민 「광고성 동의 초기화」(backend TODO)나 DB에서 그 유저의 `ad_push_consent_at`을 비운다.
     /// 시스템 알림 권한은 앱에서 못 되돌린다 — 「설정 전」이 필요하면 앱을 지우고 다시 깐다.
     /// `MainTabView`·`FeedView`의 판정은 실행 직후에 돌기 때문에 **앱을 완전히 껐다 켜야** 보인다.
     private func debugResetRow(newUser: Bool) -> some View {
@@ -293,21 +326,20 @@ struct MyPageView: View {
             d.set(newUser ? current : "1.3.1", forKey: "lastSeenVersion")
             d.set(!newUser, forKey: "seenFeedCoach")
             // 1.3.2에서 새로 생긴 기록 — 업데이트 직후·가입 직후엔 전부 비어 있다.
-            for key in ["didOfferAdConsent", AppDelegate.launchCountKey, "hypeOfferArtists",
+            for key in ["adConsentOfferedAt", AppDelegate.launchCountKey, "hypeOfferMutedAt",
                         "seenNewReleases", AppSession.adPushConsentKey] {
                 d.removeObject(forKey: key)
             }
             Task {
                 _ = try? await appSession.api.send(.setAdPushConsent(false), as: API.AdPushConsent.self)
                 debugResetMessage = newUser
-                    ? "앱을 완전히 껐다 켜면 코치마크 → 광고성 알림 동의 팝업 순서로 뜹니다."
-                    : "앱을 완전히 껐다 켜면 What's New → 광고성 알림 동의 팝업 순서로 뜹니다."
+                    ? "앱을 완전히 껐다 켜면 코치마크가 뜹니다. 동의 팝업은 서버 동의 기록을 초기화해야 뜹니다(운영자에게 요청)."
+                    : "앱을 완전히 껐다 켜면 What's New가 뜹니다. 동의 팝업은 서버 동의 기록을 초기화해야 뜹니다(운영자에게 요청)."
             }
         } label: {
             settingsRow(newUser ? "신규 유저 상태로 초기화 (DEBUG)" : "업데이트 유저 상태로 초기화 (DEBUG)")
         }
     }
-    #endif
 
     /// 토글 하나로는 무엇이 켜지는지 알 수 없어서 한 줄 설명을 붙인다.
     /// 낙관적으로 먼저 바꾸고 실패하면 되돌린다 — 스위치가 손가락을 따라오지 않으면 고장으로 읽힌다.
@@ -319,7 +351,7 @@ struct MyPageView: View {
                     .foregroundStyle(DSColor.textPrimary)
             }
             .tint(DSColor.brand)
-            Text("On, the feed plays tracks that sound like the ones you liked. Off, it plays anything.")
+            Text("Plays tracks similar to the ones you liked.")
                 .font(DSTypography.caption)
                 .foregroundStyle(DSColor.textTertiary)
             if diggingModeFailed {
@@ -352,7 +384,7 @@ struct MyPageView: View {
             }
         }
         .padding(.horizontal, 20)
-        .frame(height: 48)
+        .frame(height: 50)
         .contentShape(Rectangle())
     }
 
@@ -375,8 +407,8 @@ struct MyPageView: View {
         if let profile = await profileResult {
             nickname = profile.nickname
             appSession.diggingMode = profile.diggingMode ?? true
-            // 알림 설정 화면 토글이 이 값으로 열린다(`@AppStorage` 같은 키).
-            if let adPush = profile.adPushConsent { UserDefaults.standard.set(adPush, forKey: AppSession.adPushConsentKey) }
+            // 알림 설정 화면 토글이 이 값으로 열린다.
+            appSession.applyConsent(from: profile)
         }
         confirmedType = (await statsResult).map(DiggingStats.init)?.type
     }

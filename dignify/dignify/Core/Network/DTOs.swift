@@ -95,6 +95,12 @@ nonisolated enum API {
         let processedAt: String
     }
 
+    /// `PUT /users/me/push-consent/night` 응답. 광고성 동의가 false면 켜기는 409 `AD_PUSH_CONSENT_REQUIRED`.
+    struct AdPushNightConsent: Decodable {
+        let nightPush: Bool
+        let processedAt: String
+    }
+
     struct UserProfile: Decodable {
         let nickname: String
         let isOnboardingComplete: Bool
@@ -103,6 +109,10 @@ nonisolated enum API {
         let diggingMode: Bool?
         /// 광고성 알림 수신 동의(서버 `2866463`부터). 옛 서버엔 없어서 옵셔널 — 그땐 기기에 둔 마지막 응답값을 쓴다.
         let adPushConsent: Bool?
+        /// 광고성 동의에 답한 시각(ISO-8601). null = 미응답(서버 `1bce18b`부터).
+        let adPushConsentAt: String?
+        /// 야간 광고성 동의. null = 미응답.
+        let adPushNightConsent: Bool?
         // 서버는 genres도 같이 내려주지만 앱이 읽을 데가 없어졌다(장르 설정 화면 삭제).
     }
 

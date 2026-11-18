@@ -10,40 +10,24 @@ struct NotificationSettingsView: View {
     @AppStorage(AppSession.adPushConsentKey) private var adPush = false
     @State private var status: UNAuthorizationStatus = .notDetermined
     @State private var saving = false
-    @State private var failed = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle(isOn: Binding(get: { adPush }, set: { change($0) })) {
-                    Text("Ad notifications")
-                        .font(.system(size: 15))
-                        .foregroundStyle(DSColor.textPrimary)
-                }
-                .tint(DSColor.brand)
-                .disabled(saving)
-                Text("New tracks from artists you like, weekly picks, and our curated sets. These are advertising information.")
-                    .font(DSTypography.caption)
-                    .foregroundStyle(DSColor.textTertiary)
-                if failed {
-                    Text("Couldn't save. Please try again.")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(DSColor.destructive)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            toggleRow("Ad notifications",
+                      detail: "New tracks from artists you like, weekly picks, and this week's sets",
+                      isOn: Binding(get: { adPush }, set: { changeAdPush($0) }))
+            // 광고성이 꺼져 있으면 야간은 꺼진 채로 보인다(서버도 같이 끈다).
+            toggleRow("Night-time ad notifications",
+                      detail: "New tracks from artists and this week's sets\n(8:00 AM – 9:00 PM)",
+                      isOn: Binding(get: { adPush && session.adPushNight == true }, set: { changeNight($0) }))
 
-            Divider().padding(.horizontal, 20).padding(.vertical, 8)
+            Divider().padding(.horizontal, 20).padding(.vertical, 12)
 
-            // 권한을 정하기 전엔 설정 앱에 알림 항목이 없다 — 그땐 시스템 팝업을 띄운다.
             // 정한 뒤엔 시스템 팝업이 다시 안 뜨니 설정 앱의 이 앱 알림 화면으로 보낸다.
+            // 「설정 전」이면 아무 동작 없다(2026-11-17 확정) — 시스템 팝업은 동의 팝업·시트에서만 띄운다.
             Button {
-                if status == .notDetermined {
-                    session.requestPushAuthorization(source: "settings")
-                } else {
-                    UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
-                }
+                guard status != .notDetermined else { return }
+                UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
             } label: {
                 HStack {
                     Text("System notifications")
@@ -58,7 +42,7 @@ struct NotificationSettingsView: View {
                         .foregroundStyle(DSColor.textTertiary)
                 }
                 .padding(.horizontal, 20)
-                .frame(height: 48)
+                .frame(height: 50)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -75,18 +59,54 @@ struct NotificationSettingsView: View {
         }
     }
 
+    private func toggleRow(_ title: LocalizedStringKey, detail: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle(isOn: isOn) {
+                Text(title)
+                    .font(.system(size: 15))
+                    .foregroundStyle(DSColor.textPrimary)
+            }
+            .tint(DSColor.brand)
+            .disabled(saving)
+            Text(detail)
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColor.textTertiary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
     /// 서버가 받은 뒤에만 토글이 바뀐다 — 동의는 처리 결과를 통지해야 하는 기록이라 낙관적으로 먼저 바꾸지 않는다.
-    /// 켤 때 OS 권한이 아직이면 시스템 팝업을, 거부면 설정 앱을 같이 띄운다(`acceptAdPush`).
-    private func change(_ on: Bool) {
-        failed = false
+    /// 결과·실패 토스트는 `AppSession`이 띄운다. 켤 때 OS 권한이 설정 전이면 시스템 팝업도 띄운다(`acceptAdPush`).
+    private func changeAdPush(_ on: Bool) {
         saving = true
         PostHogSDK.shared.capture(on ? "ad_consent_accepted" : "ad_consent_declined", properties: ["source": "settings"])
         Task {
-            // `adPush`(@AppStorage)는 UserDefaults에 쓴 직후엔 아직 옛 값일 수 있다 — 결과는 반환값으로 본다.
-            let saved = on ? await session.acceptAdPush(source: "settings") : await session.setAdPushConsent(false)
-            failed = !saved
+            _ = on ? await session.acceptAdPush(source: "settings") : await session.setAdPushConsent(false)
             saving = false
             status = await session.pushAuthorizationStatus()
         }
+    }
+
+    private func changeNight(_ on: Bool) {
+        // 광고성이 꺼진 채 야간을 누르면 저장하지 않고 안내만.
+        guard adPush else {
+            showNeedsAdConsent()
+            return
+        }
+        saving = true
+        PostHogSDK.shared.capture(on ? "ad_night_consent_accepted" : "ad_night_consent_declined",
+                                  properties: ["source": "settings"])
+        Task {
+            // 다른 기기에서 광고성을 끈 뒤라 서버가 거절하면(409) 같은 안내.
+            if await session.setAdPushNightConsent(on) == .needsAdConsent { showNeedsAdConsent() }
+            saving = false
+        }
+    }
+
+    private func showNeedsAdConsent() {
+        session.toast = DSToastItem(
+            title: String(localized: "Turn on ad notifications first."),
+            message: String(localized: "You need to opt in to ad notifications before setting night-time ones."))
     }
 }

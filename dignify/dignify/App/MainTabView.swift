@@ -8,7 +8,6 @@ struct MainTabView: View {
     /// 업데이트 감지용. 신규 설치엔 안 띄우고 조용히 현재 버전만 기록.
     @AppStorage("lastSeenVersion") private var lastSeenVersion = ""
     @AppStorage("seenFeedCoach") private var seenFeedCoach = false
-    @State private var showWhatsNew = false
 
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -31,16 +30,17 @@ struct MainTabView: View {
             OnboardingFlowView(mode: .gate)
         }
         // 같은 뷰에 .sheet 두 개(pendingSignIn)는 충돌 → 별도 노드에 부착.
+        // 세션에 두는 이유: 피드의 첫 실행 동의 팝업이 이 시트가 닫힌 직후에 뜬다.
         .background {
-            Color.clear.sheet(isPresented: $showWhatsNew) {
+            Color.clear.sheet(isPresented: $session.showingWhatsNew) {
                 WhatsNewView(highlight: currentVersion)
             }
         }
-        // 광고성 동의·거부 결과 통지(제50조 7항). 피드 팝업·설정 화면 어디서 바꿔도 여기 한 곳에서 뜬다.
-        .overlay {
-            if let notice = session.consentNotice {
-                DSNoticePopup(title: "Notification settings saved", message: LocalizedStringKey(notice)) {
-                    withAnimation { session.consentNotice = nil }
+        // 처리 결과 토스트(광고성 동의·거부 결과 통지 제50조 7항 포함). 어디서 바꿔도 여기 한 곳에서 뜬다.
+        .overlay(alignment: .bottom) {
+            if let toast = session.toast {
+                DSToast(item: toast) {
+                    if session.toast?.id == toast.id { session.toast = nil }
                 }
             }
         }
@@ -54,7 +54,7 @@ struct MainTabView: View {
             // 그래서 피드가 뜨자마자 첫 실행 동의 팝업만 받는다(`FeedView.offerAdConsentIfNeeded`).
             // 시드 고르기는 신규 가입 온보딩에서만 탄다(1.1.0 업데이트 유저용 안내는 1.3.2에서 뺐다).
             if isReturningUser { seenFeedCoach = true }
-            if wantsWhatsNew { showWhatsNew = true }
+            if wantsWhatsNew { session.showingWhatsNew = true }
             lastSeenVersion = currentVersion
             didJustOnboard = false
         }

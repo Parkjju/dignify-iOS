@@ -5,8 +5,10 @@ import SwiftUI
 /// 등장: 딤 0.25s 페이드 · 카드 1.2 → 1 + 페이드(감속, 튕김 없음). 닫힘: 둘 다 0.2s 페이드, 크기 그대로.
 ///
 /// 애니메이션이 transition 쪽에 붙어 있어서, 띄우는 쪽은 `withAnimation`으로 감싸기만 하면 된다.
+///
+/// `onDismiss`가 nil이면 딤을 눌러도 안 닫힌다 — 광고성 동의는 버튼으로만 받는다(명시적 선택).
 struct DSPopupHost<Card: View>: View {
-    let onDismiss: () -> Void
+    let onDismiss: (() -> Void)?
     @ViewBuilder let card: Card
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -14,11 +16,11 @@ struct DSPopupHost<Card: View>: View {
     var body: some View {
         ZStack {
             // 딤 탭 = 닫기. 시스템 알럿이 공짜로 주던 동작이라 직접 붙인다.
-            // contentShape로 히트테스트를 먹어야 뒤 화면의 스와이프로 새지 않는다.
-            Color.black.opacity(0.55)
+            // contentShape로 히트테스트를 먹어야 뒤 화면의 스와이프로 새지 않는다(닫지 않는 팝업도).
+            DSColor.dim
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
-                .onTapGesture(perform: onDismiss)
+                .onTapGesture { onDismiss?() }
                 .transition(.asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.25)),
                                         removal: Self.close))
 
@@ -72,6 +74,68 @@ struct DSNoticePopup: View {
             .frame(width: 300)
             .background(DSColor.background, in: RoundedRectangle(cornerRadius: DSRadius.large))
             .shadow(color: .black.opacity(0.18), radius: 24, y: 8)
+        }
+    }
+}
+
+/// 광고성 동의 팝업(Popup `row`) — 첫 실행·야간. 마크 없이 제목·설명, 아래 가로 두 칸.
+/// 딤을 눌러도 안 닫힌다(동의는 명시적 선택만). 제목의 `highlight`(아티스트 이름)만 brand.
+struct DSConsentPopup: View {
+    let title: String
+    var highlight: String?
+    let message: LocalizedStringKey
+    let declineLabel: LocalizedStringKey
+    let onAccept: () -> Void
+    let onDecline: () -> Void
+
+    private var styledTitle: AttributedString {
+        var text = AttributedString(title)
+        if let highlight, !highlight.isEmpty, let range = text.range(of: highlight) {
+            text[range].foregroundColor = DSColor.brand
+        }
+        return text
+    }
+
+    var body: some View {
+        DSPopupHost(onDismiss: nil) {
+            VStack(spacing: 14) {
+                VStack(spacing: 6) {
+                    Text(styledTitle)
+                        .font(DSTypography.title2)
+                        .lineSpacing(18 * 0.4)
+                        .foregroundStyle(DSColor.textPrimary)
+                    Text(message)
+                        .font(DSTypography.bodySmall)
+                        .lineSpacing(14 * 0.66)
+                        .foregroundStyle(DSColor.textSecondary)
+                }
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 10) {
+                    Button(action: onDecline) {
+                        Text(declineLabel)
+                            .font(DSTypography.body)
+                            .foregroundStyle(DSColor.textTertiary)
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    Button(action: onAccept) {
+                        Text("Notify me")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(DSColor.brand, in: RoundedRectangle(cornerRadius: DSRadius.medium))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity)
+            .background(DSColor.background, in: RoundedRectangle(cornerRadius: DSRadius.large))
+            .shadow(color: .black.opacity(0.18), radius: 24, y: 8)
+            .padding(.horizontal, 20)
         }
     }
 }

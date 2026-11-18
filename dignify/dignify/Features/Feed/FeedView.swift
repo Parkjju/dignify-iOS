@@ -59,16 +59,20 @@ struct FeedView: View {
     @State private var curationSetKey = ""
     /// 완주한 세트 키. 같은 세트를 매 진입마다 다시 앞세우지 않기 위한 기억.
     @AppStorage("seenCurationSet") private var seenCurationSet = ""
-    /// 첫 실행 광고성 정보 수신 동의 팝업을 띄웠는지(큐레이션·신곡·주간 추천 공통).
-    @AppStorage("didOfferAdConsent") private var didOfferAdConsent = false
-    @State private var showAdConsent = false
+    /// 첫 실행 광고성 동의 팝업을 마지막으로 띄운 시각(1970 기준 초). 「나중에」 뒤 7일이 지나면 다시 묻는다.
+    /// 미응답 판정은 기기가 아니라 서버(`session.adPushAnswered`)다.
+    @AppStorage("adConsentOfferedAt") private var adConsentOfferedAt = 0.0
+    /// 첫 실행 동의 팝업의 아티스트(가장 최근 좋아요한 곡). nil이면 안 떠 있다.
+    @State private var adConsentArtist: String?
+    @State private var fetchingAdConsentArtist = false
     @AppStorage(AppDelegate.launchCountKey) private var launchCount = 0
-    /// 좋아요 알림 팝업을 띄운 아티스트(띄운 순서대로). 「나중에」 뒤엔 같은 아티스트 곡을 또 좋아요할 때 한 번 더.
-    /// ponytail: 피드 응답에 artistId가 없어 이름으로 센다. `recentRaw`처럼 개행으로 잇는다.
-    @AppStorage("hypeOfferArtists") private var hypeOfferArtistsRaw = ""
-    /// 좋아요가 서버에 반영된 뒤 다음 카드로 넘어가면 띄울 아티스트. 좋아요 모션과 겹치지 않게 미룬다.
-    @State private var pendingHypeOffer: String?
-    @State private var hypeOfferArtist: String?
+    /// 좋아요 시점 신곡 알림 시트의 「일주일 동안 안 보기」를 누른 시각. 7일 뒤 같은 동작에서 다시 뜬다.
+    @AppStorage("hypeOfferMutedAt") private var hypeOfferMutedAt = 0.0
+    /// 좋아요가 서버에 반영된 뒤 다음 카드로 넘어가면 띄울 시트. 좋아요 모션과 겹치지 않게 미룬다.
+    @State private var pendingHypeOffer: HypeOffer?
+    @State private var hypeOffer: HypeOffer?
+    /// 야간 광고성 동의 팝업. 이번 주 특집 마지막 곡을 넘긴 직후.
+    @State private var showNightConsent = false
     @State private var searchText: String = ""
     @State private var isSearching = false
     @State private var searchFocused = false
@@ -409,6 +413,10 @@ struct FeedView: View {
             // 앱이 떠 있는 채로 알림을 탭한 경우. .task는 이미 끝났으므로 여기서 다시 받아야
             // 그 알림의 곡이 앞으로 온다(대기 항목은 prefix()가 비운다). 나중 탭이 앞 구간을 덮어쓴다.
             // 포그라운드 수신(`willPresent`)은 여기 안 온다 — 배너를 눌러야 온다.
+            // 기존 유저의 첫 실행 동의 팝업은 업데이트 소식 시트를 닫은 직후에 뜬다.
+            .onChange(of: session.showingWhatsNew) { _, showing in
+                if !showing { offerAdConsentIfNeeded() }
+            }
             .onChange(of: session.pendingPushOpen) { _, pending in
                 guard mode == .normal, pending != nil else { return }
                 activeQuery = ""
@@ -499,9 +507,9 @@ struct FeedView: View {
                 }
 
                 // 좌우 inset은 iPhone Duo처럼 한쪽에만 있을 수 있다(세로 막대). 따로 뺀다.
-                searchOverlay(fullWidth: size.width - safeInsets.leading - safeInsets.trailing - 32)
-                    .padding(EdgeInsets(top: safeInsets.top + 8, leading: safeInsets.leading + 16,
-                                        bottom: 0, trailing: safeInsets.trailing + 16))
+                searchOverlay(fullWidth: size.width - safeInsets.leading - safeInsets.trailing - 40)
+                    .padding(EdgeInsets(top: safeInsets.top + 8, leading: safeInsets.leading + 20,
+                                        bottom: 0, trailing: safeInsets.trailing + 20))
 
                 contextBadge
 
@@ -609,8 +617,7 @@ struct FeedView: View {
         .simultaneousGesture(tapGestures(height: size.height))
     }
 
-    /// 광고성 동의(첫 실행)·좋아요 알림 팝업. 바로 뒤에 iOS 권한 팝업이 같은 자리에 뜨므로
-    /// 가운데 다이얼로그 형태를 유지한다 — 한 번의 대화가 두 단계로 이어지는 모양이 된다.
+    /// 픽 닫기 버튼 + 광고성 동의 팝업(첫 실행·야간). 좋아요 시점 시트는 `hypeOfferSheetHost`.
     @ViewBuilder
     private var pushOptInOverlay: some View {
         // 픽 닫기 버튼. `.overlay`는 콘텐츠 전체 위에 얹혀 히트 테스트를 먼저 가져가므로,
@@ -634,48 +641,81 @@ struct FeedView: View {
             .padding(.top, 8)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        if showAdConsent {
-            PushOptInPopup(
-                title: "Get new music by notification?",
-                message: "New tracks from artists you like, weekly picks, and our curated sets. Tapping Notify me means you agree to receive advertising information.",
+        if let artist = adConsentArtist {
+            DSConsentPopup(
+                title: String(localized: "Want new releases from \(artist)\nas soon as they drop?"),
+                highlight: artist,
+                message: "Tapping Notify me means you agree to receive advertising information.",
+                declineLabel: "Not now",
                 onAccept: {
                     PostHogSDK.shared.capture("ad_consent_accepted", properties: ["source": "first_run"])
+                    withAnimation { adConsentArtist = nil }
                     Task { await session.acceptAdPush(source: "first_run") }
-                    withAnimation { showAdConsent = false }
                 },
                 onDecline: {
-                    // 거부도 처리 결과를 통지한다(제50조 7항). 서버 기본값과 같지만 처리 시각이 남는다.
+                    // 닫기만 한다 — 응답이 아니라서 서버에 안 올리고 통지도 없다. 7일 뒤 다시 묻는다.
                     PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "first_run"])
-                    Task { await session.setAdPushConsent(false) }
-                    withAnimation { showAdConsent = false }
+                    withAnimation { adConsentArtist = nil }
                 }
             )
         }
-        if let artist = hypeOfferArtist {
-            PushOptInPopup(
-                title: "Want a heads-up when \(artist) drops something new?",
-                message: "Tapping Notify me means you agree to receive advertising information.",
-                onAccept: {
-                    PostHogSDK.shared.capture("push_optin_accepted", properties: ["source": "hype"])
-                    PostHogSDK.shared.capture("ad_consent_accepted", properties: ["source": "hype"])
-                    Task { await session.acceptAdPush(source: "hype") }
-                    withAnimation { hypeOfferArtist = nil }
-                },
-                onDecline: {
-                    // 앱 팝업만 닫는다. 시스템 권한은 .notDetermined로 남아 다음 기회가 있다.
-                    PostHogSDK.shared.capture("push_optin_declined", properties: ["source": "hype"])
-                    PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "hype"])
-                    withAnimation { hypeOfferArtist = nil }
-                }
+        if showNightConsent {
+            DSConsentPopup(
+                title: String(localized: "Hear about artists at night, too?"),
+                message: "Tapping Notify me means you agree to receive night-time advertising information (8:00 AM – 9:00 PM).",
+                declineLabel: "No",
+                onAccept: { answerNightConsent(true) },
+                // 「아니요」도 응답이다(false 저장 + 통지). 다시 묻지 않고, 바꾸려면 마이 › 알림.
+                onDecline: { answerNightConsent(false) }
             )
         }
     }
 
+    private func answerNightConsent(_ on: Bool) {
+        PostHogSDK.shared.capture(on ? "ad_night_consent_accepted" : "ad_night_consent_declined",
+                                  properties: ["source": "curation_end"])
+        withAnimation { showNightConsent = false }
+        Task { _ = await session.setAdPushNightConsent(on) }
+    }
+
+    private struct HypeOffer: Identifiable {
+        let id = UUID()
+        let artist: String
+        let artworkURL: URL?
+    }
+
     /// 같은 뷰에 .sheet를 두 개(detailTarget과 함께) 달면 충돌하므로 별도 노드에 붙인다.
     /// 프로퍼티로 뺀 건 feed 체인이 길어져 타입체커가 시간 초과를 냈기 때문.
+    /// 좋아요 시점 신곡 알림 시트도 여기(또 다른 노드)에 단다 — 탭바 위로 덮어야 해서 오버레이가 아니라 시트다.
     private var shareSheetHost: some View {
         Color.clear.sheet(item: $shareItem) { item in
             ShareSheet(items: [item.image, item.url])
+        }
+        .background { hypeOfferSheetHost }
+    }
+
+    /// 버튼으로만 닫힌다(`interactiveDismissDisabled`) — 동의는 명시적 선택만 받는다.
+    private var hypeOfferSheetHost: some View {
+        Color.clear.sheet(item: $hypeOffer) { offer in
+            ConsentSheet(
+                artist: offer.artist,
+                artworkURL: offer.artworkURL,
+                onAccept: {
+                    PostHogSDK.shared.capture("push_optin_accepted", properties: ["source": "hype"])
+                    PostHogSDK.shared.capture("ad_consent_accepted", properties: ["source": "hype"])
+                    hypeOffer = nil
+                    Task { await session.acceptAdPush(source: "hype") }
+                },
+                onMute: {
+                    PostHogSDK.shared.capture("push_optin_declined", properties: ["source": "hype"])
+                    PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "hype"])
+                    hypeOfferMutedAt = Date().timeIntervalSince1970
+                    hypeOffer = nil
+                }
+            )
+            .presentationDetents([.height(ConsentSheet.height)])
+            .presentationCornerRadius(DSRadius.large)
+            .interactiveDismissDisabled()
         }
     }
 
@@ -727,9 +767,8 @@ struct FeedView: View {
         mode == .normal && !isSearching && activeQuery.isEmpty
     }
 
-    /// 배지 상단. 위 버튼 줄(top+8부터 40pt) 바로 아래로 고정이다 — 1.1부터 모드 알약이
-    /// 같은 줄 왼쪽에 서서 더 내릴 일이 없다(feed_coachmark 1.1 #11).
-    private var badgeTop: CGFloat { safeInsets.top + 56 }
+    /// 배지 상단. 모드 알약 아랫선(top+42)에서 48 아래(푸시알림 기획 1.0 #8, Figma 실측).
+    private var badgeTop: CGFloat { safeInsets.top + 90 }
 
     private func badgePill(_ text: LocalizedStringKey) -> some View {
         Text(text)
@@ -1162,52 +1201,76 @@ struct FeedView: View {
         }
     }
 
-    /// 첫 실행 광고성 정보 수신 동의. 코치마크를 마친 순간(`finishCoach`)과 피드를 받은 직후 두 곳에서 부른다 —
-    /// 코치마크를 이미 본 기존 유저는 마치는 순간이 없어서 실행 직후에 뜬다(예전에 권한을 거부한 유저 포함).
-    /// 게스트에겐 안 띄운다(2026-10-29 확정). 게스트로 코치마크를 끝내고 방금 로그인했으면 다음 실행에 뜬다.
-    /// 큐레이션 완주 뒤 권한 팝업(`didOfferPush`)은 이걸로 대체됐다.
+    /// A. 첫 실행 광고성 동의. 신규 유저는 코치마크를 마친 순간(`finishCoach`), 기존 유저는 업데이트 소식 시트를
+    /// 닫은 직후(`session.showingWhatsNew`), 그 밖엔 피드를 받은 직후에 부른다.
+    /// 조건: 로그인 · 광고성 미응답(서버) · 좋아요 1곡 이상 · 7일 안에 띄운 적 없음. 게스트로 코치마크를 끝내고
+    /// 방금 로그인했으면 다음 실행에. 제목의 아티스트는 가장 최근 좋아요한 곡의 아티스트다.
     private func offerAdConsentIfNeeded() {
-        guard mode == .normal, !didOfferAdConsent, seenFeedCoach,
+        guard mode == .normal, seenFeedCoach, !session.adPushAnswered,
+              FeedView.isPastCooldown(adConsentOfferedAt),
               session.authState == .signedIn, !session.signedInFromGuest,
-              !session.didShowPermissionPopup, !session.pendingSignIn else { return }
-        didOfferAdConsent = true
-        session.didShowPermissionPopup = true
-        PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "first_run"])
-        withAnimation { showAdConsent = true }
-    }
-
-    /// 좋아요가 서버에 반영된 직후. 띄우는 건 다음 카드로 넘어간 뒤다(`onChange(of: currentIndex)`).
-    /// 잠금화면 좋아요(백그라운드)·코치마크·첫 실행은 빼고, 시스템 권한을 아직 안 정한 유저에게만.
-    private func queueHypeOffer(trackId: Int) {
-        guard session.authState == .signedIn, seenFeedCoach, launchCount >= 2,
-              !audio.isBackground, !session.didShowPermissionPopup,
-              let feed = feedList.first(where: { $0.trackId == trackId }),
-              FeedView.shouldOfferHypePush(offered: hypeOfferArtists, artist: feed.artistName)
-        else { return }
+              !session.didShowPermissionPopup, !session.pendingSignIn, !session.showingWhatsNew,
+              !fetchingAdConsentArtist else { return }
+        fetchingAdConsentArtist = true
         Task {
-            guard await session.pushAuthorizationUndecided() else { return }
-            pendingHypeOffer = feed.artistName
+            defer { fetchingAdConsentArtist = false }
+            // 목록은 최근 좋아요 순(서버 id DESC). 좋아요가 없으면 묻지 않는다 — 문구가 아티스트를 부른다.
+            guard let artist = (try? await session.api.send(.myHypes(), as: API.HypeListResponse.self))?
+                    .items.first?.artistName,
+                  // 받는 사이 다른 게 떴으면 이번엔 건너뛴다(기록을 안 남기니 다음 기회가 있다).
+                  !session.didShowPermissionPopup, !session.pendingSignIn, !session.showingWhatsNew
+            else { return }
+            adConsentOfferedAt = Date().timeIntervalSince1970
+            session.didShowPermissionPopup = true
+            PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "first_run"])
+            withAnimation { adConsentArtist = artist }
         }
     }
 
-    private func offerHypePush(artist: String) {
+    /// B. 좋아요가 서버에 반영된 직후. 띄우는 건 다음 카드로 넘어간 뒤다(`onChange(of: currentIndex)`).
+    /// 픽 재생·잠금화면 좋아요(백그라운드)·코치마크·첫 실행은 빼고, 시스템 권한을 아직 안 정한 유저에게만.
+    private func queueHypeOffer(trackId: Int) {
+        guard mode == .normal, session.authState == .signedIn, seenFeedCoach, launchCount >= 2,
+              !audio.isBackground, !session.didShowPermissionPopup,
+              FeedView.isPastCooldown(hypeOfferMutedAt),
+              let feed = feedList.first(where: { $0.trackId == trackId })
+        else { return }
+        Task {
+            guard await session.pushAuthorizationUndecided() else { return }
+            pendingHypeOffer = HypeOffer(artist: feed.artistName, artworkURL: feed.artworkURL(size: 100))
+        }
+    }
+
+    private func offerHypePush(_ offer: HypeOffer) {
         // 넘기는 사이 다른 게 떴으면 이번엔 건너뛴다. 기록을 안 남기니 다음 좋아요에 다시 기회가 있다.
-        guard !session.didShowPermissionPopup, !session.pendingSignIn, !showsCoach,
+        guard !session.didShowPermissionPopup, !session.pendingSignIn, !session.showingWhatsNew, !showsCoach,
               detailTarget == nil, shareItem == nil else { return }
         session.didShowPermissionPopup = true
-        hypeOfferArtistsRaw = (hypeOfferArtists + [artist]).joined(separator: "\n")
         PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "hype"])
         PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "hype"])
-        withAnimation { hypeOfferArtist = artist }
+        hypeOffer = offer
     }
 
-    private var hypeOfferArtists: [String] {
-        hypeOfferArtistsRaw.split(separator: "\n").map(String.init)
+    /// C. 야간 광고성 동의. 이번 주 특집 마지막 곡을 넘긴 직후, 다음 곡 위에.
+    /// 조건: 광고성 동의 + 기기 권한 허용 + 야간 미응답. 이번 실행에 광고성 동의를 받았으면 다음 실행부터.
+    private func offerNightConsentIfNeeded() {
+        guard mode == .normal, session.authState == .signedIn,
+              UserDefaults.standard.bool(forKey: AppSession.adPushConsentKey),
+              session.adPushNight == nil, !session.acceptedAdPushThisLaunch,
+              !session.didShowPermissionPopup, !session.pendingSignIn,
+              detailTarget == nil, shareItem == nil else { return }
+        Task {
+            guard await session.pushAuthorizationStatus() == .authorized,
+                  !session.didShowPermissionPopup else { return }
+            session.didShowPermissionPopup = true
+            PostHogSDK.shared.capture("ad_night_consent_shown", properties: ["source": "curation_end"])
+            withAnimation { showNightConsent = true }
+        }
     }
 
-    /// 처음엔 어느 아티스트든 한 번. 「나중에」 뒤엔 **그 아티스트** 곡을 다시 좋아요할 때 한 번 더. 그 뒤로는 안 묻는다.
-    static func shouldOfferHypePush(offered: [String], artist: String) -> Bool {
-        offered.isEmpty || (offered.count == 1 && offered[0] == artist)
+    /// 「나중에」·「일주일 동안 안 보기」 뒤 7일. 0(띄운 적 없음)이면 바로 통과.
+    static func isPastCooldown(_ since: Double, now: Date = .now) -> Bool {
+        now.timeIntervalSince1970 - since >= 7 * 24 * 60 * 60
     }
 
     // MARK: - New release related
@@ -1240,9 +1303,13 @@ struct FeedView: View {
         countRelatedSkip(from: old, to: new)
         prefetchArtwork(from: currentIndex)
         logTrackViewed()
-        if let artist = pendingHypeOffer {
+        if let offer = pendingHypeOffer {
             pendingHypeOffer = nil
-            offerHypePush(artist: artist)
+            offerHypePush(offer)
+        }
+        // 이번 주 특집 마지막 곡(n/n)을 넘긴 직후.
+        if prefixSource == "curation", prefixCount > 0, old == prefixCount - 1, new == prefixCount {
+            offerNightConsentIfNeeded()
         }
     }
 
@@ -1424,9 +1491,8 @@ struct FeedView: View {
             .scaledToFill()
             .frame(width: size.width, height: size.height)
             .scaleEffect(1.1)
-        .blur(radius: 28)
-        .brightness(-0.3)
-        .saturation(1.4)
+        .blur(radius: 38)
+        .overlay(Color.black.opacity(0.45))
         .clipped()
     }
 
@@ -1566,13 +1632,13 @@ struct FeedView: View {
         private static let space = "trackCard"
         private var cardWidth: CGFloat { Self.artworkSide(screen: screenSize, insets: safeAreaInsets) }
 
-        /// 아트워크 한 변. 보통은 좌우 24씩 뺀 폭이고, 화면이 가로로 긴 곳(iPhone Duo 펼침 951×669)에선
+        /// 아트워크 한 변. 보통은 좌우 20씩 뺀 폭이고, 화면이 가로로 긴 곳(iPhone Duo 펼침 951×669)에선
         /// 높이에 맞춘다 — 폭만 보면 903 정사각형이 위아래를 뚫고 정보 줄이 화면 밖으로 밀린다.
         /// 세로 여유 = 위(top+64) · 아래(bottom+92) · 버튼 줄 44(12+32) · 정보 줄 약 78 · 숨 쉴 틈 18.
         /// 일반 아이폰(SE 포함)은 폭 쪽이 작아서 지금과 같다.
         /// ponytail: 정보 줄 높이는 실측 대신 어림값. 칩·제목 크기를 키우면 140을 같이 올린다.
         static func artworkSide(screen: CGSize, insets: EdgeInsets) -> CGFloat {
-            let byWidth = screen.width - insets.leading - insets.trailing - 48
+            let byWidth = screen.width - insets.leading - insets.trailing - 40
             let byHeight = screen.height - insets.top - 64 - insets.bottom - 92 - 140
             return max(0, min(byWidth, byHeight))
         }

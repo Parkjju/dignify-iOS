@@ -12,6 +12,12 @@ enum DSColor {
     static let borderLight = Color(hex: 0xE5E7EB)
     static let divider = Color(hex: 0xF3F4F6)
     static let destructive = Color(hex: 0xEF4444)
+    /// 팝업·시트 뒤 딤(검정 35%). 아트워크 위 배지는 따로 55%를 쓴다.
+    static let dim = Color.black.opacity(0.35)
+    /// 토스트 지면(#151719 85%). 피드·라이트 지면 공통.
+    static let toastSurface = Color(hex: 0x151719, alpha: 0.85)
+    /// 어두운 지면 위 보조 텍스트.
+    static let textOnDarkSecondary = Color.white.opacity(0.75)
 
     // MARK: Picks (다크 지면)
     //

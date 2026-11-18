@@ -1,4114 +1,4273 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "": {},
-    "\"Recommend from\" got a redo: all your likes in one list, and you can filter by genre.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "'추천 기준 곡' 화면이 바뀌었어요. 좋아요한 곡이 한 줄씩 보이고, 장르별로 골라 볼 수 있어요."
-          }
-        }
-      }
-    },
-    "%@ %@ · not confirmed yet": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ %@ · 아직 예상이에요"
-          }
-        }
-      }
-    },
-    "%@ and %lld others": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ 외 %2$lld명"
-          }
-        }
-      }
-    },
-    "%@ by %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%2$@의 %1$@"
-          }
-        }
-      }
-    },
-    "%@ by %@ and %lld more": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%2$@의 %1$@ 외 %3$lld곡"
-          }
-        }
-      }
-    },
-    "%@ picks": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽 %@개"
-          }
-        }
-      }
-    },
-    "%@ selected": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 선택됨"
-          }
-        }
-      }
-    },
-    "%@, top to bottom.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "듣는 것도 담는 것도 %@."
-          }
-        }
-      }
-    },
-    "%lld": {},
-    "%lld more to go": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld개 더 선택할 수 있어요"
-          }
-        }
-      }
-    },
-    "%lld plays": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "재생 %lld회"
-          }
-        }
-      }
-    },
-    "%lld selected": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld곡 선택됨"
-          }
-        }
-      }
-    },
-    "%lld tracks": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld곡"
-          }
-        }
-      }
-    },
-    "%lld tracks · %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld곡 · %2$@"
-          }
-        }
-      }
-    },
-    "+%@ more": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "외 %@곡"
-          }
-        }
-      }
-    },
-    "30 tracks, all earned": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "엄선한 30곡이다"
-          }
-        }
-      }
-    },
-    "300 tracks, sort it out later": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일단 담고 보는 300곡이다"
-          }
-        }
-      }
-    },
-    "@%@": {},
-    "@%@'s pick %lld/%lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "@%1$@의 픽 %2$lld/%3$lld"
-          }
-        }
-      }
-    },
-    "A club until sunrise": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "클럽에서 해 뜰 때까지"
-          }
-        }
-      }
-    },
-    "A corner seat at a jazz bar": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "재즈바 구석 자리"
-          }
-        }
-      }
-    },
-    "A quick tutorial to help you get started.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "시작을 돕는 간단한 튜토리얼이 추가됐어요."
-          }
-        }
-      }
-    },
-    "A special playlist we dug up ourselves now leads your feed every week.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저희가 직접 디깅해서 고른 특집 플레이리스트가 매주 피드 맨 앞에 와요."
-          }
-        }
-      }
-    },
-    "A track comes on and it's not doing it for you": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "별로인 노래가 나왔다"
-          }
-        }
-      }
-    },
-    "Ad notifications": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "광고성 정보 알림 수신"
-          }
-        }
-      }
-    },
-    "Add reaction": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "반응 추가"
-          }
-        }
-      }
-    },
-    "Add up to %lld tracks": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "최대 %lld곡까지 담을 수 있어요"
-          }
-        }
-      }
-    },
-    "Added": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "추가됨"
-          }
-        }
-      }
-    },
-    "Added from search": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "검색에서 추가한 곡"
-          }
-        }
-      }
-    },
-    "All": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체"
-          }
-        }
-      }
-    },
-    "All %lld picked": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld곡을 다 골랐어요"
-          }
-        }
-      }
-    },
-    "All over the place": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르가 아주 뒤죽박죽이다"
-          }
-        }
-      }
-    },
-    "All time": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체"
-          }
-        }
-      }
-    },
-    "All your data, including your picks, likes, and genres, will be deleted permanently.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내가 만든 픽·좋아요·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
-          }
-        }
-      }
-    },
-    "Almost nothing makes the cut": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "근데 살아남는 건 거의 없다"
-          }
-        }
-      }
-    },
-    "Answer a few quick questions and we'll figure out your type — and which genres to start you on.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "몇 가지만 답하면 취향 유형이랑 시작할 장르를 골라드릴게요."
-          }
-        }
-      }
-    },
-    "Artist Requests": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아티스트 요청"
-          }
-        }
-      }
-    },
-    "Artist name": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아티스트 이름"
-          }
-        }
-      }
-    },
-    "Back to feed": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체 피드로 돌아가기"
-          }
-        }
-      }
-    },
-    "Be the first to react": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "첫 반응을 남겨보세요"
-          }
-        }
-      }
-    },
-    "Beats and rhymes. The words are doing the work.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비트 위에 얹는 랩. 결국 가사가 다 한다"
-          }
-        }
-      }
-    },
-    "Because you liked %@": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 곡과 비슷해요: %@"
-          }
-        }
-      }
-    },
-    "Big choruses built to stick after one listen.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "한 번 듣고 흥얼거리게 되는 후렴을 만든다"
-          }
-        }
-      }
-    },
-    "Block": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "차단"
-          }
-        }
-      }
-    },
-    "Block @%@": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "@%@ 차단"
-          }
-        }
-      }
-    },
-    "Block @%@ too?": {
-      "comment": "닉네임 신고 직후 이어지는 차단 제안 — 메뉴에서 고른 차단과는 다른 문구다",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "@%@도 차단할까요?"
-          }
-        }
-      }
-    },
-    "Blocked Users": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "차단한 유저"
-          }
-        }
-      }
-    },
-    "Browse without signing in": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인 없이 둘러보기"
-          }
-        }
-      }
-    },
-    "Build your own taste": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "나만의 취향 만들기"
-          }
-        }
-      }
-    },
-    "Building a feed that fits your taste": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취향에 맞춰 피드를 구성하고 있어요"
-          }
-        }
-      }
-    },
-    "Built from synths and machines. Often no vocals at all.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "신스와 기계로 만든 소리. 보컬이 없는 경우도 많다"
-          }
-        }
-      }
-    },
-    "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy).": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
-          }
-        }
-      }
-    },
-    "Can't find an artist? Tell us who, and we'll look into adding their tracks.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "찾는 아티스트가 없나요? 알려주시면 추가를 검토할게요."
-          }
-        }
-      }
-    },
-    "Cancel": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취소"
-          }
-        }
-      }
-    },
-    "Canceled": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취소됨"
-          }
-        }
-      }
-    },
-    "Choose up to 3 tracks to steer the feed, or leave it to your recent hypes.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드의 기준이 될 곡을 최대 3곡까지 고를 수 있어요. 고르지 않으면 최근에 하입한 3곡을 기준으로 삼아요."
-          }
-        }
-      }
-    },
-    "Choose your genres": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 고르러 가기"
-          }
-        }
-      }
-    },
-    "Clear text": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지우기"
-          }
-        }
-      }
-    },
-    "Close": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "닫기"
-          }
-        }
-      }
-    },
-    "Couldn't load": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "불러오지 못했어요"
-          }
-        }
-      }
-    },
-    "Couldn't load genres — pick them yourself on the next screen.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르를 못 불러왔어요. 다음 화면에서 직접 골라주세요."
-          }
-        }
-      }
-    },
-    "Couldn't load track info": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "트랙 정보를 불러오지 못했어요"
-          }
-        }
-      }
-    },
-    "Couldn't post. Try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "올리지 못했어요. 다시 시도해주세요."
-          }
-        }
-      }
-    },
-    "Couldn't read your sign-in info. Please try again.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인 정보를 읽지 못했어요. 다시 시도해 주세요."
-          }
-        }
-      }
-    },
-    "Couldn't save": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장하지 못했어요"
-          }
-        }
-      }
-    },
-    "Couldn't save. Please try again.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장에 실패했어요. 다시 시도해 주세요."
-          }
-        }
-      }
-    },
-    "Couldn't save. Try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장하지 못했어요. 다시 시도해주세요."
-          }
-        }
-      }
-    },
-    "Couldn't unsubscribe. Turn off ad notifications in My Page › Notifications.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "수신거부를 처리하지 못했어요. 마이 › 알림에서 광고성 알림을 꺼 주세요."
-          }
-        }
-      }
-    },
-    "Couldn't update. Please try again.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "변경에 실패했어요. 다시 시도해 주세요."
-          }
-        }
-      }
-    },
-    "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드에서 5초 이상 들으면 한 곡으로 셉니다. 앱을 켠 동안 같은 곡은 한 번만 셉니다."
-          }
-        }
-      }
-    },
-    "DIGGING": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DIGGING"
-          }
-        }
-      }
-    },
-    "Dance": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "춤추게 된다"
-          }
-        }
-      }
-    },
-    "Delete": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "삭제"
-          }
-        }
-      }
-    },
-    "Delete Account": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "계정 삭제"
-          }
-        }
-      }
-    },
-    "Delete account?": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "계정을 삭제할까요?"
-          }
-        }
-      }
-    },
-    "Deselect": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택 해제"
-          }
-        }
-      }
-    },
-    "Deselect one of your picks": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 곡 중 1개를 해제해 주세요"
-          }
-        }
-      }
-    },
-    "Dig %lld more and hype %lld to lock it in.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld곡 더 듣고 %lld곡에 좋아요를 누르면 확정돼요."
-          }
-        }
-      }
-    },
-    "Dig 10 tracks and like 3 to reveal it.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "트랙 10개를 캐고 3개에 좋아요를 누르면 공개돼요."
-          }
-        }
-      }
-    },
-    "Digging Profile": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디깅 프로필"
-          }
-        }
-      }
-    },
-    "Digging Profile: your taste, typed.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디깅 프로필 — 내 취향에 유형이 생겼어요."
-          }
-        }
-      }
-    },
-    "Dignify": {},
-    "Dignify processed your opt-in to ad notifications on %@.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "귀하가 요청하신 Dignify의 광고성 정보 수신동의가 %@에 처리되었습니다."
-          }
-        }
-      }
-    },
-    "Dignify processed your opt-out from ad notifications on %@.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "귀하가 요청하신 Dignify의 광고성 정보 수신거부가 %@에 처리되었습니다."
-          }
-        }
-      }
-    },
-    "Discover indie music and build your taste.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "인디 음악을 발굴하고, 취향을 쌓아가요."
-          }
-        }
-      }
-    },
-    "Discover music on Dignify": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dignify에서 음악을 발견하세요"
-          }
-        }
-      }
-    },
-    "Done": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "완료"
-          }
-        }
-      }
-    },
-    "Driving": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "운전할 때"
-          }
-        }
-      }
-    },
-    "Dug up on Dignify": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dignify에서 발굴한 곡"
-          }
-        }
-      }
-    },
-    "Edit": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "편집"
-          }
-        }
-      }
-    },
-    "Edit title": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제목 수정"
-          }
-        }
-      }
-    },
-    "Eh, I'll let it ride": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "뭐 그냥 틀어둔다"
-          }
-        }
-      }
-    },
-    "Emotional": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "감성적이다"
-          }
-        }
-      }
-    },
-    "English is what I'm used to": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "영어가 제일 편하다"
-          }
-        }
-      }
-    },
-    "Every card now tells you which hype it came from.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "각 곡이 어떤 하입 곡 때문에 나왔는지 카드에 표시돼요."
-          }
-        }
-      }
-    },
-    "Every genre now comes with a plain-language description.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르마다 무슨 음악인지 한 줄 설명이 붙었어요."
-          }
-        }
-      }
-    },
-    "Everything builds toward the moment the bass drops.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "베이스가 크게 떨어지는 그 순간을 향해 달린다"
-          }
-        }
-      }
-    },
-    "Everything's fair game, and you keep a lot of it.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "뭐든 열려 있고, 많이 담는 편이에요."
-          }
-        }
-      }
-    },
-    "Feed": {
-      "extractionState": "manual"
-    },
-    "Feels like %@": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비슷한 곡: %@"
-          }
-        }
-      }
-    },
-    "Find dignify on Instagram from My Page.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마이페이지에서 dignify 인스타그램 계정으로 바로 갈 수 있어요."
-          }
-        }
-      }
-    },
-    "Find my taste": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 취향 찾으러 가기"
-          }
-        }
-      }
-    },
-    "Find on YouTube Music": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "YouTube Music에서 찾기"
-          }
-        }
-      }
-    },
-    "Find tracks": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "곡 찾으러 가기"
-          }
-        }
-      }
-    },
-    "Fire": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "세다"
-          }
-        }
-      }
-    },
-    "Follow my likes": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 곡 따라가기"
-          }
-        }
-      }
-    },
-    "Following your likes": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 곡 따라가는 중"
-          }
-        }
-      }
-    },
-    "Found a track you like!": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마음에 드는 노래를 찾았어요!"
-          }
-        }
-      }
-    },
-    "Front row at a live show": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "공연장 맨 앞줄"
-          }
-        }
-      }
-    },
-    "Genre Settings": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 설정"
-          }
-        }
-      }
-    },
-    "Genre isn't a thing you think about": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 따위 신경 쓰지 않는다"
-          }
-        }
-      }
-    },
-    "Genre settings are gone. Hype a few tracks and the feed picks up your taste.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 설정이 없어졌어요. 몇 곡만 하입하면 피드가 취향을 따라와요."
-          }
-        }
-      }
-    },
-    "Genre: %@": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르: %@"
-          }
-        }
-      }
-    },
-    "Get me hyped": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "텐션을 올려준다"
-          }
-        }
-      }
-    },
-    "Get new music by notification?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "새 음악 소식, 알림으로 받을까요?"
-          }
-        }
-      }
-    },
-    "Get notified when your request is added.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "요청한 아티스트가 추가되면 알림을 받아요."
-          }
-        }
-      }
-    },
-    "Give it a few more listens first": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "몇 번 더 들어보고 정한다"
-          }
-        }
-      }
-    },
-    "Got it": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "확인"
-          }
-        }
-      }
-    },
-    "Guitars and drums locking in": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기타랑 드럼 합"
-          }
-        }
-      }
-    },
-    "Guitars, drums, and volume. Loud or moody, take your pick.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기타, 드럼, 그리고 볼륨. 시끄럽거나 축 처지거나 둘 중 하나다"
-          }
-        }
-      }
-    },
-    "Hanging out with people": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "사람들이랑 놀 때"
-          }
-        }
-      }
-    },
-    "Hide guide": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설명 숨기기"
-          }
-        }
-      }
-    },
-    "Home alone, volume low": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "집에서 혼자, 볼륨 낮게"
-          }
-        }
-      }
-    },
-    "How this is counted": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "세는 기준"
-          }
-        }
-      }
-    },
-    "Hype a track right from the lock screen.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잠금화면에서 바로 하입할 수 있어요."
-          }
-        }
-      }
-    },
-    "Hype is now Like. Tap the heart or double-tap a track to save it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입이 좋아요로 바뀌었어요. 하트를 누르거나 곡을 두 번 탭하면 저장돼요."
-          }
-        }
-      }
-    },
-    "I listen to Korean tracks a lot": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "한국어 노래를 자주 듣는다"
-          }
-        }
-      }
-    },
-    "Improvised on the spot — the same song is never quite the same twice.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "즉흥이 핵심. 같은 곡도 매번 다르게 연주된다"
-          }
-        }
-      }
-    },
-    "In it goes": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일단 담고 본다"
-          }
-        }
-      }
-    },
-    "Inappropriate content": {
-      "comment": "신고 사유 — 곡 묶음이나 제목이 부적절한 경우",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "부적절한 콘텐츠"
-          }
-        }
-      }
-    },
-    "Inappropriate nickname": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "부적절한 닉네임"
-          }
-        }
-      }
-    },
-    "Just put me in a good mood": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "그냥 기분 좋게 해준다"
-          }
-        }
-      }
-    },
-    "Keep digging to unlock your type": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "더 디깅하면 유형이 열려요"
-          }
-        }
-      }
-    },
-    "Keep what I had": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "그대로 둘래요"
-          }
-        }
-      }
-    },
-    "LIKELY YOUR TYPE": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "예상 유형"
-          }
-        }
-      }
-    },
-    "Letters, numbers, and _ only (1–20 characters)": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "영문·한글·숫자·_ 1~20자만 가능해요"
-          }
-        }
-      }
-    },
-    "Like": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요"
-          }
-        }
-      }
-    },
-    "Like History": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요 기록"
-          }
-        }
-      }
-    },
-    "Like a track and a big heart pops up on the cover.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요를 누르면 커버 위에 큰 하트가 떠요."
-          }
-        }
-      }
-    },
-    "Like tracks you dig in the feed": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피드에서 마음에 드는 곡을 골라주세요"
-          }
-        }
-      }
-    },
-    "Liked by": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 유저"
-          }
-        }
-      }
-    },
-    "Liked tracks %lld": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 곡 %lld"
-          }
-        }
-      }
-    },
-    "Link copied": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "링크가 복사됐어요"
-          }
-        }
-      }
-    },
-    "Listen on Apple Music": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Music에서 듣기"
-          }
-        }
-      }
-    },
-    "Log Out": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그아웃"
-          }
-        }
-      }
-    },
-    "Long titles and headlines no longer get cut off on share cards.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "공유 카드에서 긴 제목이나 문구가 잘리지 않아요."
-          }
-        }
-      }
-    },
-    "Looking for tracks that sound like your picks": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "고른 곡과 비슷한 소리를 찾는 중이에요"
-          }
-        }
-      }
-    },
-    "Love": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋다"
-          }
-        }
-      }
-    },
-    "Lyrics that aren't in English?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "영어가 아닌 가사는 어떤가?"
-          }
-        }
-      }
-    },
-    "MY DIGGING TYPE": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 디깅 유형"
-          }
-        }
-      }
-    },
-    "Made for a floor. Steady kick, no reason to stop moving.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "춤추라고 만든 음악. 킥이 멈추지 않는다"
-          }
-        }
-      }
-    },
-    "Make a pick": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "첫 픽 만들기"
-          }
-        }
-      }
-    },
-    "Making a pick: your hypes are now sorted by day, and you can play them while you choose.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽을 만들 때 하입한 곡이 날짜별로 정리되고, 고르면서 바로 들어볼 수 있어요."
-          }
-        }
-      }
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
     },
-    "Might as well press play": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일단 틀어나 본다"
-          }
-        }
-      }
+    "—" : {
+
     },
-    "More": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "더보기"
+    "\"Recommend from\" got a redo: all your likes in one list, and you can filter by genre." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'추천 기준 곡' 화면이 바뀌었어요. 좋아요한 곡이 한 줄씩 보이고, 장르별로 골라 볼 수 있어요."
           }
         }
       }
     },
-    "More beyond your genres": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 밖 트랙도 보여줄게요"
+    "(Ad) New music from an artist you'll love 🎧" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(광고) 좋아하실 아티스트 신곡 들어볼까요? 🎧"
           }
         }
       }
     },
-    "My": {
-      "extractionState": "manual"
-    },
-    "My Page": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마이페이지"
-          }
-        }
-      }
+    "@%@" : {
+
     },
-    "New from artists you like %lld/%lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 아티스트의 신곡 %lld/%lld"
+    "@%@'s pick %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%1$@의 픽 %2$lld/%3$lld"
           }
         }
       }
     },
-    "New here? Play a few tracks and pick the ones you like — your feed starts there.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음이신가요? 곡을 들어보고 마음에 드는 걸 고르면 피드가 거기서 시작해요."
+    "%@ %@ · not confirmed yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@ · 아직 예상이에요"
           }
         }
       }
     },
-    "New here? Take the taste test and we'll pick your genres.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음이세요? 취향 테스트로 장르를 골라드려요."
+    "%@ and %lld others" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 외 %2$lld명"
           }
         }
       }
     },
-    "New here? Three sound rounds set your first direction.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음 왔다면 소리 2지선다 세 라운드로 첫 방향을 정해요."
+    "%@ by %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$@의 %1$@"
           }
         }
       }
     },
-    "New pick": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "새 픽"
+    "%@ by %@ and %lld more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$@의 %1$@ 외 %3$lld곡"
           }
         }
       }
     },
-    "New to me": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음 본다"
+    "%@ picks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽 %@개"
           }
         }
       }
     },
-    "New tracks from artists you like, weekly picks, and our curated sets. Tapping Notify me means you agree to receive advertising information.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 아티스트의 신곡, 주간 추천, 이번 주 특집을 알려 드려요. 「알림 받기」를 누르면 광고성 정보 수신에 동의하게 돼요."
+    "%@ selected" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 선택됨"
           }
         }
       }
     },
-    "New tracks from artists you like, weekly picks, and our curated sets. These are advertising information.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 아티스트의 신곡, 주간 추천, 이번 주 특집 알림이에요. 모두 광고성 정보예요."
+    "%@, top to bottom." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "듣는 것도 담는 것도 %@."
           }
         }
       }
     },
-    "Next": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다음"
-          }
-        }
-      }
+    "%lld" : {
+
     },
-    "Nickname": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "닉네임"
+    "%lld more to go" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld개 더 선택할 수 있어요"
           }
         }
       }
     },
-    "No liked tracks yet": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 좋아요한 곡이 없어요"
+    "%lld plays" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재생 %lld회"
           }
         }
       }
     },
-    "No liked tracks yet — search for tracks to add.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 좋아요한 곡이 없어요. 검색해서 골라보세요."
+    "%lld selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld곡 선택됨"
           }
         }
       }
     },
-    "No likes yet": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 좋아요한 유저가 없어요"
+    "%lld tracks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld곡"
           }
         }
       }
     },
-    "No lyrics at all works too": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "가사가 아예 없어도 된다"
+    "%lld tracks · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld곡 · %2$@"
           }
         }
       }
     },
-    "No picks yet": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 픽이 없어요"
+    "+%@ more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외 %@곡"
           }
         }
       }
     },
-    "No requests yet": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 요청이 없어요"
+    "30 tracks, all earned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "엄선한 30곡이다"
           }
         }
       }
     },
-    "No results for \"%@\"": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "\"%@\"에 대한 결과가 없어요"
+    "300 tracks, sort it out later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일단 담고 보는 300곡이다"
           }
         }
       }
     },
-    "No tracks to show": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "표시할 트랙이 없어요"
+    "A club until sunrise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클럽에서 해 뜰 때까지"
           }
         }
       }
     },
-    "Not now": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "나중에"
+    "A corner seat at a jazz bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재즈바 구석 자리"
           }
         }
       }
     },
-    "Not set": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설정 전"
+    "A quick tutorial to help you get started." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작을 돕는 간단한 튜토리얼이 추가됐어요."
           }
         }
       }
     },
-    "Not sure what to pick?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "무엇을 고를지 모르겠다면"
+    "A special playlist we dug up ourselves now leads your feed every week." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저희가 직접 디깅해서 고른 특집 플레이리스트가 매주 피드 맨 앞에 와요."
           }
         }
       }
     },
-    "Notification settings saved": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림 설정을 저장했어요"
+    "A track comes on and it's not doing it for you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "별로인 노래가 나왔다"
           }
         }
       }
     },
-    "Notifications": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림"
+    "Ad notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "광고성 정보 알림 수신"
           }
         }
       }
     },
-    "Notify me": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림 받기"
+    "Add reaction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "반응 추가"
           }
         }
       }
     },
-    "OK": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "확인"
+    "Add up to %lld tracks" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최대 %lld곡까지 담을 수 있어요"
           }
         }
       }
     },
-    "Off": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "꺼짐"
+    "Added" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가됨"
           }
         }
       }
     },
-    "Off to find someone who sounds like them": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비슷한 사람을 또 찾아 나선다"
+    "Added from search" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색에서 추가한 곡"
           }
         }
       }
     },
-    "Official": {
-      "comment": "운영자가 만든 픽임을 알리는 씰의 VoiceOver 라벨",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "운영자"
+    "All" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체"
           }
         }
       }
     },
-    "On": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "켜짐"
+    "All %lld picked" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld곡을 다 골랐어요"
           }
         }
       }
     },
-    "On, the feed plays tracks that sound like the ones you liked. Off, it plays anything.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "켜면 좋아요한 곡과 소리가 비슷한 곡이 나오고, 끄면 조건 없이 아무 곡이나 나와요."
+    "All over the place" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르가 아주 뒤죽박죽이다"
           }
         }
       }
     },
-    "New tracks from artists you like now show up first in your feed.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 아티스트의 신곡이 나오면 피드 맨 앞에 먼저 보여 드려요."
+    "All time" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체"
           }
         }
       }
     },
-    "Turn on notifications and we'll let you know when they drop new tracks.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림을 켜 두면 좋아요한 아티스트의 신곡 소식을 바로 알려 드려요."
+    "All your data, including your picks, likes, and genres, will be deleted permanently." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내가 만든 픽·좋아요·장르 등 모든 데이터가 삭제되며 되돌릴 수 없어요."
           }
         }
       }
     },
-    "Every Monday, get 5 picks based on the tracks you like.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "매주 월요일, 좋아요한 곡을 바탕으로 고른 5곡을 보내 드려요."
+    "Almost nothing makes the cut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "근데 살아남는 건 거의 없다"
           }
         }
       }
     },
-    "Turn notifications on or off anytime in My Page › Notifications.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림은 마이 › 알림에서 언제든 켜고 끌 수 있어요."
+    "Answer a few quick questions and we'll figure out your type — and which genres to start you on." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "몇 가지만 답하면 취향 유형이랑 시작할 장르를 골라드릴게요."
           }
         }
       }
     },
-    "Once you've picked 3 tracks, the rest dim out.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "3곡을 모두 고르면 나머지 곡은 흐리게 표시돼요."
+    "Artist name" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 이름"
           }
         }
       }
     },
-    "One lane, all the way down": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "한 우물만 끝까지 판다"
+    "Artist Requests" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 요청"
           }
         }
       }
     },
-    "One lane, dug deep — with standards to match.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "한 장르를 깊게 파고, 기준이 확실해요."
+    "Back to feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 피드로 돌아가기"
           }
         }
       }
     },
-    "Open any track in YouTube Music, not just Apple Music.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "애플 뮤직 대신 유튜브 뮤직으로도 열 수 있어요."
+    "Be the first to react" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 반응을 남겨보세요"
           }
         }
       }
     },
-    "Packed with hooks, switches lanes mid-song, made to be watched too.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "훅이 잔뜩 들어가고, 곡 중간에 확 바뀌고, 보는 재미까지 있다"
+    "Beats and rhymes. The words are doing the work." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비트 위에 얹는 랩. 결국 가사가 다 한다"
           }
         }
       }
     },
-    "Pending": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "대기 중"
+    "Because you liked %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 곡과 비슷해요: %@"
           }
         }
       }
     },
-    "Percussion you feel before you hear. Reggaetón, salsa, and everything nearby.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "듣기 전에 몸이 먼저 반응하는 퍼커션. 레게톤부터 살사까지 아우른다"
+    "Big choruses built to stick after one listen." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한 번 듣고 흥얼거리게 되는 후렴을 만든다"
           }
         }
       }
     },
-    "Pick as many as you like": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "원하는 만큼 고르세요"
+    "Block" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "차단"
           }
         }
       }
     },
-    "Pick genres myself": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "장르 직접 고를래요"
+    "Block @%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@ 차단"
           }
         }
       }
     },
-    "Pick none and we'll find music based on your %lld most recent likes.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아무것도 고르지 않으면 최근 좋아요한 %lld곡을 기준으로 노래를 찾을게요."
+    "Block @%@ too?" : {
+      "comment" : "닉네임 신고 직후 이어지는 차단 제안 — 메뉴에서 고른 차단과는 다른 문구다",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@도 차단할까요?"
           }
         }
       }
     },
-    "Pick this one": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 곡 고르기"
+    "Blocked Users" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "차단한 유저"
           }
         }
       }
     },
-    "Pick up to %lld tracks you like.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마음에 드는 노래를\n%lld곡까지 골라주세요."
+    "Browse without signing in" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그인 없이 둘러보기"
           }
         }
       }
     },
-    "Pick up to %lld tracks.\nWe'll find music based on these.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld곡까지 고를 수 있어요.\n고른 곡을 기준으로 노래를 찾을게요."
+    "Build your own taste" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "나만의 취향 만들기"
           }
         }
       }
     },
-    "Pick your kind of night": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제일 끌리는 밤은?"
+    "Building a feed that fits your taste" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취향에 맞춰 피드를 구성하고 있어요"
           }
         }
       }
-    },
-    "Picks": {
-      "extractionState": "manual"
     },
-    "Picks: put a few tracks together and send them out.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽 — 좋아하는 곡을 묶어서 남들에게 보내보세요."
+    "Built from synths and machines. Often no vocals at all." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신스와 기계로 만든 소리. 보컬이 없는 경우도 많다"
           }
         }
       }
     },
-    "Please try again in a moment.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잠시 후 다시 시도해주세요"
+    "By continuing, you agree to the [Terms of Service](dignify://terms) and [Privacy Policy](dignify://privacy)." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계속 진행하면 [이용약관](dignify://terms) 및 [개인정보처리방침](dignify://privacy)에 동의하는 것으로 간주됩니다."
           }
         }
       }
     },
-    "Popular now": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 인기 있는 곡"
+    "Can't find an artist? Tell us who, and we'll look into adding their tracks." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "찾는 아티스트가 없나요? 알려주시면 추가를 검토할게요."
           }
         }
       }
     },
-    "Post": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "올리기"
+    "Cancel" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취소"
           }
         }
       }
     },
-    "Posting…": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "올리는 중…"
+    "Canceled" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취소됨"
           }
         }
       }
     },
-    "Press play first, decide later": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일단 재생하고 판단은 나중에 한다"
+    "Choose up to 3 tracks to steer the feed, or leave it to your recent hypes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드의 기준이 될 곡을 최대 3곡까지 고를 수 있어요. 고르지 않으면 최근에 하입한 3곡을 기준으로 삼아요."
           }
         }
       }
     },
-    "Preview": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "미리보기"
+    "Choose your genres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 고르러 가기"
           }
         }
       }
     },
-    "Privacy Policy": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "개인정보처리방침"
+    "Clear text" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지우기"
           }
         }
       }
     },
-    "Probably not my thing": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어차피 내 취향이 아닐 것이다"
+    "Close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "닫기"
           }
         }
       }
     },
-    "Pull me in and shut everything else out": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "딴생각 다 끄고 몰입시킨다"
+    "Couldn't load" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "불러오지 못했어요"
           }
         }
       }
     },
-    "Put a few tracks together and send them out.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아하는 곡을 묶어 첫 픽을 만들어보세요."
+    "Couldn't load genres — pick them yourself on the next screen." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르를 못 불러왔어요. 다음 화면에서 직접 골라주세요."
           }
         }
       }
     },
-    "Random": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "무작위"
+    "Couldn't load track info" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "트랙 정보를 불러오지 못했어요"
           }
         }
       }
     },
-    "React to other people's picks with an emoji.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다른 사람의 픽에 이모지로 반응할 수 있어요."
+    "Couldn't post. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올리지 못했어요. 다시 시도해주세요."
           }
         }
       }
     },
-    "Ready for the next track?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다음 노래로 넘어가 볼까요?"
+    "Couldn't read your sign-in info. Please try again." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그인 정보를 읽지 못했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Recent searches": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "최근 검색"
+    "Couldn't save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장하지 못했어요"
           }
         }
       }
     },
-    "Recommend from": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "추천 기준 곡"
+    "Couldn't save. Please try again." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장에 실패했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Remove like": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요 취소"
+    "Couldn't save. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장하지 못했어요. 다시 시도해주세요."
           }
         }
       }
     },
-    "Remove one to swap": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "바꾸려면 빼 주세요"
+    "Couldn't unsubscribe. Turn off ad notifications in My Page › Notifications." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수신거부를 처리하지 못했어요. 마이 › 알림에서 광고성 알림을 꺼 주세요."
           }
         }
       }
     },
-    "Remove this track?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 곡을 담은 곡에서 뺄까요?"
+    "Couldn't update. Please try again." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "변경에 실패했어요. 다시 시도해 주세요."
           }
         }
       }
     },
-    "Rename a pick after you post it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "올린 픽의 제목은 나중에 고칠 수 있어요."
+    "Counted when you listen to a track for 5 seconds or more in the feed. Once per track each time you open the app." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드에서 5초 이상 들으면 한 곡으로 셉니다. 앱을 켠 동안 같은 곡은 한 번만 셉니다."
           }
         }
       }
     },
-    "Rename or delete your picks straight from your profile.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "프로필에서도 나의 픽 제목을 고치거나 삭제할 수 있어요."
+    "Dance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "춤추게 된다"
           }
         }
       }
     },
-    "Report": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "신고"
+    "deep in %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@에 진심"
           }
         }
       }
     },
-    "Report this pick?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 픽을 신고할까요?"
+    "Delete" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "삭제"
           }
         }
       }
     },
-    "Request \"%@\"": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "\"%@\" 요청하기"
+    "Delete Account" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계정 삭제"
           }
         }
       }
     },
-    "Request an artist": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아티스트 요청하기"
+    "Delete account?" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계정을 삭제할까요?"
           }
         }
       }
     },
-    "Request artists you can't find yet.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아직 없는 아티스트를 요청할 수 있어요."
+    "Deselect" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택 해제"
           }
         }
       }
     },
-    "Request sent": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "요청 완료"
+    "Deselect one of your picks" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 곡 중 1개를 해제해 주세요"
           }
         }
       }
     },
-    "Results for \"%@\"": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "\"%@\" 검색 결과"
+    "Dig %lld more and hype %lld to lock it in." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld곡 더 듣고 %lld곡에 좋아요를 누르면 확정돼요."
           }
         }
       }
     },
-    "Retake the taste test": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취향 테스트 다시 하기"
+    "Dig 10 tracks and like 3 to reveal it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "트랙 10개를 캐고 3개에 좋아요를 누르면 공개돼요."
           }
         }
       }
     },
-    "Retake the test anytime from genre settings.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취향 테스트는 장르 설정에서 언제든 다시 할 수 있어요."
+    "dig deeper" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dig deeper"
           }
         }
       }
     },
-    "Rock that ducks the mainstream. Not big on following the rules.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "주류 록에서 살짝 비껴간 소리. 규칙을 딱히 안 지킨다"
+    "DIGGING" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DIGGING"
           }
         }
       }
     },
-    "Same artists on repeat, happily": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "듣던 사람 또 듣는 게 좋다"
+    "Digging Profile" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디깅 프로필"
           }
         }
       }
     },
-    "Same lane the whole way": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음부터 끝까지 비슷한 결이다"
+    "Digging Profile: your taste, typed." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디깅 프로필 — 내 취향에 유형이 생겼어요."
           }
         }
       }
     },
-    "Save": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장"
-          }
-        }
-      }
+    "dignify" : {
+
     },
-    "Saving a song you just found": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "방금 발견한 곡을 저장할 때"
-          }
-        }
-      }
+    "Dignify" : {
+
     },
-    "Scroll back through what you played this week": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주 재생목록을 훑어보면"
+    "dignify on Instagram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dignify 인스타그램"
           }
         }
       }
     },
-    "Search": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "검색"
+    "dignify pick by @%@: %@" : {
+      "comment" : "공유 시트로 나가는 문구",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dignify에서 @%1$@이 고른 픽: %2$@"
           }
         }
       }
     },
-    "Search \"%@\"": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "\"%@\" 검색하기"
+    "Discover indie music and build your taste." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인디 음악을 발굴하고, 취향을 쌓아가요."
           }
         }
       }
     },
-    "Search artists, tracks": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아티스트, 트랙 검색"
+    "Discover music on Dignify" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify에서 음악을 발견하세요"
           }
         }
       }
     },
-    "Search artists, tracks, genres": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아티스트, 트랙, 장르 검색"
+    "Don't show for a week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일주일 동안 안 보기"
           }
         }
       }
     },
-    "See all": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체 보기"
+    "Done" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료"
           }
         }
       }
     },
-    "See all likes": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요 기록 전체 보기"
+    "Driving" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "운전할 때"
           }
         }
       }
     },
-    "See the gap between what you play and what you keep.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "많이 들은 장르와 실제로 담은 장르의 차이를 보여줘요."
+    "Dug up on Dignify" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify에서 발굴한 곡"
           }
         }
       }
     },
-    "See what's new after every update.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트할 때마다 새로운 기능을 확인할 수 있어요."
+    "Edit" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "편집"
           }
         }
       }
     },
-    "Select": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택"
+    "Edit title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제목 수정"
           }
         }
       }
     },
-    "Select tracks to continue": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "곡을 선택해주세요"
+    "Eh, I'll let it ride" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뭐 그냥 틀어둔다"
           }
         }
       }
     },
-    "Selected tracks": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 곡"
+    "Emotional" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "감성적이다"
           }
         }
       }
     },
-    "Send": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "보내기"
+    "English is what I'm used to" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영어가 제일 편하다"
           }
         }
       }
     },
-    "Send request": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "요청 보내기"
+    "Every card now tells you which hype it came from." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 곡이 어떤 하입 곡 때문에 나왔는지 카드에 표시돼요."
           }
         }
       }
     },
-    "Share": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "공유"
+    "Every genre now comes with a plain-language description." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르마다 무슨 음악인지 한 줄 설명이 붙었어요."
           }
         }
       }
     },
-    "Share a pick as a card for Instagram or anywhere else.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽을 카드 이미지로 만들어 인스타그램 등에 공유할 수 있어요."
+    "Every Monday, get 5 picks based on the tracks you like." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매주 월요일, 좋아요한 곡을 바탕으로 고른 5곡을 보내 드려요."
           }
         }
       }
     },
-    "Share my taste": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 취향 공유"
+    "Everything builds toward the moment the bass drops." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "베이스가 크게 떨어지는 그 순간을 향해 달린다"
           }
         }
       }
     },
-    "Share your taste as a card.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 취향을 카드 한 장으로 공유해보세요."
+    "Everything's fair game, and you keep a lot of it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뭐든 열려 있고, 많이 담는 편이에요."
           }
         }
       }
     },
-    "Show guide": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설명 보기"
-          }
-        }
-      }
+    "Feed" : {
+      "extractionState" : "manual"
     },
-    "Sign in to save the tracks you love and build a feed that fits your taste.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인하면 마음에 드는 노래를 찜하고,\n내 취향에 맞는 피드를 만들 수 있어요."
+    "Feels like %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비슷한 곡: %@"
           }
         }
       }
     },
-    "Sign-in failed. Please try again.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인에 실패했어요. 다시 시도해 주세요."
+    "Find dignify on Instagram from My Page." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이페이지에서 dignify 인스타그램 계정으로 바로 갈 수 있어요."
           }
         }
       }
     },
-    "Sit with me": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "그냥 옆에 있어준다"
+    "Find my taste" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 취향 찾으러 가기"
           }
         }
       }
     },
-    "Skip": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "건너뛰기"
+    "Find on YouTube Music" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YouTube Music에서 찾기"
           }
         }
       }
     },
-    "Skip and pick genres": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "건너뛰고 장르 고르기"
+    "Find tracks" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "곡 찾으러 가기"
           }
         }
       }
     },
-    "Skip tracks from the lock screen, your earbuds, or your car.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잠금화면, 이어폰, 차에서 다음 곡으로 넘길 수 있어요."
+    "Fire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세다"
           }
         }
       }
     },
-    "Skipped in five seconds": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5초 안에 넘긴다"
+    "Follow my likes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 곡 따라가기"
           }
         }
       }
     },
-    "Smooth grooves and voices that carry the whole thing.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "그루브와 목소리로 곡을 끌고 간다"
+    "Following your likes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 따라가는 중"
           }
         }
       }
     },
-    "Someone recommends a genre you never listen to": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "안 듣던 장르를 누가 추천했다"
+    "Found a track you like!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 드는 노래를 찾았어요!"
           }
         }
       }
     },
-    "Someone telling you a story, guitar in hand.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기타 들고 이야기를 들려준다"
+    "Front row at a live show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공연장 맨 앞줄"
           }
         }
       }
     },
-    "Something else": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기타"
+    "Genre isn't a thing you think about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 따위 신경 쓰지 않는다"
           }
         }
       }
     },
-    "Sounds like your kind of thing": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이런 장르가 맞을 것 같아요"
+    "Genre Settings" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 설정"
           }
         }
       }
     },
-    "Spanish? If it grooves, sure": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "스페인어든 뭐든 리듬만 좋으면 상관없다"
+    "Genre settings are gone. Hype a few tracks and the feed picks up your taste." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 설정이 없어졌어요. 몇 곡만 하입하면 피드가 취향을 따라와요."
           }
         }
       }
     },
-    "Start digging": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디깅 시작"
+    "Genre: %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르: %@"
           }
         }
       }
     },
-    "Straight through the whole discography": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디스코그래피를 정주행한다"
+    "Get me hyped" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "텐션을 올려준다"
           }
         }
       }
     },
-    "Swipe up on the screen.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "화면을 위로 쓸어 올려보세요"
+    "Get notified when your request is added." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청한 아티스트가 추가되면 알림을 받아요."
           }
         }
       }
     },
-    "Switches between like-based and random": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요 기반과 무작위를 번갈아 바꿉니다"
+    "Give it a few more listens first" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "몇 번 더 들어보고 정한다"
           }
         }
       }
     },
-    "System notifications": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기기 알림 권한"
+    "Got it" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
           }
         }
       }
     },
-    "Take the taste test": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취향 테스트 하기"
+    "Guitars and drums locking in" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기타랑 드럼 합"
           }
         }
       }
     },
-    "Tap + to request an artist.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "＋를 눌러 아티스트를 요청하세요."
+    "Guitars, drums, and volume. Loud or moody, take your pick." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기타, 드럼, 그리고 볼륨. 시끄럽거나 축 처지거나 둘 중 하나다"
           }
         }
       }
     },
-    "Tap to jump to it": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누르면 그 곡으로 가요"
+    "Hanging out with people" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사람들이랑 놀 때"
           }
         }
       }
     },
-    "Tapping Notify me means you agree to receive advertising information.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "「알림 받기」를 누르면 광고성 정보 수신에 동의하게 돼요."
+    "Hear about artists at night, too?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "밤에도 아티스트 소식을 알려드릴까요?"
           }
         }
       }
     },
-    "Tapping a reaction notification now takes you straight to your picks.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽에 반응이 달렸다는 알림을 누르면 내 픽으로 바로 가요."
+    "Hide guide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설명 숨기기"
           }
         }
       }
     },
-    "Tell us what's wrong": {
-      "comment": "기타 사유 입력창 플레이스홀더",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어떤 점이 문제인지 알려주세요"
+    "Home alone, volume low" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "집에서 혼자, 볼륨 낮게"
           }
         }
       }
     },
-    "Tell us what's wrong. We read every report.": {
-      "comment": "기타 사유 입력 폼 설명",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어떤 점이 문제인지 알려주세요. 신고는 전부 읽어요."
+    "How this is counted" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세는 기준"
           }
         }
       }
     },
-    "Terms of Service": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이용약관"
+    "Hype a track right from the lock screen." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠금화면에서 바로 하입할 수 있어요."
           }
         }
       }
     },
-    "Thanks — we'll take a look.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "신고해줘서 고마워요. 확인해볼게요."
+    "Hype is now Like. Tap the heart or double-tap a track to save it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입이 좋아요로 바뀌었어요. 하트를 누르거나 곡을 두 번 탭하면 저장돼요."
           }
         }
       }
     },
-    "That nickname can't be used. Try another one.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "사용할 수 없는 닉네임이에요. 다른 이름을 써주세요."
+    "I listen to Korean tracks a lot" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한국어 노래를 자주 듣는다"
           }
         }
       }
     },
-    "The Loyalist": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "충성파"
+    "Improvised on the spot — the same song is never quite the same twice." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "즉흥이 핵심. 같은 곡도 매번 다르게 연주된다"
           }
         }
       }
     },
-    "The Omnivore": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잡식가"
+    "In it goes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일단 담고 본다"
           }
         }
       }
     },
-    "The Purist": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "순수주의자"
+    "Inappropriate content" : {
+      "comment" : "신고 사유 — 곡 묶음이나 제목이 부적절한 경우",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "부적절한 콘텐츠"
           }
         }
       }
     },
-    "The Restless Curator": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "쉼 없는 큐레이터"
+    "Inappropriate nickname" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "부적절한 닉네임"
           }
         }
       }
     },
-    "The beat and the synths": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비트랑 신스"
+    "Just put me in a good mood" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "그냥 기분 좋게 해준다"
           }
         }
       }
     },
-    "The flow": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "랩 플로우"
+    "Keep digging to unlock your type" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 디깅하면 유형이 열려요"
           }
         }
       }
     },
-    "The low end is the whole point. Best where the speakers can take it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저음이 주인공이다. 스피커가 버텨주는 데서 들어야 제맛"
+    "Keep what I had" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "그대로 둘래요"
           }
         }
       }
     },
-    "The story in the lyrics": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "가사에 담긴 이야기"
+    "Letters, numbers, and _ only (1–20 characters)" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영문·한글·숫자·_ 1~20자만 가능해요"
           }
         }
       }
     },
-    "The voice itself": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "목소리 그 자체"
+    "Like" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요"
           }
         }
       }
     },
-    "The weekly set badge no longer shows up on search results.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "검색 결과에 이번 주 특집 배지가 잘못 뜨던 문제를 고쳤어요."
+    "Like a track and a big heart pops up on the cover." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요를 누르면 커버 위에 큰 하트가 떠요."
           }
         }
       }
     },
-    "The weekly set label no longer overlaps the feed mode button.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주 특집 표시가 '하입한 곡 따라가는 중' 버튼과 겹치지 않아요."
+    "Like History" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 기록"
           }
         }
       }
     },
-    "This nickname is already in use.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이미 사용 중인 닉네임이에요."
+    "Like tracks you dig in the feed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "피드에서 마음에 드는 곡을 골라주세요"
           }
         }
       }
     },
-    "This week": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주"
+    "Liked by" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 유저"
           }
         }
       }
     },
-    "This week's set %lld/%lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주 특집 %lld/%lld"
+    "Liked tracks %lld" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 곡 %lld"
           }
         }
       }
     },
-    "This week's set, all done": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주 특집, 여기까지예요"
+    "LIKELY YOUR TYPE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "예상 유형"
           }
         }
       }
     },
-    "Those were dug up by us, by hand. We do it again every week — want a heads-up when the next one drops?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "방금 보신 곡들은 저희가 직접 판 거예요. 매주 새로 파고 있는데, 다음 편 올라오면 알려드릴까요?"
+    "Link copied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "링크가 복사됐어요"
           }
         }
       }
     },
-    "Title": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제목"
+    "Listen on Apple Music" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Music에서 듣기"
           }
         }
       }
     },
-    "Top artists": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "주요 아티스트"
+    "Log Out" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그아웃"
           }
         }
       }
     },
-    "Top genres": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "주요 장르"
+    "Long titles and headlines no longer get cut off on share cards." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유 카드에서 긴 제목이나 문구가 잘리지 않아요."
           }
         }
       }
     },
-    "Track": {},
-    "Track details": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "트랙 상세보기"
+    "Looking for tracks that sound like your picks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡과 비슷한 소리를 찾는 중이에요"
           }
         }
       }
     },
-    "Track details moved to the ••• button under the artwork.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "곡 상세는 이제 아트워크 아래 ••• 버튼에서 볼 수 있어요."
+    "Love" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋다"
           }
         }
       }
     },
-    "Tracks keep playing when you leave the app or turn the screen off.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "앱을 나가거나 화면을 꺼도 노래가 계속 나와요."
+    "Lyrics that aren't in English?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영어가 아닌 가사는 어떤가?"
           }
         }
       }
     },
-    "Tracks you pick sit in a tray at the bottom. Tap one to remove it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "고른 곡은 화면 아래 칸에 모여요. 칸에 있는 곡을 누르면 선택이 해제돼요."
+    "Made for a floor. Steady kick, no reason to stop moving." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "춤추라고 만든 음악. 킥이 멈추지 않는다"
           }
         }
       }
     },
-    "Try again": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 시도"
+    "Make a pick" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 픽 만들기"
           }
         }
       }
     },
-    "Try tapping twice, quickly.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "빠르게 두 번 클릭해 볼까요?"
+    "Making a pick: your hypes are now sorted by day, and you can play them while you choose." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽을 만들 때 하입한 곡이 날짜별로 정리되고, 고르면서 바로 들어볼 수 있어요."
           }
         }
       }
     },
-    "Turn hype-following off whenever you want a random feed.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입한 곡 따라가기를 끄면 무작위 피드로 돌아가요."
+    "Might as well press play" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일단 틀어나 본다"
           }
         }
       }
     },
-    "Turn on \"Follow my likes\" for these to take effect.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "고른 곡이 적용되려면 '좋아요한 곡 따라가기'를 켜야 해요."
+    "More" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더보기"
           }
         }
       }
     },
-    "Turn on in Settings": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설정에서 켜기"
+    "More beyond your genres" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 밖 트랙도 보여줄게요"
           }
         }
       }
     },
-    "Turn on notifications and we'll tell you when the next one drops.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "알림을 켜두면 다음 편이 올라올 때 알려드려요."
-          }
-        }
-      }
+    "My" : {
+      "extractionState" : "manual"
     },
-    "Unblock": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "차단 해제"
+    "MY DIGGING TYPE" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 디깅 유형"
           }
         }
       }
     },
-    "Uncheck anything that's off.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아니다 싶은 건 빼도 돼요"
+    "My Page" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이페이지"
           }
         }
       }
     },
-    "Unlike": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요 취소"
+    "New from artists you like %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 아티스트의 신곡 %lld/%lld"
           }
         }
       }
     },
-    "Unsubscribe": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "수신거부"
+    "New here? Play a few tracks and pick the ones you like — your feed starts there." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음이신가요? 곡을 들어보고 마음에 드는 걸 고르면 피드가 거기서 시작해요."
           }
         }
       }
     },
-    "Up to %lld tracks.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "최대 %lld곡까지 담을 수 있어요."
+    "New here? Take the taste test and we'll pick your genres." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음이세요? 취향 테스트로 장르를 골라드려요."
           }
         }
       }
     },
-    "Use these genres": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 장르로 바꾸기"
+    "New here? Three sound rounds set your first direction." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음 왔다면 소리 2지선다 세 라운드로 첫 방향을 정해요."
           }
         }
       }
     },
-    "Version %@": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "버전 %@"
+    "New music from %@\nBe the first to know!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 신곡\n소식을 받아보세요!"
           }
         }
       }
     },
-    "Want a heads-up when %@ drops something new?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 신곡이 나오면 알려 드릴까요?"
+    "New pick" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 픽"
           }
         }
       }
     },
-    "Want to go find more tracks that catch your ear?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "관심이 가는 노래를 더 찾으러 가볼까요?"
+    "New to me" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음 본다"
           }
         }
       }
     },
-    "We'll confirm this once you've actually dug around a bit.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "실제로 좀 파보시면 진짜 유형을 확정해드릴게요."
+    "New tracks from artists and this week's sets\n(8:00 AM – 9:00 PM)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 신곡, 특집 알림을 보내드려요\n(오전 8:00 ~ 오후 9:00)"
           }
         }
       }
     },
-    "We'll let you know when someone drops a 🔥 on it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "올린 픽에 🔥가 달리면 바로 알려드릴게요."
+    "New tracks from artists you like now show up first in your feed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 아티스트의 신곡이 나오면 피드 맨 앞에 먼저 보여 드려요."
           }
         }
       }
     },
-    "We'll notify you when they're added.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "추가되면 알림으로 알려드릴게요."
+    "New tracks from artists you like, weekly picks, and this week's sets" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 아티스트의 신곡, 주간 추천, 이번 주 특집 알림"
           }
         }
       }
     },
-    "We'll recommend tracks based on your picks.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 곡을 기준으로 추천해 드릴게요."
+    "Next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음"
           }
         }
       }
     },
-    "What do you want music to do for you?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "음악이 나에게 해줬으면 하는 것은?"
+    "Nickname" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "닉네임"
           }
         }
       }
     },
-    "What happened?": {
-      "comment": "기타 사유 직접 입력 alert 제목",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "무슨 일인가요?"
+    "Night-time ad notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "야간 광고성 정보 알림 수신"
           }
         }
       }
     },
-    "What hits you first in a song?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "노래 들을 때 제일 먼저 꽂히는 건?"
+    "No" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아니요"
           }
         }
       }
     },
-    "What music do you like?": {
-      "extractionState": "stale",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어떤 음악을 좋아하세요?"
+    "No liked tracks yet" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 좋아요한 곡이 없어요"
           }
         }
       }
     },
-    "What's New": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "새로운 기능"
+    "No liked tracks yet — search for tracks to add." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 좋아요한 곡이 없어요. 검색해서 골라보세요."
           }
         }
       }
     },
-    "When do you turn it all the way up?": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "볼륨을 제일 키우는 순간은?"
+    "No likes yet" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 좋아요한 유저가 없어요"
           }
         }
       }
     },
-    "When someone reacts with 🔥, we can let you know.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누가 🔥를 누르면 알려드릴까요?"
+    "No lyrics at all works too" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가사가 아예 없어도 된다"
           }
         }
       }
     },
-    "With the screen off, each track rolls into the next one on its own.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "화면을 꺼두면 한 곡이 끝날 때 알아서 다음 곡으로 넘어가요."
+    "No picks yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 픽이 없어요"
           }
         }
       }
     },
-    "Working or studying": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일하거나 공부할 때"
+    "No requests yet" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 요청이 없어요"
           }
         }
       }
     },
-    "Working out": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "운동할 때"
+    "No results for \"%@\"" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\"에 대한 결과가 없어요"
           }
         }
       }
     },
-    "Worship songs with pop production — written for a room singing along.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "팝처럼 만든 찬양곡. 다 같이 부르라고 만든다"
+    "No tracks to show" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "표시할 트랙이 없어요"
           }
         }
       }
     },
-    "YOUR TYPE": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 유형"
+    "Not now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "나중에"
           }
         }
       }
     },
-    "You can like it again anytime.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "언제든 다시 좋아요를 누를 수 있어요."
+    "Not set" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 전"
           }
         }
       }
     },
-    "You can pick up to %lld.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld개까지 선택할 수 있어요"
+    "Not sure what to pick?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무엇을 고를지 모르겠다면"
           }
         }
       }
     },
-    "You explore": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "탐색"
+    "Notification settings saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림 설정을 저장했어요"
           }
         }
       }
     },
-    "You find an artist you love": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "완전 취향인 아티스트를 발견했다"
+    "Notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림"
           }
         }
       }
     },
-    "You haven't blocked anyone.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "차단한 유저가 없어요."
+    "Notify me" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림 받기"
           }
         }
       }
     },
-    "You keep": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담음"
+    "Off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "꺼짐"
           }
         }
       }
     },
-    "You keep what you like, no gatekeeping": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋으면 그냥 담는다. 까다롭게 굴지 않는다"
+    "Off to find someone who sounds like them" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비슷한 사람을 또 찾아 나선다"
           }
         }
       }
     },
-    "You know your sound": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 취향이 뭔지 확실히 안다"
+    "Official" : {
+      "comment" : "운영자가 만든 픽임을 알리는 씰의 VoiceOver 라벨",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "운영자"
           }
         }
       }
     },
-    "You know your sound and you stay loyal to it.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "자기 취향을 알고, 거기에 충실해요."
+    "OK" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
           }
         }
       }
     },
-    "You liked this track!": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "마음에 드는 노래에 좋아요를 눌렀어요!"
+    "On" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "켜짐"
           }
         }
       }
     },
-    "You listen to %@ the most — but %@ is what you keep.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "제일 많이 듣는 건 %@, 담는 건 %@."
+    "Once you've picked 3 tracks, the rest dim out." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3곡을 모두 고르면 나머지 곡은 흐리게 표시돼요."
           }
         }
       }
     },
-    "You range across genres, but only a rare few make it in.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "여러 장르를 넘나들지만, 진짜 마음에 든 소수만 담아요."
+    "One lane, all the way down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한 우물만 끝까지 판다"
           }
         }
       }
     },
-    "You reported their nickname. Blocking hides every pick from them, and you can undo it from My Page.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "닉네임이 부적절하다고 신고하셨네요. 차단하면 이 사람 픽이 전부 안 보여요. 마이페이지에서 되돌릴 수 있어요."
+    "One lane, dug deep — with standards to match." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한 장르를 깊게 파고, 기준이 확실해요."
           }
         }
       }
     },
-    "You skip fast and don't feel bad": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아니다 싶으면 바로 넘긴다"
+    "Open any track in YouTube Music, not just Apple Music." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "애플 뮤직 대신 유튜브 뮤직으로도 열 수 있어요."
           }
         }
       }
     },
-    "You won't see their picks anymore. Undo it from My Page.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 사람의 픽이 더 이상 보이지 않아요. 마이페이지에서 해제할 수 있어요."
+    "Packed with hooks, switches lanes mid-song, made to be watched too." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "훅이 잔뜩 들어가고, 곡 중간에 확 바뀌고, 보는 재미까지 있다"
           }
         }
       }
     },
-    "You'd rather know ten artists deeply": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "열 명을 깊게 아는 쪽이 낫다"
+    "Pending" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대기 중"
           }
         }
       }
     },
-    "You'll try anything once": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일단 뭐든 한 번은 들어본다"
+    "Percussion you feel before you hear. Reggaetón, salsa, and everything nearby." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "듣기 전에 몸이 먼저 반응하는 퍼커션. 레게톤부터 살사까지 아우른다"
           }
         }
       }
     },
-    "Your crate and artist requests now have an edit button.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담은 곡과 아티스트 요청에 편집 버튼이 생겼어요."
+    "Pick as many as you like" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "원하는 만큼 고르세요"
           }
         }
       }
     },
-    "Your crate now shows every track you've hyped, not just the first few.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담은 곡이 앞부분만 보이던 문제를 고쳤어요. 이제 전부 보여요."
+    "Pick genres myself" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "장르 직접 고를래요"
           }
         }
       }
     },
-    "Your feed now follows the tracks you hype: same sound, same mood.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이제 하입한 곡을 기준으로 피드가 만들어져요. 비슷한 소리와 분위기의 곡이 이어져요."
+    "Pick none and we'll find music based on your %lld most recent likes." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아무것도 고르지 않으면 최근 좋아요한 %lld곡을 기준으로 노래를 찾을게요."
           }
         }
       }
     },
-    "Your hyped tracks now live in your profile.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "하입한 트랙을 이제 프로필에서 볼 수 있어요."
+    "Pick this one" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 곡 고르기"
           }
         }
       }
     },
-    "Your hypes and reactions no longer go missing after the app has been sitting a while.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "앱을 한참 켜두면 담은 곡이나 누른 반응이 사라져 보이던 문제를 고쳤어요."
+    "Pick up to %lld tracks you like." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 드는 노래를\n%lld곡까지 골라주세요."
           }
         }
       }
     },
-    "Your library is gloriously messy": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "라이브러리가 화려하게 뒤죽박죽이다"
+    "Pick up to %lld tracks.\nWe'll find music based on these." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld곡까지 고를 수 있어요.\n고른 곡을 기준으로 노래를 찾을게요."
           }
         }
       }
     },
-    "Your likely type": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "예상 유형"
+    "Pick your kind of night" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제일 끌리는 밤은?"
           }
         }
       }
     },
-    "Your likes": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "좋아요한 곡"
-          }
-        }
-      }
+    "Picks" : {
+      "extractionState" : "manual"
     },
-    "Your pick is up": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "픽을 올렸어요"
+    "Picks: put a few tracks together and send them out." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽 — 좋아하는 곡을 묶어서 남들에게 보내보세요."
           }
         }
       }
     },
-    "Your picks": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내가 만든 픽"
+    "Plays tracks similar to the ones you liked." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 곡과 비슷한 곡이 나와요."
           }
         }
       }
     },
-    "Your picks now show how many times people played them.": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내가 만든 픽이 몇 번 재생됐는지 볼 수 있어요."
+    "Please try again in a moment." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠시 후 다시 시도해주세요"
           }
         }
       }
     },
-    "Your picks this week %lld/%lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 주 추천 %lld/%lld"
+    "Popular now" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 인기 있는 곡"
           }
         }
       }
     },
-    "Your playlist is...": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 플레이리스트는"
+    "Post" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올리기"
           }
         }
       }
     },
-    "Your saves are a short, sharp list": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담아둔 목록이 짧고 날카롭다"
+    "Posting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올리는 중…"
           }
         }
       }
     },
-    "Your taste, typed": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 취향을 유형으로"
+    "Press play first, decide later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일단 재생하고 판단은 나중에 한다"
           }
         }
       }
     },
-    "deep in %@": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@에 진심"
+    "Preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "미리보기"
           }
         }
       }
     },
-    "dig deeper": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dig deeper"
+    "Privacy Policy" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "개인정보처리방침"
           }
         }
       }
     },
-    "dignify": {},
-    "dignify on Instagram": {
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dignify 인스타그램"
+    "Probably not my thing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어차피 내 취향이 아닐 것이다"
           }
         }
       }
     },
-    "dignify pick by @%@: %@": {
-      "comment": "공유 시트로 나가는 문구",
-      "extractionState": "manual",
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dignify에서 @%1$@이 고른 픽: %2$@"
+    "Pull me in and shut everything else out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "딴생각 다 끄고 몰입시킨다"
           }
         }
       }
     },
-    "push_artist_added_body": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tap to start digging"
+    "push_artist_added_body" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to start digging"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 디깅하러 가기"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 디깅하러 가기"
           }
         }
       }
     },
-    "push_artist_added_title": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "'%@' is here"
+    "push_artist_added_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' is here"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "'%@' 등록 완료"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' 등록 완료"
           }
         }
       }
     },
-    "push_pick_reaction_first": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "@%@ hit 🔥 on your pick"
+    "push_pick_reaction_first" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@ hit 🔥 on your pick"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "@%@님이 내 픽에 🔥를 눌렀어요"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@님이 내 픽에 🔥를 눌렀어요"
           }
         }
       }
     },
-    "push_pick_reaction_first_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your first 🔥"
+    "push_pick_reaction_first_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first 🔥"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "첫 반응이 왔어요"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 반응이 왔어요"
           }
         }
       }
     },
-    "push_pick_reaction_milestone": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your pick has %@ 🔥"
+    "push_pick_reaction_milestone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pick has %@ 🔥"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내 픽에 🔥 %@개가 모였어요"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 픽에 🔥 %@개가 모였어요"
           }
         }
       }
     },
-    "push_pick_reaction_milestone_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your pick is catching on"
+    "push_pick_reaction_milestone_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pick is catching on"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "반응이 쌓이고 있어요"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "반응이 쌓이고 있어요"
           }
         }
       }
     },
-    "tracks dug": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디깅한 트랙"
+    "Put a few tracks together and send them out." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아하는 곡을 묶어 첫 픽을 만들어보세요."
           }
         }
       }
     },
-    "tracks kept": {
-      "localizations": {
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "담은 트랙"
+    "Random" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무작위"
           }
         }
       }
     },
-    "—": {}
+    "React to other people's picks with an emoji." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 사람의 픽에 이모지로 반응할 수 있어요."
+          }
+        }
+      }
+    },
+    "Ready for the next track?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음 노래로 넘어가 볼까요?"
+          }
+        }
+      }
+    },
+    "Recent searches" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 검색"
+          }
+        }
+      }
+    },
+    "Recommend from" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추천 기준 곡"
+          }
+        }
+      }
+    },
+    "Remove like" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 취소"
+          }
+        }
+      }
+    },
+    "Remove one to swap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "바꾸려면 빼 주세요"
+          }
+        }
+      }
+    },
+    "Remove this track?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 곡을 담은 곡에서 뺄까요?"
+          }
+        }
+      }
+    },
+    "Rename a pick after you post it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올린 픽의 제목은 나중에 고칠 수 있어요."
+          }
+        }
+      }
+    },
+    "Rename or delete your picks straight from your profile." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "프로필에서도 나의 픽 제목을 고치거나 삭제할 수 있어요."
+          }
+        }
+      }
+    },
+    "Report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신고"
+          }
+        }
+      }
+    },
+    "Report this pick?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 픽을 신고할까요?"
+          }
+        }
+      }
+    },
+    "Request \"%@\"" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" 요청하기"
+          }
+        }
+      }
+    },
+    "Request an artist" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트 요청하기"
+          }
+        }
+      }
+    },
+    "Request artists you can't find yet." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 없는 아티스트를 요청할 수 있어요."
+          }
+        }
+      }
+    },
+    "Request sent" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 완료"
+          }
+        }
+      }
+    },
+    "Results for \"%@\"" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" 검색 결과"
+          }
+        }
+      }
+    },
+    "Retake the taste test" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취향 테스트 다시 하기"
+          }
+        }
+      }
+    },
+    "Retake the test anytime from genre settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취향 테스트는 장르 설정에서 언제든 다시 할 수 있어요."
+          }
+        }
+      }
+    },
+    "Rock that ducks the mainstream. Not big on following the rules." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주류 록에서 살짝 비껴간 소리. 규칙을 딱히 안 지킨다"
+          }
+        }
+      }
+    },
+    "Same artists on repeat, happily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "듣던 사람 또 듣는 게 좋다"
+          }
+        }
+      }
+    },
+    "Same lane the whole way" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음부터 끝까지 비슷한 결이다"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장"
+          }
+        }
+      }
+    },
+    "Saving a song you just found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "방금 발견한 곡을 저장할 때"
+          }
+        }
+      }
+    },
+    "Scroll back through what you played this week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 재생목록을 훑어보면"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색"
+          }
+        }
+      }
+    },
+    "Search \"%@\"" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" 검색하기"
+          }
+        }
+      }
+    },
+    "Search artists, tracks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트, 트랙 검색"
+          }
+        }
+      }
+    },
+    "Search artists, tracks, genres" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아티스트, 트랙, 장르 검색"
+          }
+        }
+      }
+    },
+    "See all" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 보기"
+          }
+        }
+      }
+    },
+    "See all likes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 기록 전체 보기"
+          }
+        }
+      }
+    },
+    "See the gap between what you play and what you keep." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "많이 들은 장르와 실제로 담은 장르의 차이를 보여줘요."
+          }
+        }
+      }
+    },
+    "See what's new after every update." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트할 때마다 새로운 기능을 확인할 수 있어요."
+          }
+        }
+      }
+    },
+    "Select" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택"
+          }
+        }
+      }
+    },
+    "Select tracks to continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "곡을 선택해주세요"
+          }
+        }
+      }
+    },
+    "Selected tracks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 곡"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보내기"
+          }
+        }
+      }
+    },
+    "Send request" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 보내기"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유"
+          }
+        }
+      }
+    },
+    "Share a pick as a card for Instagram or anywhere else." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽을 카드 이미지로 만들어 인스타그램 등에 공유할 수 있어요."
+          }
+        }
+      }
+    },
+    "Share my taste" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 취향 공유"
+          }
+        }
+      }
+    },
+    "Share your taste as a card." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 취향을 카드 한 장으로 공유해보세요."
+          }
+        }
+      }
+    },
+    "Show guide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설명 보기"
+          }
+        }
+      }
+    },
+    "Sign in to save the tracks you love and build a feed that fits your taste." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그인하면 마음에 드는 노래를 찜하고,\n내 취향에 맞는 피드를 만들 수 있어요."
+          }
+        }
+      }
+    },
+    "Sign-in failed. Please try again." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그인에 실패했어요. 다시 시도해 주세요."
+          }
+        }
+      }
+    },
+    "Sit with me" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "그냥 옆에 있어준다"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건너뛰기"
+          }
+        }
+      }
+    },
+    "Skip and pick genres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건너뛰고 장르 고르기"
+          }
+        }
+      }
+    },
+    "Skip tracks from the lock screen, your earbuds, or your car." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠금화면, 이어폰, 차에서 다음 곡으로 넘길 수 있어요."
+          }
+        }
+      }
+    },
+    "Skipped in five seconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5초 안에 넘긴다"
+          }
+        }
+      }
+    },
+    "Smooth grooves and voices that carry the whole thing." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "그루브와 목소리로 곡을 끌고 간다"
+          }
+        }
+      }
+    },
+    "Someone recommends a genre you never listen to" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "안 듣던 장르를 누가 추천했다"
+          }
+        }
+      }
+    },
+    "Someone telling you a story, guitar in hand." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기타 들고 이야기를 들려준다"
+          }
+        }
+      }
+    },
+    "Something else" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기타"
+          }
+        }
+      }
+    },
+    "Sounds like your kind of thing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이런 장르가 맞을 것 같아요"
+          }
+        }
+      }
+    },
+    "Spanish? If it grooves, sure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스페인어든 뭐든 리듬만 좋으면 상관없다"
+          }
+        }
+      }
+    },
+    "Start digging" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디깅 시작"
+          }
+        }
+      }
+    },
+    "Straight through the whole discography" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디스코그래피를 정주행한다"
+          }
+        }
+      }
+    },
+    "Swipe up on the screen." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면을 위로 쓸어 올려보세요"
+          }
+        }
+      }
+    },
+    "Switches between like-based and random" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 기반과 무작위를 번갈아 바꿉니다"
+          }
+        }
+      }
+    },
+    "System notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 알림 권한"
+          }
+        }
+      }
+    },
+    "Take the taste test" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "취향 테스트 하기"
+          }
+        }
+      }
+    },
+    "Tap + to request an artist." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "＋를 눌러 아티스트를 요청하세요."
+          }
+        }
+      }
+    },
+    "Tap to jump to it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "누르면 그 곡으로 가요"
+          }
+        }
+      }
+    },
+    "Tapping a reaction notification now takes you straight to your picks." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽에 반응이 달렸다는 알림을 누르면 내 픽으로 바로 가요."
+          }
+        }
+      }
+    },
+    "Tapping Notify me means you agree to receive advertising information." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'알림 받기'를 누르면 광고성 정보 수신에 동의해요."
+          }
+        }
+      }
+    },
+    "Tapping Notify me means you agree to receive night-time advertising information (8:00 AM – 9:00 PM)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'알림 받기'를 누르면 야간(오전 8:00 ~ 오후9:00)\n광고성 정보 수신에 동의해요."
+          }
+        }
+      }
+    },
+    "Tell us what's wrong" : {
+      "comment" : "기타 사유 입력창 플레이스홀더",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 점이 문제인지 알려주세요"
+          }
+        }
+      }
+    },
+    "Tell us what's wrong. We read every report." : {
+      "comment" : "기타 사유 입력 폼 설명",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 점이 문제인지 알려주세요. 신고는 전부 읽어요."
+          }
+        }
+      }
+    },
+    "Terms of Service" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이용약관"
+          }
+        }
+      }
+    },
+    "Thanks — we'll take a look." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신고해줘서 고마워요. 확인해볼게요."
+          }
+        }
+      }
+    },
+    "That nickname can't be used. Try another one." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용할 수 없는 닉네임이에요. 다른 이름을 써주세요."
+          }
+        }
+      }
+    },
+    "The beat and the synths" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비트랑 신스"
+          }
+        }
+      }
+    },
+    "The flow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "랩 플로우"
+          }
+        }
+      }
+    },
+    "The low end is the whole point. Best where the speakers can take it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저음이 주인공이다. 스피커가 버텨주는 데서 들어야 제맛"
+          }
+        }
+      }
+    },
+    "The Loyalist" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충성파"
+          }
+        }
+      }
+    },
+    "The Omnivore" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잡식가"
+          }
+        }
+      }
+    },
+    "The Purist" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "순수주의자"
+          }
+        }
+      }
+    },
+    "The Restless Curator" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "쉼 없는 큐레이터"
+          }
+        }
+      }
+    },
+    "The story in the lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가사에 담긴 이야기"
+          }
+        }
+      }
+    },
+    "The voice itself" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "목소리 그 자체"
+          }
+        }
+      }
+    },
+    "The weekly set badge no longer shows up on search results." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색 결과에 이번 주 특집 배지가 잘못 뜨던 문제를 고쳤어요."
+          }
+        }
+      }
+    },
+    "The weekly set label no longer overlaps the feed mode button." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 특집 표시가 '하입한 곡 따라가는 중' 버튼과 겹치지 않아요."
+          }
+        }
+      }
+    },
+    "This nickname is already in use." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 사용 중인 닉네임이에요."
+          }
+        }
+      }
+    },
+    "This week" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주"
+          }
+        }
+      }
+    },
+    "This week's set %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 특집 %lld/%lld"
+          }
+        }
+      }
+    },
+    "This week's set, all done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 특집, 여기까지예요"
+          }
+        }
+      }
+    },
+    "Those were dug up by us, by hand. We do it again every week — want a heads-up when the next one drops?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "방금 보신 곡들은 저희가 직접 판 거예요. 매주 새로 파고 있는데, 다음 편 올라오면 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제목"
+          }
+        }
+      }
+    },
+    "To get updates, turn on **Settings > Notifications**." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "소식을 받으려면 **기기 설정 > 알림**을 켜주세요."
+          }
+        }
+      }
+    },
+    "Top artists" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주요 아티스트"
+          }
+        }
+      }
+    },
+    "Top genres" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주요 장르"
+          }
+        }
+      }
+    },
+    "Track" : {
+
+    },
+    "Track details" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "트랙 상세보기"
+          }
+        }
+      }
+    },
+    "Track details moved to the ••• button under the artwork." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "곡 상세는 이제 아트워크 아래 ••• 버튼에서 볼 수 있어요."
+          }
+        }
+      }
+    },
+    "tracks dug" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디깅한 트랙"
+          }
+        }
+      }
+    },
+    "Tracks keep playing when you leave the app or turn the screen off." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 나가거나 화면을 꺼도 노래가 계속 나와요."
+          }
+        }
+      }
+    },
+    "tracks kept" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담은 트랙"
+          }
+        }
+      }
+    },
+    "Tracks you pick sit in a tray at the bottom. Tap one to remove it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡은 화면 아래 칸에 모여요. 칸에 있는 곡을 누르면 선택이 해제돼요."
+          }
+        }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 시도"
+          }
+        }
+      }
+    },
+    "Try tapping twice, quickly." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "빠르게 두 번 클릭해 볼까요?"
+          }
+        }
+      }
+    },
+    "Turn hype-following off whenever you want a random feed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 곡 따라가기를 끄면 무작위 피드로 돌아가요."
+          }
+        }
+      }
+    },
+    "Turn notifications on or off anytime in My Page › Notifications." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림은 마이 › 알림에서 언제든 켜고 끌 수 있어요."
+          }
+        }
+      }
+    },
+    "Turn on \"Follow my likes\" for these to take effect." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "고른 곡이 적용되려면 '좋아요한 곡 따라가기'를 켜야 해요."
+          }
+        }
+      }
+    },
+    "Turn on ad notifications first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "광고성 정보 알림을 먼저 동의해야해요."
+          }
+        }
+      }
+    },
+    "Turn on in Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정에서 켜기"
+          }
+        }
+      }
+    },
+    "Turn on notifications and we'll let you know when they drop new tracks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림을 켜 두면 좋아요한 아티스트의 신곡 소식을 바로 알려 드려요."
+          }
+        }
+      }
+    },
+    "Turn on notifications and we'll tell you when the next one drops." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림을 켜두면 다음 편이 올라올 때 알려드려요."
+          }
+        }
+      }
+    },
+    "Unblock" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "차단 해제"
+          }
+        }
+      }
+    },
+    "Uncheck anything that's off." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아니다 싶은 건 빼도 돼요"
+          }
+        }
+      }
+    },
+    "Unlike" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요 취소"
+          }
+        }
+      }
+    },
+    "Unsubscribe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수신거부"
+          }
+        }
+      }
+    },
+    "Up to %lld tracks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최대 %lld곡까지 담을 수 있어요."
+          }
+        }
+      }
+    },
+    "Use these genres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 장르로 바꾸기"
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "버전 %@"
+          }
+        }
+      }
+    },
+    "Want new releases from %@\nas soon as they drop?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아하는 %@의 신곡,\n바로 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "Want to go find more tracks that catch your ear?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "관심이 가는 노래를 더 찾으러 가볼까요?"
+          }
+        }
+      }
+    },
+    "We lined up some matching tracks too 💗" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신곡과 어울리는 노래들도 함께 준비했어요💗"
+          }
+        }
+      }
+    },
+    "We'll confirm this once you've actually dug around a bit." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실제로 좀 파보시면 진짜 유형을 확정해드릴게요."
+          }
+        }
+      }
+    },
+    "We'll let you know when someone drops a 🔥 on it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "올린 픽에 🔥가 달리면 바로 알려드릴게요."
+          }
+        }
+      }
+    },
+    "We'll notify you when they're added." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가되면 알림으로 알려드릴게요."
+          }
+        }
+      }
+    },
+    "We'll recommend tracks based on your picks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 곡을 기준으로 추천해 드릴게요."
+          }
+        }
+      }
+    },
+    "What do you want music to do for you?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악이 나에게 해줬으면 하는 것은?"
+          }
+        }
+      }
+    },
+    "What happened?" : {
+      "comment" : "기타 사유 직접 입력 alert 제목",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무슨 일인가요?"
+          }
+        }
+      }
+    },
+    "What hits you first in a song?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노래 들을 때 제일 먼저 꽂히는 건?"
+          }
+        }
+      }
+    },
+    "What music do you like?" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 음악을 좋아하세요?"
+          }
+        }
+      }
+    },
+    "What's New" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새로운 기능"
+          }
+        }
+      }
+    },
+    "When do you turn it all the way up?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "볼륨을 제일 키우는 순간은?"
+          }
+        }
+      }
+    },
+    "When someone reacts with 🔥, we can let you know." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "누가 🔥를 누르면 알려드릴까요?"
+          }
+        }
+      }
+    },
+    "With the screen off, each track rolls into the next one on its own." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면을 꺼두면 한 곡이 끝날 때 알아서 다음 곡으로 넘어가요."
+          }
+        }
+      }
+    },
+    "Working or studying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일하거나 공부할 때"
+          }
+        }
+      }
+    },
+    "Working out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "운동할 때"
+          }
+        }
+      }
+    },
+    "Worship songs with pop production — written for a room singing along." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "팝처럼 만든 찬양곡. 다 같이 부르라고 만든다"
+          }
+        }
+      }
+    },
+    "You can like it again anytime." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언제든 다시 좋아요를 누를 수 있어요."
+          }
+        }
+      }
+    },
+    "You can pick up to %lld." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld개까지 선택할 수 있어요"
+          }
+        }
+      }
+    },
+    "You explore" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탐색"
+          }
+        }
+      }
+    },
+    "You find an artist you love" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완전 취향인 아티스트를 발견했다"
+          }
+        }
+      }
+    },
+    "You haven't blocked anyone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "차단한 유저가 없어요."
+          }
+        }
+      }
+    },
+    "You keep" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담음"
+          }
+        }
+      }
+    },
+    "You keep what you like, no gatekeeping" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋으면 그냥 담는다. 까다롭게 굴지 않는다"
+          }
+        }
+      }
+    },
+    "You know your sound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 취향이 뭔지 확실히 안다"
+          }
+        }
+      }
+    },
+    "You know your sound and you stay loyal to it." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자기 취향을 알고, 거기에 충실해요."
+          }
+        }
+      }
+    },
+    "You liked this track!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마음에 드는 노래에 좋아요를 눌렀어요!"
+          }
+        }
+      }
+    },
+    "You listen to %@ the most — but %@ is what you keep." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제일 많이 듣는 건 %@, 담는 건 %@."
+          }
+        }
+      }
+    },
+    "You need to opt in to ad notifications before setting night-time ones." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "광고성 정보 알림 수신을 동의해야 야간 알림을 설정할 수 있어요."
+          }
+        }
+      }
+    },
+    "You opted in to Dignify ad notifications on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify의 광고성 정보를 %@에 동의했어요"
+          }
+        }
+      }
+    },
+    "You opted in to Dignify night-time ad notifications on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify의 야간 광고성 정보를 %@에 동의했어요"
+          }
+        }
+      }
+    },
+    "You opted out of Dignify ad notifications on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify의 광고성 정보를 %@에 거부했어요"
+          }
+        }
+      }
+    },
+    "You opted out of Dignify night-time ad notifications on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dignify의 야간 광고성 정보를 %@에 거부했어요"
+          }
+        }
+      }
+    },
+    "You range across genres, but only a rare few make it in." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여러 장르를 넘나들지만, 진짜 마음에 든 소수만 담아요."
+          }
+        }
+      }
+    },
+    "You reported their nickname. Blocking hides every pick from them, and you can undo it from My Page." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "닉네임이 부적절하다고 신고하셨네요. 차단하면 이 사람 픽이 전부 안 보여요. 마이페이지에서 되돌릴 수 있어요."
+          }
+        }
+      }
+    },
+    "You skip fast and don't feel bad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아니다 싶으면 바로 넘긴다"
+          }
+        }
+      }
+    },
+    "You won't see their picks anymore. Undo it from My Page." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 사람의 픽이 더 이상 보이지 않아요. 마이페이지에서 해제할 수 있어요."
+          }
+        }
+      }
+    },
+    "You'd rather know ten artists deeply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "열 명을 깊게 아는 쪽이 낫다"
+          }
+        }
+      }
+    },
+    "You'll try anything once" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일단 뭐든 한 번은 들어본다"
+          }
+        }
+      }
+    },
+    "Your crate and artist requests now have an edit button." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담은 곡과 아티스트 요청에 편집 버튼이 생겼어요."
+          }
+        }
+      }
+    },
+    "Your crate now shows every track you've hyped, not just the first few." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담은 곡이 앞부분만 보이던 문제를 고쳤어요. 이제 전부 보여요."
+          }
+        }
+      }
+    },
+    "Your feed now follows the tracks you hype: same sound, same mood." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 하입한 곡을 기준으로 피드가 만들어져요. 비슷한 소리와 분위기의 곡이 이어져요."
+          }
+        }
+      }
+    },
+    "Your hyped tracks now live in your profile." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하입한 트랙을 이제 프로필에서 볼 수 있어요."
+          }
+        }
+      }
+    },
+    "Your hypes and reactions no longer go missing after the app has been sitting a while." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 한참 켜두면 담은 곡이나 누른 반응이 사라져 보이던 문제를 고쳤어요."
+          }
+        }
+      }
+    },
+    "Your library is gloriously messy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리가 화려하게 뒤죽박죽이다"
+          }
+        }
+      }
+    },
+    "Your likely type" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "예상 유형"
+          }
+        }
+      }
+    },
+    "Your likes" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 곡"
+          }
+        }
+      }
+    },
+    "Your pick is up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "픽을 올렸어요"
+          }
+        }
+      }
+    },
+    "Your picks" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내가 만든 픽"
+          }
+        }
+      }
+    },
+    "Your picks now show how many times people played them." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내가 만든 픽이 몇 번 재생됐는지 볼 수 있어요."
+          }
+        }
+      }
+    },
+    "Your picks this week %lld/%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 추천 %lld/%lld"
+          }
+        }
+      }
+    },
+    "Your playlist is..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 플레이리스트는"
+          }
+        }
+      }
+    },
+    "Your saves are a short, sharp list" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "담아둔 목록이 짧고 날카롭다"
+          }
+        }
+      }
+    },
+    "Your taste, typed" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 취향을 유형으로"
+          }
+        }
+      }
+    },
+    "YOUR TYPE" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 유형"
+          }
+        }
+      }
+    },
+    "신규 유저 상태로 초기화 (DEBUG)" : {
+
+    },
+    "업데이트 유저 상태로 초기화 (DEBUG)" : {
+
+    },
+    "초기화했어요" : {
+
+    },
+    "확인" : {
+
+    }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

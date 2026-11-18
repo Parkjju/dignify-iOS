@@ -194,13 +194,13 @@ struct dignifyTests {
         #expect(FeedView.upcoming(after: [], from: [feed(5), feed(6)]).map(\.trackId) == [5, 6])
     }
 
-    /// 좋아요 알림 팝업: 처음엔 아무 아티스트나 한 번, 「나중에」 뒤엔 같은 아티스트일 때만 한 번 더, 그 뒤로는 끝.
-    @MainActor @Test func hypePushOfferAsksAtMostTwiceForTheSameArtist() {
-        let offer = FeedView.shouldOfferHypePush
-        #expect(offer([], "혁오"))
-        #expect(offer(["혁오"], "혁오"))
-        #expect(!offer(["혁오"], "잔나비"))
-        #expect(!offer(["혁오", "혁오"], "혁오"))
+    /// 동의 팝업 「나중에」·시트 「일주일 동안 안 보기」 뒤 7일. 띄운 적 없으면(0) 바로 통과.
+    @MainActor @Test func consentOfferWaitsSevenDays() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let day = 24.0 * 60 * 60
+        #expect(FeedView.isPastCooldown(0, now: now))
+        #expect(!FeedView.isPastCooldown(now.timeIntervalSince1970 - 6 * day, now: now))
+        #expect(FeedView.isPastCooldown(now.timeIntervalSince1970 - 7 * day, now: now))
     }
 
     /// 결과 통지 날짜는 서버 처리 시각(UTC)을 기기 시간대로 바꾼 날이다. 한국 새벽 처리분이 전날로 찍히면 안 된다.
@@ -213,6 +213,7 @@ struct dignifyTests {
         #expect(text.contains(local.string(from: Date(timeIntervalSince1970: 1_793_305_800))))
         // 파싱이 안 되는 값이면 앞 10자로 물러선다.
         #expect(AppSession.consentNoticeText(adPush: false, processedAt: "2026-10-30 junk").contains("2026-10-30"))
+        #expect(AppSession.consentNoticeText(adPush: true, night: true, processedAt: utcEvening) != text)
     }
 
     /// 백그라운드 재생분이 섞인 체류는 발사 시점이 포그라운드여도 그렇게 표시돼야 한다.

@@ -19,6 +19,7 @@ private nonisolated struct DiggingModeBody: Encodable { let enabled: Bool }
 private nonisolated struct SeedTracksBody: Encodable { let trackIds: [Int] }
 private nonisolated struct ReactionBody: Encodable { let emoji: String }
 private nonisolated struct AdPushConsentBody: Encodable { let adPush: Bool }
+private nonisolated struct AdPushNightConsentBody: Encodable { let nightPush: Bool }
 /// `detail`은 `OTHER`일 때만 채워진다(유저가 직접 쓴 사유). 빈 문자열은 넘기지 않는다 —
 /// 빈 값과 null이 둘 다 "안 씀"이면 서버에서 판정이 두 갈래로 갈린다.
 private nonisolated struct ReportBody: Encodable {
@@ -176,6 +177,11 @@ nonisolated extension Endpoint {
     /// 광고성 알림 수신 동의·거부. 응답의 처리 시각으로 결과를 통지한다(정보통신망법 제50조 7항).
     static func setAdPushConsent(_ adPush: Bool) -> Endpoint {
         Endpoint(method: .put, path: "/users/me/push-consent", body: AdPushConsentBody(adPush: adPush))
+    }
+
+    /// 야간(21~08시) 광고성 동의. 광고성 동의가 있어야 켤 수 있다.
+    static func setAdPushNightConsent(_ nightPush: Bool) -> Endpoint {
+        Endpoint(method: .put, path: "/users/me/push-consent/night", body: AdPushNightConsentBody(nightPush: nightPush))
     }
 
     static func updateNickname(_ nickname: String) -> Endpoint {

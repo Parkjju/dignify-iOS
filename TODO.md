@@ -13,26 +13,37 @@
 **아래 「재방문 푸시 2종 › 5. 기획 댓글 반영」의 동의 팝업 요건·결과 통지 토스트·마이 › 알림 항목은 이 절이 대체한다.** 서버 몫은 `dignify-backend/TODO.md` P1-c, 안드로이드는 같은 이름 절(1:1로 같이 갈 것).
 
 **노출 규칙 (정본 그대로)**
-- [ ] A 첫 실행 팝업(`FeedView` `showAdConsent`·`offerAdConsentIfNeeded`): 조건에 **좋아요 1곡 이상** 추가, 제목 아티스트 = 가장 최근 좋아요한 곡의 아티스트. 「나중에」 = **닫기만**(지금의 `PUT false` + 통지 삭제) + **7일 뒤 다시** — `didOfferAdConsent`(1회) → 마지막 노출 시각으로. 미응답 판정은 서버 `adPushConsentAt`(P1-c에서 내려 줌)
-- [ ] B 좋아요 시점: 가운데 팝업(`hypeOfferArtist`) → **바텀시트**(ConsentSheet 신규). 재질문은 「같은 아티스트 두 번째 좋아요」(`hypeOfferArtists`) → **「일주일 동안 안 보기」 7일**로
-- [ ] C 야간 동의 팝업 **신규**: 이번 주 특집 5/5를 넘긴 직후 다음 곡 위에. 조건 = 광고성 동의 + 기기 권한 허용 + 야간 미응답. 아니요도 응답(false 저장 + 토스트). **서버 P1-c 야간 필드 배포 뒤**
-- [ ] 세션: A·B·C **실행당 하나**(`AppSession.didShowPermissionPopup` 공유), 우선순위 A → B → C, 동의를 받은 실행엔 C 안 묻기
-- [ ] 동의 팝업·시트는 **버튼으로만 닫힘**(`DSPopupHost(onDismiss:)` 딤 탭 끄기), 닫아도 피드 곡 그대로
-- [ ] 「알림 받기」 순서: 동의 저장 → 기기 권한 「설정 전」이면 OS 권한 팝업 → 결과 토스트. 거부 상태면 **설정 앱을 자동으로 열지 않는다**(`acceptAdPush`의 `openSettingsURLString` 분기 삭제)
+- [x] A 첫 실행 팝업(`FeedView` `showAdConsent`·`offerAdConsentIfNeeded`): 조건에 **좋아요 1곡 이상** 추가, 제목 아티스트 = 가장 최근 좋아요한 곡의 아티스트. 「나중에」 = **닫기만**(지금의 `PUT false` + 통지 삭제) + **7일 뒤 다시** — `didOfferAdConsent`(1회) → 마지막 노출 시각으로. 미응답 판정은 서버 `adPushConsentAt`(P1-c에서 내려 줌)
+- [x] B 좋아요 시점: 가운데 팝업(`hypeOfferArtist`) → **바텀시트**(ConsentSheet 신규). 재질문은 「같은 아티스트 두 번째 좋아요」(`hypeOfferArtists`) → **「일주일 동안 안 보기」 7일**로
+- [x] C 야간 동의 팝업 **신규**: 이번 주 특집 5/5를 넘긴 직후 다음 곡 위에. 조건 = 광고성 동의 + 기기 권한 허용 + 야간 미응답. 아니요도 응답(false 저장 + 토스트). **서버 P1-c 야간 필드 배포 뒤**
+- [x] 세션: A·B·C **실행당 하나**(`AppSession.didShowPermissionPopup` 공유), 우선순위 A → B → C, 동의를 받은 실행엔 C 안 묻기
+- [x] 동의 팝업·시트는 **버튼으로만 닫힘**(`DSPopupHost(onDismiss:)` 딤 탭 끄기), 닫아도 피드 곡 그대로
+- [x] 「알림 받기」 순서: 동의 저장 → 기기 권한 「설정 전」이면 OS 권한 팝업 → 결과 토스트. 거부 상태면 **설정 앱을 자동으로 열지 않는다**(`acceptAdPush`의 `openSettingsURLString` 분기 삭제)
 
 **화면 (app-changes 항목 번호)**
-- [ ] 1 팝업 딤 55% → 35% `DSColor.dim`(`DSPopup.swift`, 앱의 팝업 전부)
-- [ ] 2 피드 배경 blur 28·brightness·saturation → **blur 38 + 검정 45%**(`backgroundArtwork`)
-- [ ] 3 상단 줄 좌우 16 → 20 · **아트워크 좌우 20**(`TrackCardView.artworkSide`의 `- 48` → `- 40`, 픽 재생 포함) · 모드 알약 「좋아요 따라가는 중」
-- [ ] 4 P02 Popup 동의형(마크 없음, 「나중에 | 알림 받기」 가로, 좌우 20, 제목 18 bold 아티스트만 brand)
-- [ ] 5 ConsentSheet 신규(알림 미리보기 그림 = 아이콘 자리에 좋아요한 아티스트 자켓, 동의 문구 한 줄)
-- [ ] 6 **Toast 신규**(공용 — `PickListView.showToast` 참고) → `MainTabView`의 `DSNoticePopup` 결과 통지 대체. 「알림 설정을 저장했어요」 + 「Dignify의 (야간) 광고성 정보를 YYYY-MM-DD에 동의했어요 / 거부했어요」(마침표 없음, 2026-11-17 확정)(날짜 = 서버 `processedAt`)
-- [ ] 7 P14 야간 팝업(4번과 같은 모양, 「아니요 | 알림 받기」)
-- [ ] 8 앞 구간 배지 m = 실제 곡 수(최대 10) · 앞 구간 배지 위치 safe+56 → **safe+90**(모드 알약 아랫선에서 48, 픽 배지 포함, 2026-11-17 Figma 실측) — `FeedView.contextBadge` 상단
-- [ ] 9 마이페이지 배치(제목 title1 24, 닉네임 위아래 20, 행 50, 구분선 위아래 12, 토글 설명 「좋아요한 곡과 비슷한 곡이 나와요.」)
-- [ ] 10 마이 › 알림(`NotificationSettingsView`): 야간 토글 추가, 토글마다 결과 토스트, 실패 = 토스트(빨간 글자 삭제), 광고성 끄면 야간도 꺼짐, 광고성 꺼진 채 야간 탭 = 「먼저 동의」 토스트, **기기 알림 권한 「설정 전」이면 셀 무반응**(지금 `requestPushAuthorization(source: "settings")` 호출 삭제)
-- [ ] 문자열: ko 값은 시안 문구, en은 뜻에 맞춰. 카탈로그에 파일로 넣고 Xcode 껐다 켜기
+- [x] 1 팝업 딤 55% → 35% `DSColor.dim`(`DSPopup.swift`, 앱의 팝업 전부)
+- [x] 2 피드 배경 blur 28·brightness·saturation → **blur 38 + 검정 45%**(`backgroundArtwork`)
+- [x] 3 상단 줄 좌우 16 → 20 · **아트워크 좌우 20**(`TrackCardView.artworkSide`의 `- 48` → `- 40`, 픽 재생 포함) · 모드 알약 「좋아요 따라가는 중」
+- [x] 4 P02 Popup 동의형(마크 없음, 「나중에 | 알림 받기」 가로, 좌우 20, 제목 18 bold 아티스트만 brand)
+- [x] 5 ConsentSheet 신규(알림 미리보기 그림 = 아이콘 자리에 좋아요한 아티스트 자켓, 동의 문구 한 줄)
+- [x] 6 **Toast 신규**(공용 — `PickListView.showToast` 참고) → `MainTabView`의 `DSNoticePopup` 결과 통지 대체. 「알림 설정을 저장했어요」 + 「Dignify의 (야간) 광고성 정보를 YYYY-MM-DD에 동의했어요 / 거부했어요」(마침표 없음, 2026-11-17 확정)(날짜 = 서버 `processedAt`)
+- [x] 7 P14 야간 팝업(4번과 같은 모양, 「아니요 | 알림 받기」)
+- [x] 8 앞 구간 배지 m = 실제 곡 수(최대 10) · 앞 구간 배지 위치 safe+56 → **safe+90**(모드 알약 아랫선에서 48, 픽 배지 포함, 2026-11-17 Figma 실측) — `FeedView.contextBadge` 상단
+- [x] 9 마이페이지 배치(제목 title1 24, 닉네임 위아래 20, 행 50, 구분선 위아래 12, 토글 설명 「좋아요한 곡과 비슷한 곡이 나와요.」)
+- [x] 10 마이 › 알림(`NotificationSettingsView`): 야간 토글 추가, 토글마다 결과 토스트, 실패 = 토스트(빨간 글자 삭제), 광고성 끄면 야간도 꺼짐, 광고성 꺼진 채 야간 탭 = 「먼저 동의」 토스트, **기기 알림 권한 「설정 전」이면 셀 무반응**(지금 `requestPushAuthorization(source: "settings")` 호출 삭제)
+- [x] 문자열: ko 값은 시안 문구, en은 뜻에 맞춰. 카탈로그에 파일로 넣고 Xcode 껐다 켜기
 - [ ] 끝나면 `../dignify-design/app-changes.mdx` 「푸시알림 기획 1.0」 상태에 「반영됨 (iOS x.y.z)」
+
+**2026-11-17 코드 들어감(빌드·실기기 전).** 서버 P1-c는 `1bce18b`로 main에 있다(`adPushConsentAt`·`adPushNightConsent`·`PUT /users/me/push-consent/night`).
+- 코드 메모: 동의 상태는 `AppSession.adPushAnswered`(서버 `adPushConsentAt` != null)·`adPushNight`(nil = 미응답)·`acceptedAdPushThisLaunch`, 실행마다 `applyConsent(from:)`. 토스트는 `AppSession.toast` → `MainTabView` 오버레이(`Core/DesignSystem/DSToast.swift`). 팝업 모양은 `DSConsentPopup`(`DSPopup.swift`, `DSPopupHost(onDismiss: nil)`이면 딤 무반응), 시트는 `Features/Feed/ConsentSheet.swift`(높이 상수 402, `shareSheetHost` 옆 노드). 업데이트 소식 시트 표시는 `session.showingWhatsNew`로 옮겼다(닫히면 A)
+- 기록 키: `adConsentOfferedAt`·`hypeOfferMutedAt`(1970 기준 초). `didOfferAdConsent`·`hypeOfferArtists`·`FeedView.shouldOfferHypePush`는 삭제
+- 마이페이지 제목 24는 네비바를 숨기고 직접 그린다(`.toolbar(.hidden)`, 뒤로 버튼 이름용으로 `navigationTitle`은 남김). 위 여백은 safe area + 20 — 실기기에서 글자 위끝 84 근처인지 볼 것
+- 피드 카드의 아래쪽 검정 그라데이션(`feedSlot`, 글자 대비용)은 남겼다. 배경 자체만 blur 38 + 검정 45%
+- **계측 신규(안드로이드도 같은 이름으로):** `ad_night_consent_shown/accepted/declined{source: curation_end|settings}`. 좋아요 시트 「일주일 동안 안 보기」 = `push_optin_declined`·`ad_consent_declined{source: hype}`. 첫 실행 「나중에」도 `ad_consent_declined{first_run}`(서버엔 안 올림)
+- 마이 초기화 행: 디버그 빌드는 항상, TestFlight(`AppTransaction` `.sandbox`)는 **버전 글자 5번 탭**으로 열린다(심사 빌드도 `.sandbox`라 숨김). 행은 서버에 false를 보내 `adPushConsentAt`이 남는다 → A·C를 다시 보려면 어드민 「광고성 동의 초기화」(backend `b9af0f9`)
+- 테스트 순서 정본: 컨플루언스 「광고성 알림 동의 테스트 시나리오 (iOS 1.3.2 TestFlight)」(19595265)
+- [x] Xcode 껐다 켜고 빌드(새 파일 `DSToast.swift`·`ConsentSheet.swift`, 카탈로그는 파일로 고침 — 새 키 19개, 값 변경 2개, 안 쓰는 키 7개 삭제)
+- [ ] 기기 확인 — A·C 확인 완료(2026-11-17), **B와 마이 › 알림 남음**: A(코치마크 직후·업데이트 소식 닫은 직후, 「나중에」 → 7일 전엔 안 뜸) / B(실행 2회 이상, 좋아요 → 다음 곡, 「일주일 동안 안 보기」) / C(특집 5/5 넘김, 동의+권한 허용 계정) / 한 실행에 하나 / 딤 탭 무반응 / 토스트 위치(탭바 위 8)·3초 / 마이 › 알림 야간 토글·「먼저 동의」 토스트·설정 전 셀 무반응
 
 **기획 확인 대기(코드 막지 않음, 문구만 바뀔 수 있음):** 야간 시간 문구 「오전 8:00 ~ 오후9:00」(실제 21~08시) · 시트 동의 문구 · 주간 추천 곡 수 5 vs 최대 10 · 시트 버튼 색(설계서 brand / 원본 검정)
 

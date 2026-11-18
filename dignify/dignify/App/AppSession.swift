@@ -69,8 +69,18 @@ final class AppSession {
     /// 다른 쪽이 영영 안 뜨는 일이 없다.
     var didShowPermissionPopup = false
 
-    /// 광고성 동의·거부를 처리한 결과 통지 문구(제50조 7항). MainTabView가 확인 팝업으로 띄운다.
-    var consentNotice: String?
+    /// 처리 결과 토스트(동의·거부 결과 통지 제50조 7항, 저장 실패 등). MainTabView 한 곳에서 그린다.
+    var toast: DSToastItem?
+
+    /// 광고성 동의에 답한 적이 있는가 — 서버 `adPushConsentAt`이 있으면 true. 첫 실행 동의 팝업 조건(미응답)이다.
+    /// 기기 기록이 아니라 서버 값이라 재설치·기기 변경에도 다시 묻지 않는다. 실행마다 `/users/me`로 덮어쓴다.
+    var adPushAnswered = false
+    /// 야간 광고성 동의. nil = 미응답(야간 동의 팝업 조건). 마이 › 알림 토글도 이 값을 본다.
+    var adPushNight: Bool?
+    /// 이번 실행에 광고성 동의를 받았는가. 받은 실행엔 야간 동의를 묻지 않는다(다음 실행부터).
+    var acceptedAdPushThisLaunch = false
+    /// 업데이트 소식 시트가 떠 있는가. 첫 실행 동의 팝업은 이게 닫힌 직후에 뜬다(기존 유저).
+    var showingWhatsNew = false
 
     /// 픽 반응 푸시로 진입했음. 마이페이지가 읽고 디깅 프로필(= 내 픽 목록)로 밀어 올린다.
     /// **여기까지가 지금 페이로드로 갈 수 있는 최선이다** — 어느 픽인지가 안 실려 온다.
@@ -101,7 +111,10 @@ final class AppSession {
     // (로그인 실패가 인증 문제로 보이지만 실은 연결이 안 된 것). 시뮬레이터도 이 주소로 닿는다.
     // 네트워크가 바뀌면 갱신할 것: `ipconfig getifaddr en0`
     #if DEBUG
-    nonisolated static let baseURL = URL(string: "http://192.168.0.166:8080")!
+    // 2026-08-25: 1.1.0 제출 전 확인이라 디버그 빌드도 운영을 본다.
+    // 로컬 서버로 돌아갈 땐 아래 두 줄을 맞바꾼다.
+    // nonisolated static let baseURL = URL(string: "http://192.168.0.166:8080")!
+    nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
     #else
     nonisolated static let baseURL = URL(string: "https://dignify-backend-460750160818.us-central1.run.app")!
     #endif
@@ -135,32 +148,93 @@ final class AppSession {
     /// 실행마다 `/users/me`의 `adPushConsent`로 덮어쓴다(`refreshAuthState`) — 다른 기기·어드민에서 바뀐 것도 따라온다.
     static let adPushConsentKey = "adPushConsent"
 
-    /// 동의·거부를 서버에 올리고 결과를 통지한다. 실패하면 false — 통지도 안 띄운다(처리되지 않았으니).
+    /// 동의·거부를 서버에 올리고 결과를 토스트로 통지한다. 실패하면 실패 토스트 + false(처리되지 않았으니 결과 통지는 없다).
     @discardableResult
     func setAdPushConsent(_ adPush: Bool) async -> Bool {
-        guard let res = try? await api.send(.setAdPushConsent(adPush), as: API.AdPushConsent.self) else { return false }
-        UserDefaults.standard.set(res.adPush, forKey: Self.adPushConsentKey)
-        consentNotice = Self.consentNoticeText(adPush: res.adPush, processedAt: res.processedAt)
+        guard let res = try? await api.send(.setAdPushConsent(adPush), as: API.AdPushConsent.self) else {
+            showSaveFailedToast()
+            return false
+        }
+        applyAdPushConsent(res)
+        showConsentToast(adPush: res.adPush, processedAt: res.processedAt)
         return true
     }
 
-    /// 광고성 동의 + OS 알림 권한. 권한이 거부돼 있으면 시스템 팝업이 다시 안 뜨므로 설정 앱으로 보낸다.
-    /// OS 권한은 광고 수신 동의가 아니라서(KISA Q&A 02-03) 둘을 따로 처리한다.
-    @discardableResult
-    func acceptAdPush(source: String) async -> Bool {
-        let saved = await setAdPushConsent(true)
-        if await pushAuthorizationStatus() == .denied {
-            _ = await UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
-        } else {
-            requestPushAuthorization(source: source)
-        }
-        return saved
+    private func applyAdPushConsent(_ res: API.AdPushConsent) {
+        UserDefaults.standard.set(res.adPush, forKey: Self.adPushConsentKey)
+        adPushAnswered = true
+        // 서버가 광고성을 끄면 야간도 같이 끈다(야간이 true였을 때만 — null은 그대로).
+        if !res.adPush, adPushNight == true { adPushNight = false }
+        if res.adPush { acceptedAdPushThisLaunch = true }
     }
 
-    /// 「귀하가 요청하신 Dignify의 광고성 정보 [수신동의/수신거부]가 YYYY-MM-DD에 처리되었습니다.」
+    /// 「알림 받기」(첫 실행 팝업·좋아요 시트·설정 토글). 순서: 동의 저장 → 기기 권한이 「설정 전」이면 OS 팝업 → 결과 토스트.
+    /// OS 권한은 광고 수신 동의가 아니라서(KISA Q&A 02-03) 둘을 따로 처리한다.
+    /// 거부 상태여도 설정 앱을 열지 않는다 — 꺼져 있으면 마이 › 알림 「기기 알림 권한」에서 켠다.
+    /// 이미 동의한 유저(권한만 설정 전)는 다시 저장하지 않는다 — 동의일을 덮어쓰고 통지가 또 뜬다.
+    @discardableResult
+    func acceptAdPush(source: String) async -> Bool {
+        var saved: API.AdPushConsent?
+        if !UserDefaults.standard.bool(forKey: Self.adPushConsentKey) {
+            guard let res = try? await api.send(.setAdPushConsent(true), as: API.AdPushConsent.self) else {
+                showSaveFailedToast()
+                return false
+            }
+            applyAdPushConsent(res)
+            saved = res
+        }
+        if await pushAuthorizationStatus() == .notDetermined {
+            let granted = (try? await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+            PostHogSDK.shared.capture("push_permission_result", properties: ["granted": granted, "source": source])
+            if granted { UIApplication.shared.registerForRemoteNotifications() }
+        } else {
+            requestPushAuthorization(source: source, promptIfUndecided: false)
+        }
+        if let saved { showConsentToast(adPush: saved.adPush, processedAt: saved.processedAt) }
+        return true
+    }
+
+    enum NightConsentResult { case saved, failed, needsAdConsent }
+
+    /// 야간 광고성 동의. 광고성 동의 없이 켜면 서버가 409 `AD_PUSH_CONSENT_REQUIRED`.
+    /// 결과·실패 토스트는 여기서 띄우고, 「먼저 동의」 안내는 부르는 쪽이 정한다.
+    func setAdPushNightConsent(_ on: Bool) async -> NightConsentResult {
+        do {
+            let res = try await api.send(.setAdPushNightConsent(on), as: API.AdPushNightConsent.self)
+            adPushNight = res.nightPush
+            showConsentToast(adPush: res.nightPush, night: true, processedAt: res.processedAt)
+            return .saved
+        } catch APIError.server(let code, _, _) where code == "AD_PUSH_CONSENT_REQUIRED" {
+            return .needsAdConsent
+        } catch {
+            showSaveFailedToast()
+            return .failed
+        }
+    }
+
+    /// `/users/me` 응답의 동의 상태를 반영한다(실행마다 + 마이 진입). 옛 서버엔 필드가 없어 그때는 손대지 않는다.
+    func applyConsent(from profile: API.UserProfile) {
+        if let adPush = profile.adPushConsent {
+            UserDefaults.standard.set(adPush, forKey: Self.adPushConsentKey)
+            adPushAnswered = profile.adPushConsentAt != nil
+            adPushNight = profile.adPushNightConsent
+        }
+    }
+
+    func showConsentToast(adPush: Bool, night: Bool = false, processedAt: String) {
+        toast = DSToastItem(title: String(localized: "Notification settings saved"),
+                            message: Self.consentNoticeText(adPush: adPush, night: night, processedAt: processedAt))
+    }
+
+    func showSaveFailedToast() {
+        toast = DSToastItem(title: String(localized: "Couldn't save. Please try again."))
+    }
+
+    /// 「Dignify의 (야간) 광고성 정보를 YYYY-MM-DD에 동의했어요 / 거부했어요」(마침표 없음, 2026-11-17 확정).
     /// 날짜는 서버 처리 시각을 기기 시간대로 — 한국 0~9시 처리분이 UTC 날짜로 하루 밀리지 않게.
     /// 파싱이 안 되면 앞 10자(UTC 날짜)로 물러선다.
-    nonisolated static func consentNoticeText(adPush: Bool, processedAt: String) -> String {
+    nonisolated static func consentNoticeText(adPush: Bool, night: Bool = false, processedAt: String) -> String {
         let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let date = iso.date(from: processedAt)
@@ -169,9 +243,12 @@ final class AppSession {
         out.locale = Locale(identifier: "en_US_POSIX")
         out.dateFormat = "yyyy-MM-dd"
         let day = date.map(out.string(from:)) ?? String(processedAt.prefix(10))
-        return adPush
-            ? String(localized: "Dignify processed your opt-in to ad notifications on \(day).")
-            : String(localized: "Dignify processed your opt-out from ad notifications on \(day).")
+        switch (night, adPush) {
+        case (false, true): return String(localized: "You opted in to Dignify ad notifications on \(day)")
+        case (false, false): return String(localized: "You opted out of Dignify ad notifications on \(day)")
+        case (true, true): return String(localized: "You opted in to Dignify night-time ad notifications on \(day)")
+        case (true, false): return String(localized: "You opted out of Dignify night-time ad notifications on \(day)")
+        }
     }
 
     /// 아티스트 요청 직후, 그리고 PushOptInView에서 "알림 받기"를 누를 때 호출.
@@ -304,6 +381,8 @@ final class AppSession {
         for key in ["feedCursor", "recentSearches", Self.adPushConsentKey] {
             UserDefaults.standard.removeObject(forKey: key)
         }
+        adPushAnswered = false
+        adPushNight = nil
     }
 
     /// 디깅 성향을 바꾸고 피드를 처음부터 다시 받게 한다. 정렬 기준 자체가 바뀌어서
@@ -337,7 +416,7 @@ final class AppSession {
         authState = profile.isOnboardingComplete ? .signedIn : .onboardingRequired
         // 옛 서버는 이 필드를 안 내려준다. 그때는 지금 동작(켜짐)을 유지한다.
         diggingMode = profile.diggingMode ?? true
-        if let adPush = profile.adPushConsent { UserDefaults.standard.set(adPush, forKey: Self.adPushConsentKey) }
+        applyConsent(from: profile)
 
         // 실행마다 토큰을 다시 올린다. 서버의 app_build/time_zone은 이 등록 요청의 부산물이라,
         // 여기서 안 올리면 하입이나 아티스트 요청을 하기 전까지 옛날 빌드·옛날 타임존으로 남고
