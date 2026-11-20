@@ -8,29 +8,36 @@ struct ConsentSheet: View {
     let artworkURL: URL?
     let onAccept: () -> Void
     let onMute: () -> Void
+    /// 우측 상단 X. 닫기만 한다(QA #6).
+    let onClose: () -> Void
 
     /// ponytail: 콘텐츠가 고정이라 높이를 계산해 상수로 준다(실측 detent는 `.large`로 눌러앉는다).
     /// 24 + 제목 58 + 12 + 설명 21 + 24 + 미리보기 120 + 10 + 동의 문구 16 + 8 + 버튼 50 + 12 + 34 + 여유 13.
     /// 글자 크기를 키우면 아래가 잘릴 수 있다 — 그때는 실측으로.
     static let height: CGFloat = 402
 
-    private var title: AttributedString {
-        let text = String(localized: "New music from \(artist)\nBe the first to know!")
-        var styled = AttributedString(text)
-        // 첫 줄(「(아티스트) 신곡」)만 brand.
-        if let firstLine = text.split(separator: "\n").first, let range = styled.range(of: String(firstLine)) {
-            styled[range].foregroundColor = DSColor.brand
-        }
-        return styled
+    /// 제목 두 줄. 첫 줄(「(아티스트) 신곡」, brand)이 한 줄에 안 들어가면 「좋아요한 아티스트의 신곡」으로 바꾼다(QA #5).
+    private var titleLines: (artist: String, generic: String, rest: String) {
+        let full = String(localized: "New music from \(artist)\nBe the first to know!").split(separator: "\n", maxSplits: 1)
+        let generic = String(localized: "New music from artists you like\nBe the first to know!").split(separator: "\n", maxSplits: 1)
+        return (String(full.first ?? ""), String(generic.first ?? ""), String(full.dropFirst().first ?? ""))
     }
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 12) {
-                Text(title)
-                    .font(DSTypography.title1)
-                    .foregroundStyle(DSColor.textPrimary)
-                    .lineSpacing(24 * 0.2)
+                VStack(spacing: 24 * 0.2) {
+                    // 좌우 52 = X 버튼(44 + 8)을 비켜 가운데 정렬을 유지한다.
+                    ViewThatFits(in: .horizontal) {
+                        Text(titleLines.artist).lineLimit(1)
+                        Text(titleLines.generic).lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .foregroundStyle(DSColor.brand)
+                    .padding(.horizontal, 36)
+                    Text(titleLines.rest)
+                        .foregroundStyle(DSColor.textPrimary)
+                }
+                .font(DSTypography.title1)
                 Text("To get updates, turn on **Settings > Notifications**.")
                     .font(DSTypography.bodySmall)
                     .foregroundStyle(DSColor.textSecondary)
@@ -71,6 +78,19 @@ struct ConsentSheet: View {
         }
         .frame(maxHeight: .infinity, alignment: .top)
         .background(DSColor.background)
+        .overlay(alignment: .topTrailing) {
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(DSColor.textSecondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+            .padding(.top, 8)
+            .padding(.trailing, 8)
+        }
     }
 }
 
@@ -139,6 +159,6 @@ private struct NotificationPreview: View {
 }
 
 #Preview {
-    ConsentSheet(artist: "혁오", artworkURL: nil, onAccept: {}, onMute: {})
+    ConsentSheet(artist: "혁오", artworkURL: nil, onAccept: {}, onMute: {}, onClose: {})
         .frame(height: ConsentSheet.height)
 }

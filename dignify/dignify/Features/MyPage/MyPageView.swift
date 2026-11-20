@@ -61,6 +61,11 @@ struct MyPageView: View {
                     }
             }
         }
+        // 네비바를 숨겨 상태바 뒤가 비었다 — 스크롤한 내용이 비쳐 보이지 않게 지면색으로 막는다(QA #3).
+        // 높이 0 뷰의 배경이 위쪽 safe area(상태바)까지 번진다.
+        .safeAreaInset(edge: .top, spacing: 0) {
+            Color.clear.frame(height: 0).background(DSColor.background)
+        }
         .background(DSColor.background)
         // 제목은 밀어 넣은 화면의 뒤로 버튼 이름으로만 쓴다.
         .navigationTitle("My Page")

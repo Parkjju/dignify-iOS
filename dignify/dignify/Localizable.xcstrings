@@ -1772,6 +1772,23 @@
         }
       }
     },
+    "New music from artists you like\nBe the first to know!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "좋아요한 아티스트의 신곡\n소식을 받아보세요!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New from artists you like\nGet notified when they drop"
+          }
+        }
+      }
+    },
     "New pick" : {
       "extractionState" : "manual",
       "localizations" : {

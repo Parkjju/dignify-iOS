@@ -186,10 +186,7 @@ final class AppSession {
         }
         let status = await pushAuthorizationStatus()
         if status == .notDetermined {
-            let granted = (try? await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound, .badge])) ?? false
-            PostHogSDK.shared.capture("push_permission_result", properties: ["granted": granted, "source": source])
-            if granted { UIApplication.shared.registerForRemoteNotifications() }
+            _ = await promptPushAuthorization(source: source)
         } else if status == .denied {
             // 기획 0-5: OS 거부 + 동의 → 「설정에서 알림 켜기」 안내. 결과 토스트는 아래에서 같이 뜬다.
             pushSettingsGuideSource = source
@@ -199,6 +196,15 @@ final class AppSession {
         }
         if let saved { showConsentToast(adPush: saved.adPush, processedAt: saved.processedAt) }
         return true
+    }
+
+    /// 시스템 알림 권한 팝업. 「설정 전」일 때만 부를 것(정한 뒤엔 팝업 없이 지금 값이 온다). 허용이면 APNs 등록까지.
+    func promptPushAuthorization(source: String) async -> Bool {
+        let granted = (try? await UNUserNotificationCenter.current()
+            .requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        PostHogSDK.shared.capture("push_permission_result", properties: ["granted": granted, "source": source])
+        if granted { UIApplication.shared.registerForRemoteNotifications() }
+        return granted
     }
 
     enum NightConsentResult { case saved, failed, needsAdConsent }

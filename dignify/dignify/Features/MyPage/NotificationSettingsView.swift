@@ -24,9 +24,16 @@ struct NotificationSettingsView: View {
             Divider().padding(.horizontal, 20).padding(.vertical, 12)
 
             // 정한 뒤엔 시스템 팝업이 다시 안 뜨니 설정 앱의 이 앱 알림 화면으로 보낸다.
-            // 「설정 전」이면 아무 동작 없다(2026-11-17 확정) — 시스템 팝업은 동의 팝업·시트에서만 띄운다.
+            // 「설정 전」이면 시스템 팝업(QA #10, 2026-11-19). 권한을 한 번도 요청하지 않은 앱은
+            // 설정 앱에 알림 메뉴가 아예 없어서 설정으로 보낼 수 없다.
             Button {
-                guard status != .notDetermined else { return }
+                guard status != .notDetermined else {
+                    Task {
+                        _ = await session.promptPushAuthorization(source: "settings")
+                        status = await session.pushAuthorizationStatus()
+                    }
+                    return
+                }
                 UIApplication.shared.open(URL(string: UIApplication.openNotificationSettingsURLString)!)
             } label: {
                 HStack {
@@ -77,11 +84,17 @@ struct NotificationSettingsView: View {
     }
 
     /// 서버가 받은 뒤에만 토글이 바뀐다 — 동의는 처리 결과를 통지해야 하는 기록이라 낙관적으로 먼저 바꾸지 않는다.
-    /// 결과·실패 토스트는 `AppSession`이 띄운다. 켤 때 OS 권한이 설정 전이면 시스템 팝업도 띄운다(`acceptAdPush`).
+    /// 결과·실패 토스트는 `AppSession`이 띄운다.
+    /// 켤 때 OS 권한이 설정 전이면 시스템 팝업**만** 먼저 띄우고, 허용해야 동의를 저장한다 — 거부하면 저장도 토스트도 없이 꺼진 채(QA #9).
     private func changeAdPush(_ on: Bool) {
         saving = true
-        PostHogSDK.shared.capture(on ? "ad_consent_accepted" : "ad_consent_declined", properties: ["source": "settings"])
         Task {
+            if on, status == .notDetermined, !(await session.promptPushAuthorization(source: "settings")) {
+                status = await session.pushAuthorizationStatus()
+                saving = false
+                return
+            }
+            PostHogSDK.shared.capture(on ? "ad_consent_accepted" : "ad_consent_declined", properties: ["source": "settings"])
             _ = on ? await session.acceptAdPush(source: "settings") : await session.setAdPushConsent(false)
             saving = false
             status = await session.pushAuthorizationStatus()

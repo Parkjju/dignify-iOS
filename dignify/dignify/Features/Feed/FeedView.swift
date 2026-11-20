@@ -68,8 +68,7 @@ struct FeedView: View {
     @AppStorage(AppDelegate.launchCountKey) private var launchCount = 0
     /// 좋아요 시점 신곡 알림 시트의 「일주일 동안 안 보기」를 누른 시각. 7일 뒤 같은 동작에서 다시 뜬다.
     @AppStorage("hypeOfferMutedAt") private var hypeOfferMutedAt = 0.0
-    /// 좋아요가 서버에 반영된 뒤 다음 카드로 넘어가면 띄울 시트. 좋아요 모션과 겹치지 않게 미룬다.
-    @State private var pendingHypeOffer: HypeOffer?
+    /// 좋아요가 서버에 반영되면 바로 띄우는 시트(QA #4 — 다음 곡으로 넘길 때까지 미루지 않는다).
     @State private var hypeOffer: HypeOffer?
     /// 야간 광고성 동의 팝업. 이번 주 특집 마지막 곡을 넘긴 직후.
     @State private var showNightConsent = false
@@ -198,8 +197,8 @@ struct FeedView: View {
     /// 이 뷰가 지금 화면을 갖고 있는가. 픽 모드는 fullScreenCover라 떠 있는 동안 항상 참이고,
     /// 그동안 selectedTab은 .picks라 밑에 깔린 일반 피드는 알아서 멈춰 있다.
     private var isOnScreen: Bool {
-        // 위에 소리를 내는 커버가 떠 있으면 화면을 가진 게 아니다.
-        if session.modalAudioActive { return false }
+        // 위에 소리를 내는 커버가 떠 있으면 화면을 가진 게 아니다. 업데이트 소식 시트도 — 닫은 뒤에 재생한다(QA #1).
+        if session.modalAudioActive || session.showingWhatsNew { return false }
         if case .pick = mode { return true }
         return session.selectedTab == .feed
     }
@@ -413,9 +412,18 @@ struct FeedView: View {
             // 앱이 떠 있는 채로 알림을 탭한 경우. .task는 이미 끝났으므로 여기서 다시 받아야
             // 그 알림의 곡이 앞으로 온다(대기 항목은 prefix()가 비운다). 나중 탭이 앞 구간을 덮어쓴다.
             // 포그라운드 수신(`willPresent`)은 여기 안 온다 — 배너를 눌러야 온다.
-            // 기존 유저의 첫 실행 동의 팝업은 업데이트 소식 시트를 닫은 직후에 뜬다.
+            // 업데이트 소식 시트가 떠 있는 동안은 재생하지 않고, 닫히면 그때 재생한다.
+            // 기존 유저의 첫 실행 동의 팝업도 닫은 직후에 뜬다.
             .onChange(of: session.showingWhatsNew) { _, showing in
-                if !showing { offerAdConsentIfNeeded() }
+                if showing {
+                    audio.stop()
+                    return
+                }
+                if isOnScreen {
+                    audio.updateWindow(feeds: feedList, current: currentIndex)
+                    logTrackViewed()   // 시트 아래서 첫 곡은 노출을 건너뛰었다(lastViewedTrackId가 중복을 거른다).
+                }
+                offerAdConsentIfNeeded()
             }
             .onChange(of: session.pendingPushOpen) { _, pending in
                 guard mode == .normal, pending != nil else { return }
@@ -710,6 +718,11 @@ struct FeedView: View {
                     PostHogSDK.shared.capture("push_optin_declined", properties: ["source": "hype"])
                     PostHogSDK.shared.capture("ad_consent_declined", properties: ["source": "hype"])
                     hypeOfferMutedAt = Date().timeIntervalSince1970
+                    hypeOffer = nil
+                },
+                onClose: {
+                    // X는 닫기만 — 7일 기록도 이번 실행 기록도 안 남겨, 다음 좋아요에 다시 뜬다(QA #6).
+                    session.didShowPermissionPopup = false
                     hypeOffer = nil
                 }
             )
@@ -1227,28 +1240,22 @@ struct FeedView: View {
         }
     }
 
-    /// B. 좋아요가 서버에 반영된 직후. 띄우는 건 다음 카드로 넘어간 뒤다(`onChange(of: currentIndex)`).
-    /// 픽 재생·잠금화면 좋아요(백그라운드)·코치마크·첫 실행은 빼고, 시스템 권한을 아직 안 정한 유저에게만.
-    private func queueHypeOffer(trackId: Int) {
+    /// B. 좋아요가 서버에 반영된 직후 바로 띄운다(QA #4).
+    /// 픽 재생·잠금화면 좋아요(백그라운드)·코치마크·첫 실행은 빼고, **광고성 동의가 꺼진 유저에게만**(QA #7, 2026-11-19 —
+    /// 정본의 「기기 권한 설정 전」에서 바꿨다. 마이에서 끈 유저도 다시 묻는다). 기기 권한이 거부면 「알림 받기」 뒤
+    /// `acceptAdPush`가 「설정 열기」 안내를 띄운다.
+    private func offerHypePushIfNeeded(trackId: Int) {
         guard mode == .normal, session.authState == .signedIn, seenFeedCoach, launchCount >= 2,
-              !audio.isBackground, !session.didShowPermissionPopup,
+              !audio.isBackground, !UserDefaults.standard.bool(forKey: AppSession.adPushConsentKey),
               FeedView.isPastCooldown(hypeOfferMutedAt),
+              !session.didShowPermissionPopup, !session.pendingSignIn, !session.showingWhatsNew, !showsCoach,
+              detailTarget == nil, shareItem == nil,
               let feed = feedList.first(where: { $0.trackId == trackId })
         else { return }
-        Task {
-            guard await session.pushAuthorizationUndecided() else { return }
-            pendingHypeOffer = HypeOffer(artist: feed.artistName, artworkURL: feed.artworkURL(size: 100))
-        }
-    }
-
-    private func offerHypePush(_ offer: HypeOffer) {
-        // 넘기는 사이 다른 게 떴으면 이번엔 건너뛴다. 기록을 안 남기니 다음 좋아요에 다시 기회가 있다.
-        guard !session.didShowPermissionPopup, !session.pendingSignIn, !session.showingWhatsNew, !showsCoach,
-              detailTarget == nil, shareItem == nil else { return }
         session.didShowPermissionPopup = true
         PostHogSDK.shared.capture("push_optin_shown", properties: ["source": "hype"])
         PostHogSDK.shared.capture("ad_consent_shown", properties: ["source": "hype"])
-        hypeOffer = offer
+        hypeOffer = HypeOffer(artist: feed.artistName, artworkURL: feed.artworkURL(size: 100))
     }
 
     /// C. 야간 광고성 동의. 이번 주 특집 마지막 곡을 넘긴 직후, 다음 곡 위에.
@@ -1303,10 +1310,6 @@ struct FeedView: View {
         countRelatedSkip(from: old, to: new)
         prefetchArtwork(from: currentIndex)
         logTrackViewed()
-        if let offer = pendingHypeOffer {
-            pendingHypeOffer = nil
-            offerHypePush(offer)
-        }
         // 이번 주 특집 마지막 곡(n/n)을 넘긴 직후.
         if prefixSource == "curation", prefixCount > 0, old == prefixCount - 1, new == prefixCount {
             offerNightConsentIfNeeded()
@@ -1427,7 +1430,7 @@ struct FeedView: View {
             }
             session.hypeChangeToken += 1   // 디깅 프로필 통계가 다시 받아간다.
             guard target else { return }
-            queueHypeOffer(trackId: trackId)
+            offerHypePushIfNeeded(trackId: trackId)
             // 신곡 구간에선 기준 곡이 바뀐 것이라 연관 곡을 다시 짠다. 평소 피드 재정렬은 구간을 다 지난 뒤에.
             if prefixSource == "new_release", currentIndex < prefixCount {
                 await loadRelated()
